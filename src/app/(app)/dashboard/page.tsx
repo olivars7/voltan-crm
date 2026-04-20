@@ -11,6 +11,7 @@ import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { isBefore, parseISO, subMonths, startOfMonth, endOfMonth, format, isWithinInterval } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useEffect, useState } from 'react';
 
 type TimelineItem = {
   date: Date;
@@ -23,10 +24,16 @@ export default function DashboardPage() {
   const { clientes, getClienteById } = useClientes();
   const { citas } = useCitas();
   const { pagos } = usePagos();
+  const [now, setNow] = useState<Date | null>(null);
+
+  useEffect(() => {
+    // This runs only on the client, after hydration
+    setNow(new Date());
+  }, []);
 
   const activeClients = clientes.filter((c) => c.estado === 'activo').length;
   const pendingAppointments = citas.filter((c) => c.estado === 'pendiente').length;
-  const pendingPayments = pagos.filter((p) => p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), new Date()));
+  const pendingPayments = now ? pagos.filter((p) => p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), now)) : [];
   const totalPendingAmount = pendingPayments.reduce((sum, p) => sum + p.monto, 0);
 
   // General Console Data
@@ -68,8 +75,7 @@ export default function DashboardPage() {
   const sortedTimeline = timelineItems.sort((a,b) => a.date.getTime() - b.date.getTime());
 
   // Statistics Data
-  const now = new Date();
-  const last4Months = Array.from({ length: 4 }).map((_, i) => subMonths(now, 3 - i));
+  const last4Months = now ? Array.from({ length: 4 }).map((_, i) => subMonths(now, 3 - i)) : [];
   
   const monthlyRevenue = last4Months.map(monthDate => {
     const monthStart = startOfMonth(monthDate);
@@ -179,7 +185,7 @@ export default function DashboardPage() {
                                     {item.type === 'entrega' && `Entrega: ${item.data.nombre}`}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
-                                    <span className={isBefore(item.date, new Date()) ? 'text-status-danger font-medium' : ''}>
+                                    <span className={now && isBefore(item.date, now) ? 'text-status-danger font-medium' : ''}>
                                       {formatDate(item.date, "d MMM, yyyy")}
                                     </span>
                                     {' • '}
