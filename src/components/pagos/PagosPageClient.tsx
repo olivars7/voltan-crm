@@ -25,7 +25,7 @@ import { formatCurrency, formatDate } from '@/lib/utils';
 import type { Pago, Cliente } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
-import { isBefore, parseISO } from 'date-fns';
+import { isBefore, parseISO, addMonths } from 'date-fns';
 
 const formSchema = z.object({
   clienteId: z.string().min(1),
@@ -36,13 +36,15 @@ const formSchema = z.object({
 
 export function PagosPageClient() {
   const { pagos, addPago, updatePago } = usePagos();
-  const { clientes, getClienteById } = useClientes();
+  const { clientes, getClienteById, updateCliente: updateClienteData } = useClientes();
   const [isFormOpen, setFormOpen] = React.useState(false);
   const [isPagoDetailOpen, setPagoDetailOpen] = React.useState(false);
   const [isClienteDetailOpen, setClienteDetailOpen] = React.useState(false);
+  const [isClienteFormOpen, setClienteFormOpen] = React.useState(false);
 
   const [selectedPago, setSelectedPago] = React.useState<Pago | undefined>(undefined);
   const [selectedCliente, setSelectedCliente] = React.useState<Cliente | undefined>(undefined);
+  const [editingCliente, setEditingCliente] = React.useState<Cliente | undefined>(undefined);
   
   const { toast } = useToast();
   const [now, setNow] = React.useState<Date | null>(null);
@@ -57,20 +59,46 @@ export function PagosPageClient() {
     setFormOpen(false);
   };
   
+  const handleEditClienteSubmit = (values: any) => {
+    if (editingCliente) {
+      const updatedData = { ...editingCliente, ...values };
+      updateClienteData(updatedData);
+      toast({ title: "Cliente actualizado", description: "Los datos del cliente han sido actualizados." });
+      if (selectedCliente?.id === updatedData.id) {
+        setSelectedCliente(updatedData);
+      }
+      setClienteFormOpen(false);
+      setEditingCliente(undefined);
+    }
+  };
+
   const markAsPaid = (pago: Pago) => {
     updatePago({ ...pago, estado: 'pagado', fechaPago: new Date().toISOString() });
     toast({ title: "Pago actualizado", description: "El pago ha sido marcado como pagado." });
-    setPagoDetailOpen(false);
+    if(selectedPago?.id === pago.id) {
+      setSelectedPago({ ...pago, estado: 'pagado', fechaPago: new Date().toISOString() });
+    }
   }
 
   const markAsPending = (pago: Pago) => {
     const { fechaPago, ...rest } = pago;
     updatePago({ ...rest, estado: 'pendiente' });
     toast({ title: "Pago actualizado", description: "El pago ha sido marcado como pendiente." });
-    setPagoDetailOpen(false);
+     if(selectedPago?.id === pago.id) {
+      const { fechaPago, ...restSelected } = selectedPago;
+      setSelectedPago({ ...restSelected, estado: 'pendiente' });
+    }
   }
   
   const handleOpenPagoDetail = (pago: Pago) => {
+     if (pago.id.startsWith('recurring-')) {
+        toast({
+            title: "Pago Recurrente",
+            description: "Este es un pago recurrente autogenerado. Para gestionarlo, edita el expediente del cliente.",
+            variant: "default",
+        });
+        return;
+    }
     setSelectedPago(pago);
     setPagoDetailOpen(true);
   }
@@ -81,6 +109,7 @@ export function PagosPageClient() {
     } else {
       markAsPending(pago);
     }
+    setPagoDetailOpen(false);
   }
   
   const handleOpenCliente = (clienteId: string) => {
@@ -92,7 +121,48 @@ export function PagosPageClient() {
     }
   }
 
-  const pagosProximos = now ? pagos.filter(p => p.estado === 'pendiente' && !isBefore(parseISO(p.fechaLimite), now)) : [];
+  const handleOpenEditCliente = (cliente: Cliente) => {
+    setEditingCliente(cliente);
+    setClienteDetailOpen(false);
+    setClienteFormOpen(true);
+  }
+
+  const pagosProximos = React.useMemo(() => {
+    if (!now) return [];
+    
+    const proximos: Pago[] = [];
+
+    pagos.forEach(p => {
+        if (p.estado === 'pendiente' && !isBefore(parseISO(p.fechaLimite), now)) {
+            proximos.push(p);
+        }
+    });
+
+    clientes.forEach(cl => {
+        if (cl.diaDePago && cl.montoRecurrente) {
+            const paymentDay = cl.diaDePago;
+            let nextPaymentDate = new Date(now.getFullYear(), now.getMonth(), paymentDay);
+
+            if (isBefore(nextPaymentDate, now)) {
+                nextPaymentDate = addMonths(nextPaymentDate, 1);
+            }
+            
+            const syntheticPago: Pago = {
+                id: `recurring-${cl.id}-${nextPaymentDate.toISOString()}`,
+                clienteId: cl.id,
+                monto: cl.montoRecurrente,
+                fechaLimite: nextPaymentDate.toISOString(),
+                estado: 'pendiente',
+                notas: 'Pago recurrente',
+            };
+            proximos.push(syntheticPago);
+        }
+    });
+
+    return proximos.sort((a,b) => parseISO(a.fechaLimite).getTime() - parseISO(b.fechaLimite).getTime());
+  }, [pagos, clientes, now]);
+
+
   const pagosVencidos = now ? pagos.filter(p => p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), now)) : [];
   const historialPagos = pagos.filter(p => p.estado === 'pagado');
   
@@ -139,13 +209,13 @@ export function PagosPageClient() {
         <TabsList>
           <TabsTrigger value="proximos">Próximos ({pagosProximos.length})</TabsTrigger>
           <TabsTrigger value="pendientes">Vencidos ({pagosVencidos.length})</TabsTrigger>
-          <TabsTrigger value="historial">Historial</TabsTrigger>
+          <TabsTrigger value="historial">Historial ({historialPagos.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="proximos">
             <Card>
                 <CardHeader>
                     <CardTitle>Pagos Próximos</CardTitle>
-                    <CardDescription>Pagos programados que aún no han vencido.</CardDescription>
+                    <CardDescription>Pagos programados y recurrentes que aún no han vencido.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <PagosTable data={pagosProximos} isPending />
@@ -193,7 +263,15 @@ export function PagosPageClient() {
       </Dialog>
       
       <Dialog open={isClienteDetailOpen} onOpenChange={setClienteDetailOpen}>
-        {selectedCliente && <ClienteDetail cliente={selectedCliente} onEditRequest={() => {}} />}
+        {selectedCliente && <ClienteDetail cliente={selectedCliente} onEditRequest={() => handleOpenEditCliente(selectedCliente)} />}
+      </Dialog>
+
+      <Dialog open={isClienteFormOpen} onOpenChange={setClienteFormOpen}>
+        <ClienteForm 
+            cliente={editingCliente} 
+            onSubmit={handleEditClienteSubmit} 
+            setOpen={setClienteFormOpen}
+        />
       </Dialog>
     </>
   );

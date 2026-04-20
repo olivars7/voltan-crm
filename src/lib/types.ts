@@ -7,6 +7,7 @@ export type Cliente = {
   fechaInicio: string;
   estado: 'activo' | 'inactivo';
   diaDePago?: number;
+  montoRecurrente?: number;
   proyecto?: Proyecto;
 };
 

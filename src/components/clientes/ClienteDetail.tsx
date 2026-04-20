@@ -71,12 +71,6 @@ export function ClienteDetail({ cliente, onEditRequest }: ClienteDetailProps) {
                         <Phone className="w-4 h-4 text-muted-foreground" />
                         <span>{cliente.telefono}</span>
                     </div>
-                    {cliente.diaDePago && (
-                        <div className="flex items-center gap-2">
-                            <CalendarDays className="w-4 h-4 text-muted-foreground" />
-                            <span>Día de pago: {cliente.diaDePago} de cada mes</span>
-                        </div>
-                    )}
                 </div>
                  <div className="text-sm text-muted-foreground mt-4">
                     <span>Cliente desde: </span>
@@ -84,6 +78,32 @@ export function ClienteDetail({ cliente, onEditRequest }: ClienteDetailProps) {
                 </div>
             </div>
         </div>
+        
+        {/* Recurring Payment Details */}
+        {(cliente.diaDePago || cliente.montoRecurrente) && (
+            <Card className="bg-muted/50">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                        <CalendarDays className="w-5 h-5" />
+                        Pagos Recurrentes
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-4 md:grid-cols-2">
+                    {cliente.diaDePago && (
+                         <div className="space-y-1">
+                            <p className="font-semibold">Día de Pago Mensual</p>
+                            <p className="text-sm text-muted-foreground">El día {cliente.diaDePago} de cada mes</p>
+                        </div>
+                    )}
+                    {cliente.montoRecurrente && (
+                        <div className="space-y-1">
+                            <p className="font-semibold">Monto Recurrente</p>
+                            <p className="text-sm text-muted-foreground">{formatCurrency(cliente.montoRecurrente)}</p>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        )}
 
         {/* Project Details */}
         {cliente.proyecto && (

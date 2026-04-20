@@ -13,6 +13,7 @@ export const mockClientes: Cliente[] = [
     fechaInicio: formatISO(subDays(today, 90)),
     estado: 'activo',
     diaDePago: 15,
+    montoRecurrente: 5000,
     proyecto: {
         nombre: 'Desarrollo de App Móvil',
         descripcion: 'App para iOS y Android para gestión de inventario.',
@@ -29,6 +30,7 @@ export const mockClientes: Cliente[] = [
     fechaInicio: formatISO(subDays(today, 120)),
     estado: 'activo',
     diaDePago: 1,
+    montoRecurrente: 7500,
     proyecto: {
         nombre: 'Migración a la Nube',
         descripcion: 'Mover infraestructura de servidores on-premise a AWS.',
@@ -68,6 +70,7 @@ export const mockClientes: Cliente[] = [
     email: 'laura.gomez@creativeminds.io',
     fechaInicio: formatISO(subDays(today, 30)),
     estado: 'activo',
+    diaDePago: 20,
     proyecto: {
         nombre: 'Campaña de Marketing Digital',
         descripcion: 'Estrategia para redes sociales y SEM.',
