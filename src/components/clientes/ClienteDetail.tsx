@@ -12,6 +12,7 @@ import { Briefcase, Mail, Phone, Calendar as CalendarIcon, DollarSign, Clipboard
 import { StatusBadge } from '../shared/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Button } from '@/components/ui/button';
+import { isBefore, parseISO } from 'date-fns';
 
 interface ClienteDetailProps {
   cliente: Cliente;
@@ -27,7 +28,7 @@ export function ClienteDetail({ cliente, onCitaClick, onEditRequest }: ClienteDe
   const pagos = getPagosByClienteId(cliente.id);
 
   const totalAdeudo = pagos
-    .filter(p => p.estado === 'pendiente')
+    .filter(p => p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), new Date()))
     .reduce((sum, p) => sum + p.monto, 0);
 
   const getInitials = (name: string) => {
@@ -37,13 +38,7 @@ export function ClienteDetail({ cliente, onCitaClick, onEditRequest }: ClienteDe
   return (
     <DialogContent className="sm:max-w-4xl max-h-[90vh]">
       <DialogHeader>
-        <div className="flex justify-between items-start">
-            <DialogTitle>Expediente del Cliente</DialogTitle>
-            <Button variant="outline" size="icon" onClick={onEditRequest}>
-                <Pencil className="h-4 w-4" />
-                <span className="sr-only">Editar Cliente</span>
-            </Button>
-        </div>
+        <DialogTitle>Expediente del Cliente</DialogTitle>
       </DialogHeader>
       <div className="grid gap-6 py-4 overflow-y-auto pr-4">
         {/* Header Section */}
@@ -53,7 +48,7 @@ export function ClienteDetail({ cliente, onCitaClick, onEditRequest }: ClienteDe
                 <AvatarFallback>{getInitials(cliente.nombre)}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start justify-between">
                     <div>
                         <h2 className="text-2xl font-bold flex items-center gap-2">
                             {cliente.nombre}
@@ -64,11 +59,12 @@ export function ClienteDetail({ cliente, onCitaClick, onEditRequest }: ClienteDe
                             {cliente.empresa}
                         </p>
                     </div>
-                    <div className="text-sm text-muted-foreground mt-2 sm:mt-0 sm:text-right">
-                        <span>Cliente desde</span>
-                        <p className="font-medium">{formatDate(cliente.fechaInicio)}</p>
-                    </div>
+                    <Button variant="outline" size="icon" onClick={onEditRequest}>
+                        <Pencil className="h-4 w-4" />
+                        <span className="sr-only">Editar Cliente</span>
+                    </Button>
                 </div>
+                
                 <Separator className="my-4" />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div className="flex items-center gap-2">
@@ -85,6 +81,10 @@ export function ClienteDetail({ cliente, onCitaClick, onEditRequest }: ClienteDe
                             <span>Día de pago: {cliente.diaDePago} de cada mes</span>
                         </div>
                     )}
+                </div>
+                 <div className="text-sm text-muted-foreground mt-4">
+                    <span>Cliente desde: </span>
+                    <span className="font-medium">{formatDate(cliente.fechaInicio)}</span>
                 </div>
             </div>
         </div>
