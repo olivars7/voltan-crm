@@ -23,12 +23,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   Dialog,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { ClienteForm } from './ClienteForm';
+import { ClienteDetail } from './ClienteDetail';
+import { CitaDetail } from '../citas/CitaDetail';
 import { formatDate } from '@/lib/utils';
-import type { Cliente } from '@/lib/types';
+import type { Cliente, Cita } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 
@@ -41,31 +42,64 @@ const formSchema = z.object({
 
 export function ClientesPageClient() {
   const { clientes, addCliente, updateCliente } = useClientes();
-  const [isDialogOpen, setDialogOpen] = React.useState(false);
+  const [isFormOpen, setFormOpen] = React.useState(false);
+  const [isDetailOpen, setDetailOpen] = React.useState(false);
+  const [isCitaDetailOpen, setCitaDetailOpen] = React.useState(false);
+
+  const [selectedCliente, setSelectedCliente] = React.useState<Cliente | undefined>(undefined);
+  const [selectedCita, setSelectedCita] = React.useState<Cita | undefined>(undefined);
   const [editingCliente, setEditingCliente] = React.useState<Cliente | undefined>(undefined);
   const { toast } = useToast();
 
   const handleAddSubmit = (values: z.infer<typeof formSchema>) => {
     addCliente(values);
     toast({ title: "Cliente añadido", description: "El nuevo cliente ha sido guardado." });
+    setFormOpen(false);
   };
 
   const handleEditSubmit = (values: z.infer<typeof formSchema>) => {
     if (editingCliente) {
       updateCliente({ ...editingCliente, ...values });
       toast({ title: "Cliente actualizado", description: "Los datos del cliente han sido actualizados." });
+      setFormOpen(false);
+      setEditingCliente(undefined);
     }
   };
   
   const openEditDialog = (cliente: Cliente) => {
     setEditingCliente(cliente);
-    setDialogOpen(true);
+    setDetailOpen(false);
+    setCitaDetailOpen(false);
+    setFormOpen(true);
   }
 
   const openNewDialog = () => {
     setEditingCliente(undefined);
-    setDialogOpen(true);
+    setFormOpen(true);
   }
+
+  const openDetailDialog = (cliente: Cliente) => {
+    setSelectedCliente(cliente);
+    setFormOpen(false);
+    setCitaDetailOpen(false);
+    setDetailOpen(true);
+  }
+  
+  const handleCitaClick = (cita: Cita) => {
+    setSelectedCita(cita);
+    setDetailOpen(false);
+    setCitaDetailOpen(true);
+  }
+
+  const handleOpenClienteFromCita = (clienteId: string) => {
+      const cliente = clientes.find(c => c.id === clienteId);
+      if (cliente) {
+        setSelectedCliente(cliente);
+        setCitaDetailOpen(false);
+        setDetailOpen(true);
+      }
+  }
+
 
   return (
     <>
@@ -99,7 +133,7 @@ export function ClientesPageClient() {
             </TableHeader>
             <TableBody>
               {clientes.map((cliente) => (
-                <TableRow key={cliente.id}>
+                <TableRow key={cliente.id} onClick={() => openDetailDialog(cliente)} className="cursor-pointer">
                   <TableCell className="font-medium">{cliente.nombre}</TableCell>
                   <TableCell className="hidden md:table-cell">{cliente.empresa}</TableCell>
                   <TableCell>{cliente.email}</TableCell>
@@ -107,7 +141,7 @@ export function ClientesPageClient() {
                   <TableCell>
                     <StatusBadge status={cliente.estado} />
                   </TableCell>
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -118,6 +152,7 @@ export function ClientesPageClient() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                         <DropdownMenuItem onSelect={() => openEditDialog(cliente)}>Editar</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => openDetailDialog(cliente)}>Ver detalles</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -128,12 +163,20 @@ export function ClientesPageClient() {
         </CardContent>
       </Card>
       
-      <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={isFormOpen} onOpenChange={setFormOpen}>
         <ClienteForm 
             cliente={editingCliente} 
             onSubmit={editingCliente ? handleEditSubmit : handleAddSubmit} 
-            setOpen={setDialogOpen}
+            setOpen={setFormOpen}
         />
+      </Dialog>
+
+      <Dialog open={isDetailOpen} onOpenChange={setDetailOpen}>
+        {selectedCliente && <ClienteDetail cliente={selectedCliente} onCitaClick={handleCitaClick} />}
+      </Dialog>
+      
+      <Dialog open={isCitaDetailOpen} onOpenChange={setCitaDetailOpen}>
+        {selectedCita && <CitaDetail cita={selectedCita} onOpenCliente={handleOpenClienteFromCita} />}
       </Dialog>
     </>
   );
