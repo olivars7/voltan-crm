@@ -21,6 +21,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { PagoForm } from './PagoForm';
 import { PagoDetail } from './PagoDetail';
 import { ClienteDetail } from '../clientes/ClienteDetail';
+import { ClienteForm } from '../clientes/ClienteForm';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import type { Pago, Cliente } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
