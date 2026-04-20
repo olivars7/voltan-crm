@@ -26,13 +26,13 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed inset-y-4 left-4 z-10 hidden w-16 flex-col items-center justify-start rounded-full border bg-background/80 backdrop-blur-sm sm:flex">
-      <nav className="flex flex-col items-center gap-4 px-2 py-5">
+    <aside className="fixed inset-y-0 left-0 z-10 hidden w-20 flex-col border-r bg-background sm:flex">
+      <nav className="flex flex-col items-center gap-4 px-2 sm:py-5">
         <Link
           href="/dashboard"
-          className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground"
+          className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-12 md:w-12"
         >
-          <Package className="h-5 w-5 transition-all group-hover:scale-110" />
+          <Package className="h-5 w-5 transition-all group-hover:scale-110 md:h-6 md:w-6" />
           <span className="sr-only">ClientFlow</span>
         </Link>
         <TooltipProvider>
@@ -42,7 +42,7 @@ export function Sidebar() {
                 <Link
                   href={item.href}
                   className={cn(
-                    'flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground',
+                    'flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-12 md:w-12',
                     pathname.startsWith(item.href) && 'bg-accent text-accent-foreground'
                   )}
                 >
@@ -50,7 +50,7 @@ export function Sidebar() {
                   <span className="sr-only">{item.label}</span>
                 </Link>
               </TooltipTrigger>
-              <TooltipContent side="right" className="border-border/20 bg-background/50 backdrop-blur-md">
+              <TooltipContent side="right" className="border bg-background">
                 {item.label}
               </TooltipContent>
             </Tooltip>
