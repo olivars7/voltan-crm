@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { PlusCircle, MoreHorizontal } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { useCitas } from '@/hooks/useCitas';
 import { useClientes } from '@/hooks/useClientes';
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -15,13 +15,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import {
   Dialog,
 } from '@/components/ui/dialog';
@@ -114,6 +107,20 @@ export function CitasPageClient() {
     setCitaDetailOpen(true);
   }
 
+  const handleEditRequestFromDetail = (cita: Cita) => {
+    setCitaDetailOpen(false);
+    openEditDialog(cita);
+  }
+
+  const handleToggleStatusRequestFromDetail = (cita: Cita) => {
+    if (cita.estado === 'pendiente') {
+      markAsCompleted(cita);
+    } else {
+      markAsPending(cita);
+    }
+    setCitaDetailOpen(false);
+  }
+
 
   const citasPendientes = citas.filter((cita) => cita.estado === 'pendiente');
   const historialCitas = citas.filter((cita) => cita.estado === 'completada');
@@ -127,7 +134,6 @@ export function CitasPageClient() {
           <TableHead>Hora</TableHead>
           <TableHead>Tipo</TableHead>
           <TableHead>Estado</TableHead>
-          <TableHead><span className="sr-only">Acciones</span></TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -138,26 +144,6 @@ export function CitasPageClient() {
             <TableCell>{cita.hora}</TableCell>
             <TableCell className="capitalize">{cita.tipo}</TableCell>
             <TableCell><StatusBadge status={cita.estado} /></TableCell>
-            <TableCell onClick={(e) => e.stopPropagation()}>
-              <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button aria-haspopup="true" size="icon" variant="ghost">
-                  <MoreHorizontal className="h-4 w-4" />
-                  <span className="sr-only">Toggle menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                <DropdownMenuItem onSelect={() => openEditDialog(cita)}>Editar</DropdownMenuItem>
-                {cita.estado === 'pendiente' ? (
-                  <DropdownMenuItem onSelect={() => markAsCompleted(cita)}>Marcar como completada</DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem onSelect={() => markAsPending(cita)}>Marcar como pendiente</DropdownMenuItem>
-                )}
-                <DropdownMenuItem onSelect={() => openCitaDetailDialog(cita)}>Ver detalles</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            </TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -215,7 +201,12 @@ export function CitasPageClient() {
       </Dialog>
       
       <Dialog open={isCitaDetailOpen} onOpenChange={setCitaDetailOpen}>
-        {selectedCita && <CitaDetail cita={selectedCita} onOpenCliente={handleOpenCliente} />}
+        {selectedCita && <CitaDetail 
+            cita={selectedCita} 
+            onOpenCliente={handleOpenCliente} 
+            onEdit={() => handleEditRequestFromDetail(selectedCita)}
+            onToggleStatus={() => handleToggleStatusRequestFromDetail(selectedCita)}
+            />}
       </Dialog>
 
       <Dialog open={isClienteDetailOpen} onOpenChange={setClienteDetailOpen}>

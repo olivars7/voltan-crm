@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useClientes } from '@/hooks/useClientes';
 import { Cita } from '@/lib/types';
 import { formatDate } from '@/lib/utils';
@@ -11,9 +11,11 @@ import { StatusBadge } from '../shared/StatusBadge';
 interface CitaDetailProps {
   cita: Cita;
   onOpenCliente: (clienteId: string) => void;
+  onEdit: () => void;
+  onToggleStatus: () => void;
 }
 
-export function CitaDetail({ cita, onOpenCliente }: CitaDetailProps) {
+export function CitaDetail({ cita, onOpenCliente, onEdit, onToggleStatus }: CitaDetailProps) {
   const { getClienteById } = useClientes();
   const cliente = getClienteById(cita.clienteId);
 
@@ -60,12 +62,19 @@ export function CitaDetail({ cita, onOpenCliente }: CitaDetailProps) {
                 </div>
             )}
         </div>
-        
-        <Button onClick={() => onOpenCliente(cita.clienteId)}>
+      </div>
+      <DialogFooter className="flex-wrap justify-end gap-2">
+          <Button onClick={onToggleStatus}>
+            {cita.estado === 'pendiente' ? 'Marcar como Completada' : 'Marcar como Pendiente'}
+          </Button>
+          <Button variant="outline" onClick={onEdit}>
+            Editar Cita
+          </Button>
+          <Button variant="ghost" onClick={() => onOpenCliente(cita.clienteId)}>
             <ExternalLink className="mr-2 h-4 w-4" />
             Ver Expediente del Cliente
         </Button>
-      </div>
+      </DialogFooter>
     </DialogContent>
   )
 }

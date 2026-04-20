@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { PlusCircle, MoreHorizontal } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { usePagos } from '@/hooks/usePagos';
 import { useClientes } from '@/hooks/useClientes';
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -75,39 +75,32 @@ export function PagosPageClient() {
           <TableHead>Monto</TableHead>
           <TableHead>{isPending ? 'Fecha Límite' : 'Fecha de Pago'}</TableHead>
           <TableHead>Estado</TableHead>
-          <TableHead><span className="sr-only">Acciones</span></TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {data.map((pago) => (
-          <TableRow key={pago.id}>
-            <TableCell>{getClienteById(pago.clienteId)?.nombre}</TableCell>
-            <TableCell>{formatCurrency(pago.monto)}</TableCell>
-            <TableCell>
-              <span className={isPending && isBefore(parseISO(pago.fechaLimite), new Date()) ? 'text-status-danger' : ''}>
-                {formatDate(isPending ? pago.fechaLimite : pago.fechaPago!)}
-              </span>
-            </TableCell>
-            <TableCell><StatusBadge status={pago.estado} /></TableCell>
-            <TableCell>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button aria-haspopup="true" size="icon" variant="ghost">
-                    <MoreHorizontal className="h-4 w-4" />
-                    <span className="sr-only">Toggle menu</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                  {pago.estado === 'pendiente' ? (
-                    <DropdownMenuItem onSelect={() => markAsPaid(pago)}>Marcar como pagado</DropdownMenuItem>
-                  ) : (
-                    <DropdownMenuItem onSelect={() => markAsPending(pago)}>Marcar como pendiente</DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableCell>
-          </TableRow>
+          <DropdownMenu key={pago.id}>
+            <DropdownMenuTrigger asChild>
+              <TableRow className="cursor-pointer">
+                <TableCell>{getClienteById(pago.clienteId)?.nombre}</TableCell>
+                <TableCell>{formatCurrency(pago.monto)}</TableCell>
+                <TableCell>
+                  <span className={isPending && isBefore(parseISO(pago.fechaLimite), new Date()) ? 'text-status-danger' : ''}>
+                    {formatDate(isPending ? pago.fechaLimite : pago.fechaPago!)}
+                  </span>
+                </TableCell>
+                <TableCell><StatusBadge status={pago.estado} /></TableCell>
+              </TableRow>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+              {pago.estado === 'pendiente' ? (
+                <DropdownMenuItem onSelect={() => markAsPaid(pago)}>Marcar como pagado</DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onSelect={() => markAsPending(pago)}>Marcar como pendiente</DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         ))}
       </TableBody>
     </Table>

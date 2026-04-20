@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { PlusCircle, MoreHorizontal, Search } from 'lucide-react';
+import { PlusCircle, Search } from 'lucide-react';
 import { useClientes } from '@/hooks/useClientes';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -15,13 +15,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import {
   Dialog,
 } from '@/components/ui/dialog';
@@ -153,9 +146,6 @@ export function ClientesPageClient() {
                 <TableHead>Teléfono</TableHead>
                 <TableHead className="hidden sm:table-cell">Fecha de Inicio</TableHead>
                 <TableHead>Estado</TableHead>
-                <TableHead>
-                  <span className="sr-only">Acciones</span>
-                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -171,21 +161,6 @@ export function ClientesPageClient() {
                   <TableCell className="hidden sm:table-cell">{formatDate(cliente.fechaInicio)}</TableCell>
                   <TableCell>
                     <StatusBadge status={cliente.estado} />
-                  </TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                        <DropdownMenuItem onSelect={() => openEditDialog(cliente)}>Editar</DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => openDetailDialog(cliente)}>Ver detalles</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
@@ -207,7 +182,7 @@ export function ClientesPageClient() {
       </Dialog>
       
       <Dialog open={isCitaDetailOpen} onOpenChange={setCitaDetailOpen}>
-        {selectedCita && <CitaDetail cita={selectedCita} onOpenCliente={handleOpenClienteFromCita} />}
+        {selectedCita && <CitaDetail cita={selectedCita} onOpenCliente={handleOpenClienteFromCita} onEdit={() => {}} onToggleStatus={() => {}} />}
       </Dialog>
     </>
   );
