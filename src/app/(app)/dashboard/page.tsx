@@ -134,7 +134,7 @@ export default function DashboardPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeClients}</div>
+            <div className="text-2xl font-bold">{now ? activeClients : 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -143,7 +143,7 @@ export default function DashboardPage() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pendingAppointments}</div>
+            <div className="text-2xl font-bold">{now ? pendingAppointments : 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -152,7 +152,7 @@ export default function DashboardPage() {
             <AlertTriangle className="h-4 w-4 text-status-warning" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pendingPayments.length}</div>
+            <div className="text-2xl font-bold">{now ? pendingPayments.length : 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -161,7 +161,7 @@ export default function DashboardPage() {
             <DollarSign className="h-4 w-4 text-status-danger" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalPendingAmount)}</div>
+            <div className="text-2xl font-bold">{now ? formatCurrency(totalPendingAmount) : formatCurrency(0)}</div>
           </CardContent>
         </Card>
       </div>
@@ -175,7 +175,7 @@ export default function DashboardPage() {
           <CardContent>
             <ScrollArea className="h-96">
                 <div className="space-y-6 pr-4">
-                    {sortedTimeline.map((item, index) => (
+                    {now && sortedTimeline.map((item, index) => (
                         <div key={index} className="flex items-start gap-4">
                             <TimelineIcon type={item.type} />
                             <div className="flex-1 space-y-1">
@@ -194,8 +194,10 @@ export default function DashboardPage() {
                             </div>
                         </div>
                     ))}
-                    {sortedTimeline.length === 0 && (
-                        <p className="text-sm text-muted-foreground text-center py-10">No hay eventos próximos.</p>
+                    {(!now || (now && sortedTimeline.length === 0)) && (
+                        <p className="text-sm text-muted-foreground text-center py-10">
+                          {now ? 'No hay eventos próximos.' : 'Cargando eventos...'}
+                        </p>
                     )}
                 </div>
             </ScrollArea>
@@ -213,12 +215,12 @@ export default function DashboardPage() {
                     </CardHeader>
                     <CardContent>
                         <ChartContainer config={chartConfig} className="w-full h-48">
-                            <BarChart accessibilityLayer data={monthlyRevenue} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                            {now && <BarChart accessibilityLayer data={monthlyRevenue} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
                                 <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
                                 <YAxis tickFormatter={(value) => `$${value/1000}k`} tickLine={false} axisLine={false} fontSize={12} />
                                 <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
                                 <Bar dataKey="ingresos" fill="var(--color-ingresos)" radius={4} />
-                            </BarChart>
+                            </BarChart>}
                         </ChartContainer>
                     </CardContent>
                 </Card>
@@ -228,12 +230,12 @@ export default function DashboardPage() {
                     </CardHeader>
                     <CardContent>
                         <ChartContainer config={chartConfig} className="w-full h-48">
-                            <BarChart accessibilityLayer data={newClientsByMonth} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                            {now && <BarChart accessibilityLayer data={newClientsByMonth} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
                                 <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
                                 <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={12} />
                                 <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
                                 <Bar dataKey="clientes" fill="var(--color-clientes)" radius={4} />
-                            </BarChart>
+                            </BarChart>}
                         </ChartContainer>
                     </CardContent>
                 </Card>
