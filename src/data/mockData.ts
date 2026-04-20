@@ -12,6 +12,12 @@ export const mockClientes: Cliente[] = [
     email: 'ana.garcia@innovatech.com',
     fechaInicio: formatISO(subDays(today, 90)),
     estado: 'activo',
+    proyecto: {
+        nombre: 'Desarrollo de App Móvil',
+        descripcion: 'App para iOS y Android para gestión de inventario.',
+        fechaEntrega: formatISO(addDays(today, 45)),
+        estado: 'en-progreso',
+    }
   },
   {
     id: 'cl-2',
@@ -21,6 +27,12 @@ export const mockClientes: Cliente[] = [
     email: 'carlos.martinez@quantum.com',
     fechaInicio: formatISO(subDays(today, 120)),
     estado: 'activo',
+    proyecto: {
+        nombre: 'Migración a la Nube',
+        descripcion: 'Mover infraestructura de servidores on-premise a AWS.',
+        fechaEntrega: formatISO(addDays(today, 80)),
+        estado: 'en-progreso',
+    }
   },
   {
     id: 'cl-3',
@@ -30,6 +42,12 @@ export const mockClientes: Cliente[] = [
     email: 'sofia.r@pixelperfect.dev',
     fechaInicio: formatISO(subDays(today, 60)),
     estado: 'activo',
+    proyecto: {
+        nombre: 'Rediseño de Sitio Web',
+        descripcion: 'Modernizar el look and feel del e-commerce.',
+        fechaEntrega: formatISO(subDays(today, 10)),
+        estado: 'completado',
+    }
   },
   {
     id: 'cl-4',
@@ -48,6 +66,12 @@ export const mockClientes: Cliente[] = [
     email: 'laura.gomez@creativeminds.io',
     fechaInicio: formatISO(subDays(today, 30)),
     estado: 'activo',
+    proyecto: {
+        nombre: 'Campaña de Marketing Digital',
+        descripcion: 'Estrategia para redes sociales y SEM.',
+        fechaEntrega: formatISO(addDays(today, 25)),
+        estado: 'pausado',
+    }
   },
 ];
 
@@ -68,4 +92,7 @@ export const mockPagos: Pago[] = [
   { id: 'pa-5', clienteId: 'cl-3', monto: 18000, fechaPago: formatISO(subDays(today, 10)), fechaLimite: formatISO(subDays(today, 12)), estado: 'pagado', metodo: 'tarjeta' },
   { id: 'pa-6', clienteId: 'cl-4', monto: 30000, fechaLimite: formatISO(addDays(today, 15)), estado: 'pendiente' },
   { id: 'pa-7', clienteId: 'cl-5', monto: 12000, fechaLimite: formatISO(addDays(today, 5)), estado: 'pendiente' },
+  { id: 'pa-8', clienteId: 'cl-2', monto: 25000, fechaPago: formatISO(subDays(today, 65)), fechaLimite: formatISO(subDays(today, 70)), estado: 'pagado', metodo: 'transferencia' },
+  { id: 'pa-9', clienteId: 'cl-3', monto: 18000, fechaPago: formatISO(subDays(today, 40)), fechaLimite: formatISO(subDays(today, 42)), estado: 'pagado', metodo: 'tarjeta' },
+  { id: 'pa-10', clienteId: 'cl-1', monto: 15000, fechaPago: formatISO(subDays(today, 50)), fechaLimite: formatISO(subDays(today, 55)), estado: 'pagado', metodo: 'transferencia' },
 ];

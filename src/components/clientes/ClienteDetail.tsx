@@ -8,7 +8,7 @@ import { DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/c
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Briefcase, Mail, Phone, Calendar as CalendarIcon, DollarSign } from 'lucide-react';
+import { Briefcase, Mail, Phone, Calendar as CalendarIcon, DollarSign, ClipboardCheck } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 
@@ -33,12 +33,12 @@ export function ClienteDetail({ cliente, onCitaClick }: ClienteDetailProps) {
   }
 
   return (
-    <DialogContent className="sm:max-w-3xl">
+    <DialogContent className="sm:max-w-4xl max-h-[90vh]">
       <DialogHeader>
-        <DialogTitle>Detalles del Cliente</DialogTitle>
-        <DialogDescription>Información completa del cliente, sus citas y pagos.</DialogDescription>
+        <DialogTitle>Expediente del Cliente</DialogTitle>
+        <DialogDescription>Información completa del cliente, su proyecto, citas y pagos.</DialogDescription>
       </DialogHeader>
-      <div className="grid gap-6 py-4">
+      <div className="grid gap-6 py-4 overflow-y-auto pr-4">
         <div className="flex items-start gap-4">
           <Avatar className="w-20 h-20 text-lg">
             <AvatarImage src={`https://ui-avatars.com/api/?name=${cliente.nombre.replace(' ', '+')}&background=random`} />
@@ -66,6 +66,31 @@ export function ClienteDetail({ cliente, onCitaClick }: ClienteDetailProps) {
         </div>
 
         <Separator />
+        
+        {cliente.proyecto && (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <ClipboardCheck className="w-5 h-5" />
+                        Detalles del Proyecto
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-4 md:grid-cols-3">
+                    <div className="space-y-1">
+                        <p className="font-semibold">{cliente.proyecto.nombre}</p>
+                        <p className="text-sm text-muted-foreground">{cliente.proyecto.descripcion}</p>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="font-semibold">Fecha de Entrega</p>
+                        <p className="text-sm text-muted-foreground">{formatDate(cliente.proyecto.fechaEntrega)}</p>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="font-semibold">Estado</p>
+                        <StatusBadge status={cliente.proyecto.estado} />
+                    </div>
+                </CardContent>
+            </Card>
+        )}
 
         <div className="grid md:grid-cols-2 gap-6">
           <Card>

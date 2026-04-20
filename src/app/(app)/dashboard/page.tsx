@@ -2,12 +2,22 @@
 import { useClientes } from '@/hooks/useClientes';
 import { useCitas } from '@/hooks/useCitas';
 import { usePagos } from '@/hooks/usePagos';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Calendar, DollarSign, AlertTriangle } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Users, Calendar, DollarSign, AlertTriangle, ClipboardCheck, ArrowRight } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { StatusBadge } from '@/components/shared/StatusBadge';
-import { addDays, isBefore, parseISO } from 'date-fns';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts"
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { addDays, isBefore, parseISO, subMonths, startOfMonth, endOfMonth, format, isWithinInterval } from 'date-fns';
+import { es } from 'date-fns/locale';
+
+type TimelineItem = {
+  date: Date;
+  type: 'pago' | 'cita' | 'entrega';
+  data: any;
+  cliente: any;
+}
 
 export default function DashboardPage() {
   const { clientes, getClienteById } = useClientes();
@@ -19,11 +29,96 @@ export default function DashboardPage() {
   const pendingPayments = pagos.filter((p) => p.estado === 'pendiente');
   const totalPendingAmount = pendingPayments.reduce((sum, p) => sum + p.monto, 0);
 
-  const upcomingAppointments = citas
-    .filter(c => c.estado === 'pendiente' && isBefore(parseISO(c.fecha), addDays(new Date(), 8)))
-    .sort((a, b) => parseISO(a.fecha).getTime() - parseISO(b.fecha).getTime())
-    .slice(0, 5);
+  // General Console Data
+  const timelineItems: TimelineItem[] = [];
+
+  pagos.forEach(p => {
+    if (p.estado === 'pendiente') {
+      timelineItems.push({
+        date: parseISO(p.fechaLimite),
+        type: 'pago',
+        data: p,
+        cliente: getClienteById(p.clienteId)
+      });
+    }
+  });
+
+  citas.forEach(c => {
+    if (c.estado === 'pendiente') {
+      timelineItems.push({
+        date: parseISO(c.fecha),
+        type: 'cita',
+        data: c,
+        cliente: getClienteById(c.clienteId)
+      });
+    }
+  });
+
+  clientes.forEach(cl => {
+    if (cl.proyecto && cl.proyecto.estado === 'en-progreso') {
+      timelineItems.push({
+        date: parseISO(cl.proyecto.fechaEntrega),
+        type: 'entrega',
+        data: cl.proyecto,
+        cliente: cl
+      });
+    }
+  });
+  
+  const sortedTimeline = timelineItems.sort((a,b) => a.date.getTime() - b.date.getTime());
+
+  // Statistics Data
+  const now = new Date();
+  const last4Months = Array.from({ length: 4 }).map((_, i) => subMonths(now, 3 - i));
+  
+  const monthlyRevenue = last4Months.map(monthDate => {
+    const monthStart = startOfMonth(monthDate);
+    const monthEnd = endOfMonth(monthDate);
     
+    const revenue = pagos
+      .filter(p => p.estado === 'pagado' && isWithinInterval(parseISO(p.fechaPago!), { start: monthStart, end: monthEnd }))
+      .reduce((sum, p) => sum + p.monto, 0);
+      
+    return {
+      month: format(monthDate, 'MMM', { locale: es }),
+      ingresos: revenue,
+    };
+  });
+
+  const newClientsByMonth = last4Months.map(monthDate => {
+    const monthStart = startOfMonth(monthDate);
+    const monthEnd = endOfMonth(monthDate);
+    
+    const newClients = clientes
+      .filter(c => isWithinInterval(parseISO(c.fechaInicio), { start: monthStart, end: monthEnd }))
+      .length;
+      
+    return {
+      month: format(monthDate, 'MMM', { locale: es }),
+      clientes: newClients,
+    };
+  });
+
+  const chartConfig: ChartConfig = {
+    ingresos: {
+      label: "Ingresos",
+      color: "hsl(var(--chart-1))",
+    },
+    clientes: {
+      label: "Nuevos Clientes",
+      color: "hsl(var(--chart-2))",
+    },
+  }
+
+  const TimelineIcon = ({ type }: { type: TimelineItem['type'] }) => {
+    switch (type) {
+      case 'pago': return <DollarSign className="h-4 w-4 text-muted-foreground" />;
+      case 'cita': return <Calendar className="h-4 w-4 text-muted-foreground" />;
+      case 'entrega': return <ClipboardCheck className="h-4 w-4 text-muted-foreground" />;
+      default: return null;
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -65,72 +160,78 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+      <div className="grid gap-6 xl:grid-cols-3">
+        <Card className="xl:col-span-1">
           <CardHeader>
-            <CardTitle>Citas Próximas</CardTitle>
+            <CardTitle>Consola General</CardTitle>
+            <CardDescription>Eventos importantes ordenados cronológicamente.</CardDescription>
           </CardHeader>
           <CardContent>
-             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead>Hora</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {upcomingAppointments.length > 0 ? (
-                  upcomingAppointments.map(cita => (
-                    <TableRow key={cita.id}>
-                      <TableCell>{getClienteById(cita.clienteId)?.nombre || 'N/A'}</TableCell>
-                      <TableCell>{formatDate(cita.fecha)}</TableCell>
-                      <TableCell>{cita.hora}</TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-center">No hay citas próximas.</TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+            <ScrollArea className="h-96">
+                <div className="space-y-6 pr-4">
+                    {sortedTimeline.map((item, index) => (
+                        <div key={index} className="flex items-start gap-4">
+                            <TimelineIcon type={item.type} />
+                            <div className="flex-1 space-y-1">
+                                <p className="text-sm font-medium leading-none">
+                                    {item.type === 'pago' && `Pago de ${formatCurrency(item.data.monto)}`}
+                                    {item.type === 'cita' && `Cita a las ${item.data.hora}`}
+                                    {item.type === 'entrega' && `Entrega: ${item.data.nombre}`}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                    <span className={isBefore(item.date, new Date()) ? 'text-status-danger font-medium' : ''}>
+                                      {formatDate(item.date, "d MMM, yyyy")}
+                                    </span>
+                                    {' • '}
+                                    {item.cliente?.nombre}
+                                </p>
+                            </div>
+                        </div>
+                    ))}
+                    {sortedTimeline.length === 0 && (
+                        <p className="text-sm text-muted-foreground text-center py-10">No hay eventos próximos.</p>
+                    )}
+                </div>
+            </ScrollArea>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Pagos Pendientes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Monto</TableHead>
-                  <TableHead>Fecha Límite</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pendingPayments.length > 0 ? (
-                  pendingPayments.slice(0, 5).map(pago => (
-                    <TableRow key={pago.id}>
-                      <TableCell>{getClienteById(pago.clienteId)?.nombre || 'N/A'}</TableCell>
-                      <TableCell>{formatCurrency(pago.monto)}</TableCell>
-                      <TableCell>
-                        <span className={isBefore(parseISO(pago.fechaLimite), new Date()) ? 'text-status-danger' : ''}>
-                          {formatDate(pago.fechaLimite)}
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-center">No hay pagos pendientes.</TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
+        <Card className="xl:col-span-2">
+            <CardHeader>
+                <CardTitle>Estadísticas</CardTitle>
+                <CardDescription>Rendimiento de los últimos 4 meses.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-6 md:grid-cols-2">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">Ingresos Mensuales</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ChartContainer config={chartConfig} className="w-full h-48">
+                            <BarChart accessibilityLayer data={monthlyRevenue} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                                <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
+                                <YAxis tickFormatter={(value) => `$${value/1000}k`} tickLine={false} axisLine={false} fontSize={12} />
+                                <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+                                <Bar dataKey="ingresos" fill="var(--color-ingresos)" radius={4} />
+                            </BarChart>
+                        </ChartContainer>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">Nuevos Clientes</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ChartContainer config={chartConfig} className="w-full h-48">
+                            <BarChart accessibilityLayer data={newClientsByMonth} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                                <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
+                                <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={12} />
+                                <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+                                <Bar dataKey="clientes" fill="var(--color-clientes)" radius={4} />
+                            </BarChart>
+                        </ChartContainer>
+                    </CardContent>
+                </Card>
+            </CardContent>
         </Card>
       </div>
     </div>

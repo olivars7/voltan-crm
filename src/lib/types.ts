@@ -6,6 +6,16 @@ export type Cliente = {
   email: string;
   fechaInicio: string;
   estado: 'activo' | 'inactivo';
+  proyecto?: Proyecto;
+};
+
+export type ProyectoEstado = 'en-progreso' | 'completado' | 'pausado' | 'cancelado';
+
+export type Proyecto = {
+  nombre: string;
+  descripcion: string;
+  fechaEntrega: string;
+  estado: ProyectoEstado;
 };
 
 export type Cita = {
