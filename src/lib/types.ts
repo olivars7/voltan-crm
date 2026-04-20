@@ -19,16 +19,6 @@ export type Proyecto = {
   estado: ProyectoEstado;
 };
 
-export type Cita = {
-  id: string;
-  clienteId: string;
-  fecha: string;
-  hora: string;
-  tipo: 'whatsapp' | 'meet';
-  estado: 'pendiente' | 'completada';
-  notas?: string;
-};
-
 export type Pago = {
   id: string;
   clienteId: string;

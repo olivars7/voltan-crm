@@ -1,14 +1,13 @@
 'use client';
 
-import { useCitas } from '@/hooks/useCitas';
 import { usePagos } from '@/hooks/usePagos';
-import type { Cliente, Cita } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import type { Cliente } from '@/lib/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Briefcase, Mail, Phone, Calendar as CalendarIcon, DollarSign, ClipboardCheck, CalendarDays, Pencil } from 'lucide-react';
+import { Briefcase, Mail, Phone, DollarSign, ClipboardCheck, CalendarDays, Pencil } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Button } from '@/components/ui/button';
@@ -16,15 +15,12 @@ import { isBefore, parseISO } from 'date-fns';
 
 interface ClienteDetailProps {
   cliente: Cliente;
-  onCitaClick: (cita: Cita) => void;
   onEditRequest: () => void;
 }
 
-export function ClienteDetail({ cliente, onCitaClick, onEditRequest }: ClienteDetailProps) {
-  const { getCitasByClienteId } = useCitas();
+export function ClienteDetail({ cliente, onEditRequest }: ClienteDetailProps) {
   const { getPagosByClienteId } = usePagos();
 
-  const citas = getCitasByClienteId(cliente.id);
   const pagos = getPagosByClienteId(cliente.id);
 
   const totalAdeudo = pagos
@@ -116,37 +112,7 @@ export function ClienteDetail({ cliente, onCitaClick, onEditRequest }: ClienteDe
         )}
 
         {/* History Section */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <CalendarIcon className="w-5 h-5" />
-                Historial de Citas
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {citas.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Fecha</TableHead>
-                      <TableHead>Estado</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {citas.map(cita => (
-                      <TableRow key={cita.id} onClick={() => onCitaClick(cita)} className="cursor-pointer">
-                        <TableCell>{formatDate(cita.fecha)} a las {cita.hora}</TableCell>
-                        <TableCell><StatusBadge status={cita.estado} /></TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">No hay citas registradas.</p>
-              )}
-            </CardContent>
-          </Card>
+        <div className="grid md:grid-cols-1 gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
@@ -154,9 +120,9 @@ export function ClienteDetail({ cliente, onCitaClick, onEditRequest }: ClienteDe
                 Historial de Pagos
               </CardTitle>
               {totalAdeudo > 0 && (
-                 <CardDescription className="text-status-danger">
+                 <p className="text-sm text-status-danger pt-1">
                    Adeudo total: {formatCurrency(totalAdeudo)}
-                 </CardDescription>
+                 </p>
               )}
             </CardHeader>
             <CardContent>

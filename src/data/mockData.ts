@@ -1,4 +1,4 @@
-import type { Cliente, Cita, Pago } from '@/lib/types';
+import type { Cliente, Pago } from '@/lib/types';
 import { subDays, addDays, formatISO } from 'date-fns';
 
 const today = new Date();
@@ -75,15 +75,6 @@ export const mockClientes: Cliente[] = [
         estado: 'pausado',
     }
   },
-];
-
-export const mockCitas: Cita[] = [
-  { id: 'ci-1', clienteId: 'cl-1', fecha: formatISO(addDays(today, 2)), hora: '10:00', tipo: 'meet', estado: 'pendiente', notas: 'Revisión de avances del proyecto.' },
-  { id: 'ci-2', clienteId: 'cl-2', fecha: formatISO(addDays(today, 3)), hora: '14:30', tipo: 'whatsapp', estado: 'pendiente', notas: 'Llamada rápida para feedback.' },
-  { id: 'ci-3', clienteId: 'cl-3', fecha: formatISO(subDays(today, 5)), hora: '11:00', tipo: 'meet', estado: 'completada' },
-  { id: 'ci-4', clienteId: 'cl-1', fecha: formatISO(subDays(today, 15)), hora: '09:00', tipo: 'meet', estado: 'completada', notas: 'Kick-off del proyecto.' },
-  { id: 'ci-5', clienteId: 'cl-4', fecha: formatISO(addDays(today, 7)), hora: '16:00', tipo: 'meet', estado: 'pendiente', notas: 'Presentación de propuesta.' },
-  { id: 'ci-6', clienteId: 'cl-5', fecha: formatISO(subDays(today, 2)), hora: '12:00', tipo: 'whatsapp', estado: 'completada' },
 ];
 
 export const mockPagos: Pago[] = [

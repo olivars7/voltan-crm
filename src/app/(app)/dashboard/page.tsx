@@ -1,6 +1,5 @@
 'use client';
 import { useClientes } from '@/hooks/useClientes';
-import { useCitas } from '@/hooks/useCitas';
 import { usePagos } from '@/hooks/usePagos';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Users, Calendar, DollarSign, AlertTriangle, ClipboardCheck } from 'lucide-react';
@@ -15,14 +14,13 @@ import { useEffect, useState } from 'react';
 
 type TimelineItem = {
   date: Date;
-  type: 'pago' | 'cita' | 'entrega';
+  type: 'pago' | 'entrega';
   data: any;
   cliente: any;
 }
 
 export default function DashboardPage() {
   const { clientes, getClienteById } = useClientes();
-  const { citas } = useCitas();
   const { pagos } = usePagos();
   const [now, setNow] = useState<Date | null>(null);
 
@@ -32,7 +30,6 @@ export default function DashboardPage() {
   }, []);
 
   const activeClients = clientes.filter((c) => c.estado === 'activo').length;
-  const pendingAppointments = citas.filter((c) => c.estado === 'pendiente').length;
   const pendingPayments = now ? pagos.filter((p) => p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), now)) : [];
   const totalPendingAmount = pendingPayments.reduce((sum, p) => sum + p.monto, 0);
 
@@ -46,17 +43,6 @@ export default function DashboardPage() {
         type: 'pago',
         data: p,
         cliente: getClienteById(p.clienteId)
-      });
-    }
-  });
-
-  citas.forEach(c => {
-    if (c.estado === 'pendiente') {
-      timelineItems.push({
-        date: parseISO(c.fecha),
-        type: 'cita',
-        data: c,
-        cliente: getClienteById(c.clienteId)
       });
     }
   });
@@ -119,7 +105,6 @@ export default function DashboardPage() {
   const TimelineIcon = ({ type }: { type: TimelineItem['type'] }) => {
     switch (type) {
       case 'pago': return <DollarSign className="h-4 w-4 text-muted-foreground" />;
-      case 'cita': return <Calendar className="h-4 w-4 text-muted-foreground" />;
       case 'entrega': return <ClipboardCheck className="h-4 w-4 text-muted-foreground" />;
       default: return null;
     }
@@ -135,15 +120,6 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{now ? activeClients : 0}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Citas Pendientes</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{now ? pendingAppointments : 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -181,7 +157,6 @@ export default function DashboardPage() {
                             <div className="flex-1 space-y-1">
                                 <p className="text-sm font-medium leading-none">
                                     {item.type === 'pago' && `Pago de ${formatCurrency(item.data.monto)}`}
-                                    {item.type === 'cita' && `Cita a las ${item.data.hora}`}
                                     {item.type === 'entrega' && `Entrega: ${item.data.nombre}`}
                                 </p>
                                 <p className="text-sm text-muted-foreground">

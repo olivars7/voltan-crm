@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import {
   Home,
   Users,
-  Calendar,
   DollarSign,
   Package,
 } from 'lucide-react';
@@ -20,7 +19,6 @@ import {
 const navItems = [
   { href: '/dashboard', icon: Home, label: 'Dashboard' },
   { href: '/clientes', icon: Users, label: 'Clientes' },
-  { href: '/citas', icon: Calendar, label: 'Citas' },
   { href: '/pagos', icon: DollarSign, label: 'Pagos' },
 ];
 

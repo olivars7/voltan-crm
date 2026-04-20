@@ -21,9 +21,8 @@ import {
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { ClienteForm } from './ClienteForm';
 import { ClienteDetail } from './ClienteDetail';
-import { CitaDetail } from '../citas/CitaDetail';
 import { formatDate } from '@/lib/utils';
-import type { Cliente, Cita } from '@/lib/types';
+import type { Cliente } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -32,10 +31,8 @@ export function ClientesPageClient() {
   const { clientes, addCliente, updateCliente } = useClientes();
   const [isFormOpen, setFormOpen] = React.useState(false);
   const [isDetailOpen, setDetailOpen] = React.useState(false);
-  const [isCitaDetailOpen, setCitaDetailOpen] = React.useState(false);
 
   const [selectedCliente, setSelectedCliente] = React.useState<Cliente | undefined>(undefined);
-  const [selectedCita, setSelectedCita] = React.useState<Cita | undefined>(undefined);
   const [editingCliente, setEditingCliente] = React.useState<Cliente | undefined>(undefined);
   const { toast } = useToast();
   
@@ -64,7 +61,6 @@ export function ClientesPageClient() {
   const openEditDialog = (cliente: Cliente) => {
     setEditingCliente(cliente);
     setDetailOpen(false);
-    setCitaDetailOpen(false);
     setFormOpen(true);
   }
 
@@ -76,23 +72,7 @@ export function ClientesPageClient() {
   const openDetailDialog = (cliente: Cliente) => {
     setSelectedCliente(cliente);
     setFormOpen(false);
-    setCitaDetailOpen(false);
     setDetailOpen(true);
-  }
-  
-  const handleCitaClick = (cita: Cita) => {
-    setSelectedCita(cita);
-    setDetailOpen(false);
-    setCitaDetailOpen(true);
-  }
-
-  const handleOpenClienteFromCita = (clienteId: string) => {
-      const cliente = clientes.find(c => c.id === clienteId);
-      if (cliente) {
-        setSelectedCliente(cliente);
-        setCitaDetailOpen(false);
-        setDetailOpen(true);
-      }
   }
 
   const filteredClientes = clientes.filter(cliente => {
@@ -178,11 +158,7 @@ export function ClientesPageClient() {
       </Dialog>
 
       <Dialog open={isDetailOpen} onOpenChange={setDetailOpen}>
-        {selectedCliente && <ClienteDetail cliente={selectedCliente} onCitaClick={handleCitaClick} onEditRequest={() => openEditDialog(selectedCliente)} />}
-      </Dialog>
-      
-      <Dialog open={isCitaDetailOpen} onOpenChange={setCitaDetailOpen}>
-        {selectedCita && <CitaDetail cita={selectedCita} onOpenCliente={handleOpenClienteFromCita} onEdit={() => {}} onToggleStatus={() => {}} />}
+        {selectedCliente && <ClienteDetail cliente={selectedCliente} onEditRequest={() => openEditDialog(selectedCliente)} />}
       </Dialog>
     </>
   );

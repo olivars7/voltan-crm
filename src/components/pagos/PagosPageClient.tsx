@@ -137,8 +137,8 @@ export function PagosPageClient() {
       
       <Tabs defaultValue="proximos">
         <TabsList>
-          <TabsTrigger value="proximos">Próximos</TabsTrigger>
-          <TabsTrigger value="pendientes">Vencidos</TabsTrigger>
+          <TabsTrigger value="proximos">Próximos ({pagosProximos.length})</TabsTrigger>
+          <TabsTrigger value="pendientes">Vencidos ({pagosVencidos.length})</TabsTrigger>
           <TabsTrigger value="historial">Historial</TabsTrigger>
         </TabsList>
         <TabsContent value="proximos">
@@ -193,7 +193,7 @@ export function PagosPageClient() {
       </Dialog>
       
       <Dialog open={isClienteDetailOpen} onOpenChange={setClienteDetailOpen}>
-        {selectedCliente && <ClienteDetail cliente={selectedCliente} onCitaClick={() => {}} onEditRequest={() => {}} />}
+        {selectedCliente && <ClienteDetail cliente={selectedCliente} onEditRequest={() => {}} />}
       </Dialog>
     </>
   );
