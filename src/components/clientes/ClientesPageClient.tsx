@@ -102,15 +102,6 @@ export function ClientesPageClient() {
       }
   }
 
-  const handleCopy = (text: string, fieldName: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-        toast({
-            title: `${fieldName} copiado`,
-            description: `Se ha copiado "${text}" al portapapeles.`,
-        });
-    });
-  };
-
   const filteredClientes = clientes.filter(cliente => {
     const search = searchTerm.toLowerCase();
     const monthName = format(parseISO(cliente.fechaInicio), 'MMMM', { locale: es });
@@ -170,23 +161,11 @@ export function ClientesPageClient() {
             <TableBody>
               {filteredClientes.map((cliente) => (
                 <TableRow key={cliente.id} onClick={() => openDetailDialog(cliente)} className="cursor-pointer">
-                  <TableCell 
-                    className="font-medium cursor-pointer" 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleCopy(cliente.nombre, "Nombre");
-                    }}
-                  >
+                  <TableCell className="font-medium">
                     {cliente.nombre}
                   </TableCell>
                   <TableCell className="hidden md:table-cell">{cliente.empresa}</TableCell>
-                  <TableCell 
-                    className="cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleCopy(cliente.telefono, "Teléfono");
-                    }}
-                  >
+                  <TableCell>
                     {cliente.telefono}
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">{formatDate(cliente.fechaInicio)}</TableCell>

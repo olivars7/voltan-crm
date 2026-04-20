@@ -46,44 +46,54 @@ export function ClienteDetail({ cliente, onCitaClick, onEditRequest }: ClienteDe
         </div>
       </DialogHeader>
       <div className="grid gap-6 py-4 overflow-y-auto pr-4">
-        <div className="flex items-start gap-4">
-          <Avatar className="w-20 h-20 text-lg">
-            <AvatarImage src={`https://ui-avatars.com/api/?name=${cliente.nombre.replace(' ', '+')}&background=random`} />
-            <AvatarFallback>{getInitials(cliente.nombre)}</AvatarFallback>
-          </Avatar>
-          <div className="grid gap-1">
-            <h2 className="text-2xl font-bold">{cliente.nombre}</h2>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Briefcase className="w-4 h-4" />
-              <span>{cliente.empresa}</span>
-            </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Mail className="w-4 h-4" />
-              <span>{cliente.email}</span>
-            </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Phone className="w-4 h-4" />
-              <span>{cliente.telefono}</span>
-            </div>
-             {cliente.diaDePago && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                    <CalendarDays className="w-4 h-4" />
-                    <span>Día de pago mensual: {cliente.diaDePago}</span>
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row items-start gap-6">
+            <Avatar className="w-24 h-24 text-xl border-2 border-primary/10">
+                <AvatarImage src={`https://ui-avatars.com/api/?name=${cliente.nombre.replace(' ', '+')}&background=random`} />
+                <AvatarFallback>{getInitials(cliente.nombre)}</AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 className="text-2xl font-bold flex items-center gap-2">
+                            {cliente.nombre}
+                            <StatusBadge status={cliente.estado} />
+                        </h2>
+                        <p className="text-muted-foreground flex items-center gap-2">
+                            <Briefcase className="w-4 h-4" />
+                            {cliente.empresa}
+                        </p>
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-2 sm:mt-0 sm:text-right">
+                        <span>Cliente desde</span>
+                        <p className="font-medium">{formatDate(cliente.fechaInicio)}</p>
+                    </div>
                 </div>
-            )}
-          </div>
-          <div className="ml-auto text-right">
-              <StatusBadge status={cliente.estado} />
-             <p className="text-sm text-muted-foreground mt-1">Cliente desde {formatDate(cliente.fechaInicio)}</p>
-          </div>
+                <Separator className="my-4" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                    <div className="flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-muted-foreground" />
+                        <span>{cliente.email}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-muted-foreground" />
+                        <span>{cliente.telefono}</span>
+                    </div>
+                    {cliente.diaDePago && (
+                        <div className="flex items-center gap-2">
+                            <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                            <span>Día de pago: {cliente.diaDePago} de cada mes</span>
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
 
-        <Separator />
-        
+        {/* Project Details */}
         {cliente.proyecto && (
-            <Card>
+            <Card className="bg-muted/50">
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-base">
                         <ClipboardCheck className="w-5 h-5" />
                         Detalles del Proyecto
                     </CardTitle>
@@ -105,10 +115,11 @@ export function ClienteDetail({ cliente, onCitaClick, onEditRequest }: ClienteDe
             </Card>
         )}
 
+        {/* History Section */}
         <div className="grid md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-base">
                 <CalendarIcon className="w-5 h-5" />
                 Historial de Citas
               </CardTitle>
@@ -132,13 +143,13 @@ export function ClienteDetail({ cliente, onCitaClick, onEditRequest }: ClienteDe
                   </TableBody>
                 </Table>
               ) : (
-                <p className="text-sm text-muted-foreground">No hay citas registradas.</p>
+                <p className="text-sm text-muted-foreground text-center py-4">No hay citas registradas.</p>
               )}
             </CardContent>
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-base">
                 <DollarSign className="w-5 h-5" />
                 Historial de Pagos
               </CardTitle>
@@ -169,7 +180,7 @@ export function ClienteDetail({ cliente, onCitaClick, onEditRequest }: ClienteDe
                   </TableBody>
                 </Table>
               ) : (
-                <p className="text-sm text-muted-foreground">No hay pagos registrados.</p>
+                <p className="text-sm text-muted-foreground text-center py-4">No hay pagos registrados.</p>
               )}
             </CardContent>
           </Card>
