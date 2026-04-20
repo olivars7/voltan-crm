@@ -15,25 +15,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-} from '@/components/ui/dialog';
+import { Dialog } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { PagoForm } from './PagoForm';
+import { PagoDetail } from './PagoDetail';
+import { ClienteDetail } from '../clientes/ClienteDetail';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import type { Pago } from '@/lib/types';
+import type { Pago, Cliente } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { isBefore, parseISO } from 'date-fns';
-
 
 const formSchema = z.object({
   clienteId: z.string().min(1),
@@ -45,27 +37,64 @@ const formSchema = z.object({
 export function PagosPageClient() {
   const { pagos, addPago, updatePago } = usePagos();
   const { clientes, getClienteById } = useClientes();
-  const [isDialogOpen, setDialogOpen] = React.useState(false);
+  const [isFormOpen, setFormOpen] = React.useState(false);
+  const [isPagoDetailOpen, setPagoDetailOpen] = React.useState(false);
+  const [isClienteDetailOpen, setClienteDetailOpen] = React.useState(false);
+
+  const [selectedPago, setSelectedPago] = React.useState<Pago | undefined>(undefined);
+  const [selectedCliente, setSelectedCliente] = React.useState<Cliente | undefined>(undefined);
+  
   const { toast } = useToast();
+  const [now, setNow] = React.useState<Date | null>(null);
+
+  React.useEffect(() => {
+    setNow(new Date());
+  }, []);
 
   const handleAddSubmit = (values: z.infer<typeof formSchema>) => {
     addPago(values);
     toast({ title: "Pago registrado", description: "El nuevo pago ha sido guardado." });
+    setFormOpen(false);
   };
   
   const markAsPaid = (pago: Pago) => {
     updatePago({ ...pago, estado: 'pagado', fechaPago: new Date().toISOString() });
-     toast({ title: "Pago actualizado", description: "El pago ha sido marcado como pagado." });
+    toast({ title: "Pago actualizado", description: "El pago ha sido marcado como pagado." });
+    setPagoDetailOpen(false);
   }
 
   const markAsPending = (pago: Pago) => {
     const { fechaPago, ...rest } = pago;
     updatePago({ ...rest, estado: 'pendiente' });
     toast({ title: "Pago actualizado", description: "El pago ha sido marcado como pendiente." });
+    setPagoDetailOpen(false);
+  }
+  
+  const handleOpenPagoDetail = (pago: Pago) => {
+    setSelectedPago(pago);
+    setPagoDetailOpen(true);
+  }
+  
+  const handleToggleStatusFromDetail = (pago: Pago) => {
+    if (pago.estado === 'pendiente') {
+      markAsPaid(pago);
+    } else {
+      markAsPending(pago);
+    }
+  }
+  
+  const handleOpenCliente = (clienteId: string) => {
+    const cliente = getClienteById(clienteId);
+    if(cliente) {
+      setSelectedCliente(cliente);
+      setPagoDetailOpen(false);
+      setClienteDetailOpen(true);
+    }
   }
 
-  const pagosPendientes = pagos.filter((pago) => pago.estado === 'pendiente');
-  const historialPagos = pagos.filter((pago) => pago.estado === 'pagado');
+  const pagosProximos = now ? pagos.filter(p => p.estado === 'pendiente' && !isBefore(parseISO(p.fechaLimite), now)) : [];
+  const pagosVencidos = now ? pagos.filter(p => p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), now)) : [];
+  const historialPagos = pagos.filter(p => p.estado === 'pagado');
   
   const PagosTable = ({ data, isPending = false }: { data: Pago[], isPending?: boolean }) => (
     <Table>
@@ -79,28 +108,16 @@ export function PagosPageClient() {
       </TableHeader>
       <TableBody>
         {data.map((pago) => (
-          <DropdownMenu key={pago.id}>
-            <DropdownMenuTrigger asChild>
-              <TableRow className="cursor-pointer">
+            <TableRow key={pago.id} onClick={() => handleOpenPagoDetail(pago)} className="cursor-pointer">
                 <TableCell>{getClienteById(pago.clienteId)?.nombre}</TableCell>
                 <TableCell>{formatCurrency(pago.monto)}</TableCell>
                 <TableCell>
-                  <span className={isPending && isBefore(parseISO(pago.fechaLimite), new Date()) ? 'text-status-danger' : ''}>
+                  <span className={isPending && now && isBefore(parseISO(pago.fechaLimite), now) ? 'text-status-danger' : ''}>
                     {formatDate(isPending ? pago.fechaLimite : pago.fechaPago!)}
                   </span>
                 </TableCell>
                 <TableCell><StatusBadge status={pago.estado} /></TableCell>
               </TableRow>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-              {pago.estado === 'pendiente' ? (
-                <DropdownMenuItem onSelect={() => markAsPaid(pago)}>Marcar como pagado</DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem onSelect={() => markAsPending(pago)}>Marcar como pendiente</DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
         ))}
       </TableBody>
     </Table>
@@ -112,25 +129,37 @@ export function PagosPageClient() {
         title="Pagos"
         description="Gestiona los pagos de tus clientes."
       >
-        <Button onClick={() => setDialogOpen(true)}>
+        <Button onClick={() => setFormOpen(true)}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Registrar Pago
         </Button>
       </PageHeader>
       
-      <Tabs defaultValue="pendientes">
+      <Tabs defaultValue="proximos">
         <TabsList>
-          <TabsTrigger value="pendientes">Pendientes</TabsTrigger>
+          <TabsTrigger value="proximos">Próximos</TabsTrigger>
+          <TabsTrigger value="pendientes">Vencidos</TabsTrigger>
           <TabsTrigger value="historial">Historial</TabsTrigger>
         </TabsList>
+        <TabsContent value="proximos">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Pagos Próximos</CardTitle>
+                    <CardDescription>Pagos programados que aún no han vencido.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <PagosTable data={pagosProximos} isPending />
+                </CardContent>
+            </Card>
+        </TabsContent>
         <TabsContent value="pendientes">
             <Card>
                 <CardHeader>
-                    <CardTitle>Pagos Pendientes</CardTitle>
-                    <CardDescription>Pagos que aún no han sido cubiertos por los clientes.</CardDescription>
+                    <CardTitle>Pagos Vencidos</CardTitle>
+                    <CardDescription>Pagos que no se han cubierto y su fecha límite ya pasó.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <PagosTable data={pagosPendientes} isPending />
+                    <PagosTable data={pagosVencidos} isPending />
                 </CardContent>
             </Card>
         </TabsContent>
@@ -147,12 +176,24 @@ export function PagosPageClient() {
         </TabsContent>
       </Tabs>
 
-      <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={isFormOpen} onOpenChange={setFormOpen}>
         <PagoForm 
             clientes={clientes} 
             onSubmit={handleAddSubmit} 
-            setOpen={setDialogOpen}
+            setOpen={setFormOpen}
         />
+      </Dialog>
+      
+      <Dialog open={isPagoDetailOpen} onOpenChange={setPagoDetailOpen}>
+        {selectedPago && <PagoDetail 
+            pago={selectedPago} 
+            onOpenCliente={handleOpenCliente}
+            onToggleStatus={() => handleToggleStatusFromDetail(selectedPago)}
+            />}
+      </Dialog>
+      
+      <Dialog open={isClienteDetailOpen} onOpenChange={setClienteDetailOpen}>
+        {selectedCliente && <ClienteDetail cliente={selectedCliente} onCitaClick={() => {}} onEditRequest={() => {}} />}
       </Dialog>
     </>
   );
