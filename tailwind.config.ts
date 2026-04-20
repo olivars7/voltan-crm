@@ -56,9 +56,11 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
         status: {
-          success: '#3DA33D',
-          danger: '#E52626',
-          warning: '#F2C91A',
+          success: 'hsl(var(--status-success))',
+          danger: 'hsl(var(--status-danger))',
+          warning: 'hsl(var(--status-warning))',
+          active: 'hsl(var(--status-active))',
+          inactive: 'hsl(var(--status-inactive))',
         },
       },
       borderRadius: {
