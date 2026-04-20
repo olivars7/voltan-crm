@@ -4,20 +4,22 @@ import { useCitas } from '@/hooks/useCitas';
 import { usePagos } from '@/hooks/usePagos';
 import type { Cliente, Cita } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Briefcase, Mail, Phone, Calendar as CalendarIcon, DollarSign, ClipboardCheck } from 'lucide-react';
+import { Briefcase, Mail, Phone, Calendar as CalendarIcon, DollarSign, ClipboardCheck, CalendarDays, Pencil } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { Button } from '@/components/ui/button';
 
 interface ClienteDetailProps {
   cliente: Cliente;
   onCitaClick: (cita: Cita) => void;
+  onEditRequest: () => void;
 }
 
-export function ClienteDetail({ cliente, onCitaClick }: ClienteDetailProps) {
+export function ClienteDetail({ cliente, onCitaClick, onEditRequest }: ClienteDetailProps) {
   const { getCitasByClienteId } = useCitas();
   const { getPagosByClienteId } = usePagos();
 
@@ -35,8 +37,13 @@ export function ClienteDetail({ cliente, onCitaClick }: ClienteDetailProps) {
   return (
     <DialogContent className="sm:max-w-4xl max-h-[90vh]">
       <DialogHeader>
-        <DialogTitle>Expediente del Cliente</DialogTitle>
-        <DialogDescription>Información completa del cliente, su proyecto, citas y pagos.</DialogDescription>
+        <div className="flex justify-between items-start">
+            <DialogTitle>Expediente del Cliente</DialogTitle>
+            <Button variant="outline" size="icon" onClick={onEditRequest}>
+                <Pencil className="h-4 w-4" />
+                <span className="sr-only">Editar Cliente</span>
+            </Button>
+        </div>
       </DialogHeader>
       <div className="grid gap-6 py-4 overflow-y-auto pr-4">
         <div className="flex items-start gap-4">
@@ -58,6 +65,12 @@ export function ClienteDetail({ cliente, onCitaClick }: ClienteDetailProps) {
               <Phone className="w-4 h-4" />
               <span>{cliente.telefono}</span>
             </div>
+             {cliente.diaDePago && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                    <CalendarDays className="w-4 h-4" />
+                    <span>Día de pago mensual: {cliente.diaDePago}</span>
+                </div>
+            )}
           </div>
           <div className="ml-auto text-right">
               <StatusBadge status={cliente.estado} />

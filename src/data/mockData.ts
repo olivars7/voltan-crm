@@ -12,6 +12,7 @@ export const mockClientes: Cliente[] = [
     email: 'ana.garcia@innovatech.com',
     fechaInicio: formatISO(subDays(today, 90)),
     estado: 'activo',
+    diaDePago: 15,
     proyecto: {
         nombre: 'Desarrollo de App Móvil',
         descripcion: 'App para iOS y Android para gestión de inventario.',
@@ -27,6 +28,7 @@ export const mockClientes: Cliente[] = [
     email: 'carlos.martinez@quantum.com',
     fechaInicio: formatISO(subDays(today, 120)),
     estado: 'activo',
+    diaDePago: 1,
     proyecto: {
         nombre: 'Migración a la Nube',
         descripcion: 'Mover infraestructura de servidores on-premise a AWS.',

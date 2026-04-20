@@ -3,13 +3,13 @@ import { useClientes } from '@/hooks/useClientes';
 import { useCitas } from '@/hooks/useCitas';
 import { usePagos } from '@/hooks/usePagos';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Users, Calendar, DollarSign, AlertTriangle, ClipboardCheck, ArrowRight } from 'lucide-react';
+import { Users, Calendar, DollarSign, AlertTriangle, ClipboardCheck } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { StatusBadge } from '@/components/shared/StatusBadge';
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts"
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { addDays, isBefore, parseISO, subMonths, startOfMonth, endOfMonth, format, isWithinInterval } from 'date-fns';
+import { isBefore, parseISO, subMonths, startOfMonth, endOfMonth, format, isWithinInterval } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 type TimelineItem = {
@@ -26,7 +26,7 @@ export default function DashboardPage() {
 
   const activeClients = clientes.filter((c) => c.estado === 'activo').length;
   const pendingAppointments = citas.filter((c) => c.estado === 'pendiente').length;
-  const pendingPayments = pagos.filter((p) => p.estado === 'pendiente');
+  const pendingPayments = pagos.filter((p) => p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), new Date()));
   const totalPendingAmount = pendingPayments.reduce((sum, p) => sum + p.monto, 0);
 
   // General Console Data
@@ -142,7 +142,7 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pagos Pendientes</CardTitle>
+            <CardTitle className="text-sm font-medium">Pagos Vencidos</CardTitle>
             <AlertTriangle className="h-4 w-4 text-status-warning" />
           </CardHeader>
           <CardContent>
@@ -151,7 +151,7 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Deuda Total</CardTitle>
+            <CardTitle className="text-sm font-medium">Deuda Vencida</CardTitle>
             <DollarSign className="h-4 w-4 text-status-danger" />
           </CardHeader>
           <CardContent>

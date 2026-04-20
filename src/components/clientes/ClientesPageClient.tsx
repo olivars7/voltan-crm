@@ -32,14 +32,6 @@ import { CitaDetail } from '../citas/CitaDetail';
 import { formatDate } from '@/lib/utils';
 import type { Cliente, Cita } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { z } from 'zod';
-
-const formSchema = z.object({
-  nombre: z.string().min(2),
-  empresa: z.string().min(2),
-  email: z.string().email(),
-  telefono: z.string().min(10),
-});
 
 export function ClientesPageClient() {
   const { clientes, addCliente, updateCliente } = useClientes();
@@ -54,13 +46,13 @@ export function ClientesPageClient() {
   
   const [searchTerm, setSearchTerm] = React.useState('');
 
-  const handleAddSubmit = (values: z.infer<typeof formSchema>) => {
+  const handleAddSubmit = (values: any) => {
     addCliente(values);
     toast({ title: "Cliente añadido", description: "El nuevo cliente ha sido guardado." });
     setFormOpen(false);
   };
 
-  const handleEditSubmit = (values: z.infer<typeof formSchema>) => {
+  const handleEditSubmit = (values: any) => {
     if (editingCliente) {
       updateCliente({ ...editingCliente, ...values });
       toast({ title: "Cliente actualizado", description: "Los datos del cliente han sido actualizados." });
@@ -217,7 +209,7 @@ export function ClientesPageClient() {
       </Dialog>
 
       <Dialog open={isDetailOpen} onOpenChange={setDetailOpen}>
-        {selectedCliente && <ClienteDetail cliente={selectedCliente} onCitaClick={handleCitaClick} />}
+        {selectedCliente && <ClienteDetail cliente={selectedCliente} onCitaClick={handleCitaClick} onEditRequest={() => openEditDialog(selectedCliente)} />}
       </Dialog>
       
       <Dialog open={isCitaDetailOpen} onOpenChange={setCitaDetailOpen}>
