@@ -38,7 +38,7 @@ const formSchema = z.object({
   empresa: z.string().min(2, { message: 'La empresa es requerida.' }),
   email: z.string().email({ message: 'Email inválido.' }),
   telefono: z.string().min(10, { message: 'Teléfono inválido.' }),
-  diaDePago: z.preprocess((val) => (val === "" || val == null) ? undefined : val, z.coerce.number().int().min(1).max(31).optional()),
+  diaDePago: z.preprocess((val) => (val === "" || val == null || val === 'not-specified') ? undefined : val, z.coerce.number().int().min(1).max(31).optional()),
   proyecto: z.object({
     nombre: z.string(),
     descripcion: z.string(),
@@ -165,14 +165,14 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
                     render={({ field }) => (
                     <FormItem>
                         <FormLabel>Día de Pago Mensual</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={String(field.value || '')}>
+                        <Select onValueChange={field.onChange} value={field.value ? String(field.value) : 'not-specified'}>
                             <FormControl>
                                 <SelectTrigger>
                                 <SelectValue placeholder="No especificado" />
                                 </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                <SelectItem value="">No especificado</SelectItem>
+                                <SelectItem value="not-specified">No especificado</SelectItem>
                                 {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
                                     <SelectItem key={day} value={String(day)}>{day}</SelectItem>
                                 ))}
