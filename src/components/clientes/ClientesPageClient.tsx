@@ -32,6 +32,8 @@ import { CitaDetail } from '../citas/CitaDetail';
 import { formatDate } from '@/lib/utils';
 import type { Cliente, Cita } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { format, parseISO } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export function ClientesPageClient() {
   const { clientes, addCliente, updateCliente } = useClientes();
@@ -54,8 +56,13 @@ export function ClientesPageClient() {
 
   const handleEditSubmit = (values: any) => {
     if (editingCliente) {
-      updateCliente({ ...editingCliente, ...values });
+      const updatedData = { ...editingCliente, ...values };
+      updateCliente(updatedData);
       toast({ title: "Cliente actualizado", description: "Los datos del cliente han sido actualizados." });
+      // If the detail view was open for the edited client, update its data
+      if (selectedCliente?.id === updatedData.id) {
+        setSelectedCliente(updatedData);
+      }
       setFormOpen(false);
       setEditingCliente(undefined);
     }
@@ -104,10 +111,18 @@ export function ClientesPageClient() {
     });
   };
 
-  const filteredClientes = clientes.filter(cliente =>
-    cliente.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    cliente.empresa.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredClientes = clientes.filter(cliente => {
+    const search = searchTerm.toLowerCase();
+    const monthName = format(parseISO(cliente.fechaInicio), 'MMMM', { locale: es });
+
+    return (
+        cliente.nombre.toLowerCase().includes(search) ||
+        cliente.empresa.toLowerCase().includes(search) ||
+        cliente.telefono.includes(search) ||
+        cliente.estado.toLowerCase().includes(search) ||
+        monthName.toLowerCase().includes(search)
+    );
+  });
 
 
   return (
@@ -132,8 +147,8 @@ export function ClientesPageClient() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                     type="search"
-                    placeholder="Buscar por nombre o empresa..."
-                    className="w-full pl-8 sm:w-[300px]"
+                    placeholder="Buscar por nombre, empresa, teléfono, estado o mes..."
+                    className="w-full pl-8 md:w-1/2 lg:w-1/3"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />

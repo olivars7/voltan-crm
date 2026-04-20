@@ -43,7 +43,7 @@ const formSchema = z.object({
     nombre: z.string(),
     descripcion: z.string(),
     fechaEntrega: z.string(),
-    estado: z.enum(['en-progreso', 'completado', 'pausado', 'cancelado', '']),
+    estado: z.enum(['en-progreso', 'completado', 'pausado', 'cancelado']),
   }).partial().optional(),
 }).refine(data => {
     if (data.proyecto?.nombre && (!data.proyecto.fechaEntrega || !data.proyecto.estado)) {
@@ -78,16 +78,16 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
             nombre: '',
             descripcion: '',
             fechaEntrega: '',
-            estado: '',
+            estado: undefined,
         }
     },
   });
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
     const submissionValues: any = { ...values };
-    if (values.proyecto?.nombre) {
-        submissionValues.proyecto.fechaEntrega = new Date(values.proyecto.fechaEntrega!).toISOString();
-    } else {
+    if (values.proyecto?.nombre && values.proyecto.fechaEntrega) {
+        submissionValues.proyecto.fechaEntrega = new Date(values.proyecto.fechaEntrega).toISOString();
+    } else if (!values.proyecto?.nombre) {
         delete submissionValues.proyecto;
     }
     onSubmit(submissionValues);
@@ -236,7 +236,7 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
                     render={({ field }) => (
                     <FormItem>
                         <FormLabel>Estado del Proyecto</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value ?? ''}>
                         <FormControl>
                             <SelectTrigger>
                             <SelectValue placeholder="Selecciona un estado" />

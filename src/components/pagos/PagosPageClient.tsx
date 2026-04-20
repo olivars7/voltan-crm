@@ -58,6 +58,12 @@ export function PagosPageClient() {
      toast({ title: "Pago actualizado", description: "El pago ha sido marcado como pagado." });
   }
 
+  const markAsPending = (pago: Pago) => {
+    const { fechaPago, ...rest } = pago;
+    updatePago({ ...rest, estado: 'pendiente' });
+    toast({ title: "Pago actualizado", description: "El pago ha sido marcado como pendiente." });
+  }
+
   const pagosPendientes = pagos.filter((pago) => pago.estado === 'pendiente');
   const historialPagos = pagos.filter((pago) => pago.estado === 'pagado');
   
@@ -84,8 +90,7 @@ export function PagosPageClient() {
             </TableCell>
             <TableCell><StatusBadge status={pago.estado} /></TableCell>
             <TableCell>
-              {isPending && (
-                <DropdownMenu>
+              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button aria-haspopup="true" size="icon" variant="ghost">
                     <MoreHorizontal className="h-4 w-4" />
@@ -94,10 +99,13 @@ export function PagosPageClient() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                  <DropdownMenuItem onSelect={() => markAsPaid(pago)}>Marcar como pagado</DropdownMenuItem>
+                  {pago.estado === 'pendiente' ? (
+                    <DropdownMenuItem onSelect={() => markAsPaid(pago)}>Marcar como pagado</DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem onSelect={() => markAsPending(pago)}>Marcar como pendiente</DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
-              )}
             </TableCell>
           </TableRow>
         ))}

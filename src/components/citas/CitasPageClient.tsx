@@ -53,6 +53,7 @@ export function CitasPageClient() {
   const [isClienteDetailOpen, setClienteDetailOpen] = React.useState(false);
 
   const [selectedCita, setSelectedCita] = React.useState<Cita | undefined>(undefined);
+  const [editingCita, setEditingCita] = React.useState<Cita | undefined>(undefined);
   const [selectedCliente, setSelectedCliente] = React.useState<Cliente | undefined>(undefined);
   const { toast } = useToast();
 
@@ -62,9 +63,33 @@ export function CitasPageClient() {
     setFormOpen(false);
   };
   
+  const handleEditSubmit = (values: z.infer<typeof formSchema>) => {
+    if (editingCita) {
+      updateCita({ ...editingCita, ...values });
+      toast({ title: "Cita actualizada", description: "La cita ha sido actualizada." });
+      setFormOpen(false);
+      setEditingCita(undefined);
+    }
+  };
+
+  const openEditDialog = (cita: Cita) => {
+    setEditingCita(cita);
+    setFormOpen(true);
+  };
+
+  const openNewDialog = () => {
+    setEditingCita(undefined);
+    setFormOpen(true);
+  };
+
   const markAsCompleted = (cita: Cita) => {
     updateCita({ ...cita, estado: 'completada' });
     toast({ title: "Cita completada", description: "La cita ha sido marcada como completada." });
+  }
+
+  const markAsPending = (cita: Cita) => {
+    updateCita({ ...cita, estado: 'pendiente' });
+    toast({ title: "Cita actualizada", description: "La cita ha sido marcada como pendiente." });
   }
 
   const openCitaDetailDialog = (cita: Cita) => {
@@ -114,21 +139,24 @@ export function CitasPageClient() {
             <TableCell className="capitalize">{cita.tipo}</TableCell>
             <TableCell><StatusBadge status={cita.estado} /></TableCell>
             <TableCell onClick={(e) => e.stopPropagation()}>
-              {cita.estado === 'pendiente' && (
-                <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button aria-haspopup="true" size="icon" variant="ghost">
-                    <MoreHorizontal className="h-4 w-4" />
-                    <span className="sr-only">Toggle menu</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+              <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button aria-haspopup="true" size="icon" variant="ghost">
+                  <MoreHorizontal className="h-4 w-4" />
+                  <span className="sr-only">Toggle menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                <DropdownMenuItem onSelect={() => openEditDialog(cita)}>Editar</DropdownMenuItem>
+                {cita.estado === 'pendiente' ? (
                   <DropdownMenuItem onSelect={() => markAsCompleted(cita)}>Marcar como completada</DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => openCitaDetailDialog(cita)}>Ver detalles</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              )}
+                ) : (
+                  <DropdownMenuItem onSelect={() => markAsPending(cita)}>Marcar como pendiente</DropdownMenuItem>
+                )}
+                <DropdownMenuItem onSelect={() => openCitaDetailDialog(cita)}>Ver detalles</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             </TableCell>
           </TableRow>
         ))}
@@ -142,7 +170,7 @@ export function CitasPageClient() {
         title="Citas"
         description="Agenda y gestiona tus citas con clientes."
       >
-        <Button onClick={() => setFormOpen(true)}>
+        <Button onClick={openNewDialog}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Agendar Cita
         </Button>
@@ -179,8 +207,9 @@ export function CitasPageClient() {
 
       <Dialog open={isFormOpen} onOpenChange={setFormOpen}>
         <CitaForm 
+            cita={editingCita}
             clientes={clientes} 
-            onSubmit={handleAddSubmit} 
+            onSubmit={editingCita ? handleEditSubmit : handleAddSubmit} 
             setOpen={setFormOpen}
         />
       </Dialog>
@@ -190,7 +219,7 @@ export function CitasPageClient() {
       </Dialog>
 
       <Dialog open={isClienteDetailOpen} onOpenChange={setClienteDetailOpen}>
-        {selectedCliente && <ClienteDetail cliente={selectedCliente} onCitaClick={handleCitaClickFromCliente} />}
+        {selectedCliente && <ClienteDetail cliente={selectedCliente} onCitaClick={handleCitaClickFromCliente} onEditRequest={() => {}} />}
       </Dialog>
     </>
   );
