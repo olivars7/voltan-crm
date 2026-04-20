@@ -1,11 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { PlusCircle, MoreHorizontal } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Search } from 'lucide-react';
 import { useClientes } from '@/hooks/useClientes';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -50,6 +51,8 @@ export function ClientesPageClient() {
   const [selectedCita, setSelectedCita] = React.useState<Cita | undefined>(undefined);
   const [editingCliente, setEditingCliente] = React.useState<Cliente | undefined>(undefined);
   const { toast } = useToast();
+  
+  const [searchTerm, setSearchTerm] = React.useState('');
 
   const handleAddSubmit = (values: z.infer<typeof formSchema>) => {
     addCliente(values);
@@ -100,6 +103,20 @@ export function ClientesPageClient() {
       }
   }
 
+  const handleCopy = (text: string, fieldName: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+        toast({
+            title: `${fieldName} copiado`,
+            description: `Se ha copiado "${text}" al portapapeles.`,
+        });
+    });
+  };
+
+  const filteredClientes = clientes.filter(cliente =>
+    cliente.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    cliente.empresa.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
 
   return (
     <>
@@ -118,12 +135,24 @@ export function ClientesPageClient() {
           <CardTitle>Lista de Clientes</CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="pb-4">
+            <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                    type="search"
+                    placeholder="Buscar por nombre o empresa..."
+                    className="w-full pl-8 sm:w-[300px]"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+          </div>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nombre</TableHead>
                 <TableHead className="hidden md:table-cell">Empresa</TableHead>
-                <TableHead>Email</TableHead>
+                <TableHead>Teléfono</TableHead>
                 <TableHead className="hidden sm:table-cell">Fecha de Inicio</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead>
@@ -132,11 +161,27 @@ export function ClientesPageClient() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {clientes.map((cliente) => (
+              {filteredClientes.map((cliente) => (
                 <TableRow key={cliente.id} onClick={() => openDetailDialog(cliente)} className="cursor-pointer">
-                  <TableCell className="font-medium">{cliente.nombre}</TableCell>
+                  <TableCell 
+                    className="font-medium cursor-pointer" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCopy(cliente.nombre, "Nombre");
+                    }}
+                  >
+                    {cliente.nombre}
+                  </TableCell>
                   <TableCell className="hidden md:table-cell">{cliente.empresa}</TableCell>
-                  <TableCell>{cliente.email}</TableCell>
+                  <TableCell 
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCopy(cliente.telefono, "Teléfono");
+                    }}
+                  >
+                    {cliente.telefono}
+                  </TableCell>
                   <TableCell className="hidden sm:table-cell">{formatDate(cliente.fechaInicio)}</TableCell>
                   <TableCell>
                     <StatusBadge status={cliente.estado} />
