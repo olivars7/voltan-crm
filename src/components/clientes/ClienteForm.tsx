@@ -29,8 +29,8 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import type { Cliente } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Briefcase, CalendarDays, ClipboardCheck, DollarSign, Mail, Phone, User } from 'lucide-react';
+import { CalendarDays, ClipboardCheck, User } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 const formSchema = z.object({
   nombre: z.string().min(2, { message: 'El nombre es requerido.' }),
@@ -101,25 +101,26 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
         <DialogTitle>{cliente ? 'Editar Cliente' : 'Añadir Cliente'}</DialogTitle>
       </DialogHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 py-4 max-h-[80vh] overflow-y-auto pr-4">
-            <Card>
-                <CardHeader>
-                    <CardTitle className='flex items-center gap-2 text-lg'><User /> Información de Contacto</CardTitle>
-                </CardHeader>
-                <CardContent className='grid md:grid-cols-2 gap-6'>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8 py-4 max-h-[80vh] overflow-y-auto pr-4">
+            
+            {/* Contact Info Section */}
+            <div className="space-y-4">
+                <h3 className="text-lg font-medium flex items-center gap-2"><User className="h-5 w-5"/> Información de Contacto</h3>
+                <Separator />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField control={form.control} name="nombre" render={({ field }) => (<FormItem><FormLabel>Nombre</FormLabel><FormControl><Input placeholder="John Doe" {...field} /></FormControl><FormMessage /></FormItem>)} />
                     <FormField control={form.control} name="empresa" render={({ field }) => (<FormItem><FormLabel>Empresa</FormLabel><FormControl><Input placeholder="ACME Inc." {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={form.control} name="email" render={({ field }) => (<FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="john@acme.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="email" render={({ field }) => (<FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="john@acme.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
                     <FormField control={form.control} name="telefono" render={({ field }) => (<FormItem><FormLabel>Teléfono</FormLabel><FormControl><Input placeholder="55-1234-5678" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle className='flex items-center gap-2 text-lg'><CalendarDays /> Pagos Recurrentes</CardTitle>
-                </CardHeader>
-                <CardContent className='grid md:grid-cols-2 gap-6'>
-                    <FormField control={form.control} name="diaDePago" render={({ field }) => (
+            {/* Recurring Payments Section */}
+            <div className="space-y-4">
+                <h3 className="text-lg font-medium flex items-center gap-2"><CalendarDays className="h-5 w-5"/> Pagos Recurrentes</h3>
+                <Separator />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <FormField control={form.control} name="diaDePago" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Día de Pago Mensual</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value ? String(field.value) : 'not-specified'}>
@@ -139,14 +140,14 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
                             <FormMessage />
                         </FormItem>
                     )} />
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle className='flex items-center gap-2 text-lg'><ClipboardCheck /> Detalles del Proyecto (Opcional)</CardTitle>
-                </CardHeader>
-                <CardContent className='grid md:grid-cols-2 gap-6'>
+            {/* Project Details Section */}
+            <div className="space-y-4">
+                 <h3 className="text-lg font-medium flex items-center gap-2"><ClipboardCheck className="h-5 w-5"/> Detalles del Proyecto (Opcional)</h3>
+                 <Separator />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      <FormField control={form.control} name="proyecto.nombre" render={({ field }) => (<FormItem><FormLabel>Nombre del Proyecto</FormLabel><FormControl><Input placeholder="Ej. Sitio Web Corporativo" {...field} /></FormControl><FormMessage /></FormItem>)} />
                      <FormField control={form.control} name="proyecto.estado" render={({ field }) => (
                         <FormItem>
@@ -166,8 +167,8 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
                     />
                     <FormField control={form.control} name="proyecto.fechaEntrega" render={({ field }) => (<FormItem><FormLabel>Fecha de Entrega</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
                     <FormField control={form.control} name="proyecto.descripcion" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Descripción del Proyecto</FormLabel><FormControl><Textarea placeholder="Descripción breve del proyecto..." {...field} /></FormControl><FormMessage /></FormItem>)}/>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
             <DialogFooter className="pt-4">
                 <DialogClose asChild>
