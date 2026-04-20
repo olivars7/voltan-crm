@@ -28,7 +28,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed inset-y-4 left-4 z-10 hidden w-16 flex-col items-center justify-center rounded-full border bg-background/80 backdrop-blur-sm sm:flex">
+    <aside className="fixed inset-y-4 left-4 z-10 hidden w-16 flex-col items-center justify-start rounded-full border bg-background/80 backdrop-blur-sm sm:flex">
       <nav className="flex flex-col items-center gap-4 px-2 py-5">
         <Link
           href="/dashboard"
