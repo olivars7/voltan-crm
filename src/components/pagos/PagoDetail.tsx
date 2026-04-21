@@ -1,14 +1,16 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { useClientes } from '@/hooks/useClientes';
 import { useToast } from '@/hooks/use-toast';
 import { Pago } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { differenceInDays, formatDistanceStrict, isPast, isToday, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Calendar, User, DollarSign, Info, Notebook, ExternalLink, Copy, Pencil } from 'lucide-react';
+import { Calendar, User, Info, Notebook, ExternalLink, Copy, Pencil } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
 
 interface PagoDetailProps {
@@ -55,74 +57,66 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest 
             description: "El mensaje de recordatorio se ha copiado al portapapeles.",
         });
     });
-};
+  };
 
 
   return (
-    <DialogContent className="sm:max-w-lg">
+    <DialogContent className="sm:max-w-md">
       <DialogHeader>
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <DialogTitle>Detalles del Pago - {pago.concepto}</DialogTitle>
-            <DialogDescription className="mt-1">
-              Pago de {cliente?.nombre || 'N/A'} por un monto de {formatCurrency(pago.monto)}.
-            </DialogDescription>
-          </div>
-          <Button variant="outline" size="icon" onClick={onEditRequest} disabled={isRecurring}>
-            <Pencil className="h-4 w-4" />
-            <span className="sr-only">Editar Pago</span>
-          </Button>
+        <div className="flex items-center justify-between gap-4">
+            <DialogTitle>Detalles del Pago</DialogTitle>
+            <Button variant="outline" size="icon" onClick={onEditRequest} disabled={isRecurring}>
+                <Pencil className="h-4 w-4" />
+                <span className="sr-only">Editar Pago</span>
+            </Button>
         </div>
       </DialogHeader>
-      <div className="grid gap-4 py-4">
-        <div className="grid gap-2">
-            <div className="flex items-center gap-3">
-                <User className="w-5 h-5 text-muted-foreground" />
-                <span className="font-semibold">Cliente:</span>
-                <span>{cliente?.nombre}</span>
+
+      <div className="space-y-6 py-4">
+        <Card className="bg-muted/30 dark:bg-muted/50 text-center">
+            <CardContent className="p-4">
+                <p className="text-sm text-muted-foreground">{pago.concepto}</p>
+                <p className="text-4xl font-bold tracking-tight">{formatCurrency(pago.monto)}</p>
+            </CardContent>
+        </Card>
+
+        <div className="space-y-3 text-sm">
+            <div className="flex items-center justify-between">
+                <span className="text-muted-foreground flex items-center gap-2"><User className="w-4 h-4" /> Cliente</span>
+                <span className="font-medium text-right">{cliente?.nombre}</span>
             </div>
-             <div className="flex items-center gap-3">
-                <Info className="w-5 h-5 text-muted-foreground" />
-                <span className="font-semibold">Concepto:</span>
-                <span>{pago.concepto}</span>
+            <div className="flex items-center justify-between">
+                <span className="text-muted-foreground flex items-center gap-2"><Calendar className="w-4 h-4" /> {pago.estado === 'pagado' ? 'Fecha de Pago' : 'Fecha Límite'}</span>
+                <span className="font-medium">{formatDate(pago.estado === 'pagado' ? pago.fechaPago! : pago.fechaLimite)}</span>
             </div>
-            <div className="flex items-center gap-3">
-                <DollarSign className="w-5 h-5 text-muted-foreground" />
-                <span className="font-semibold">Monto:</span>
-                <span>{formatCurrency(pago.monto)}</span>
-            </div>
-            <div className="flex items-center gap-3">
-                <Calendar className="w-5 h-5 text-muted-foreground" />
-                <span className="font-semibold">{pago.estado === 'pagado' ? 'Fecha de Pago:' : 'Fecha Límite:'}</span>
-                <span>{formatDate(pago.estado === 'pagado' ? pago.fechaPago! : pago.fechaLimite)}</span>
-            </div>
-             <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between">
+                <span className="text-muted-foreground flex items-center gap-2"><Info className="w-4 h-4" /> Estado</span>
                 <StatusBadge status={pago.estado} />
             </div>
-            {pago.notas && (
-                <div className="flex items-start gap-3 pt-2">
-                    <Notebook className="w-5 h-5 text-muted-foreground mt-1" />
-                    <div>
-                        <span className="font-semibold">Notas:</span>
-                        <p className="text-sm text-muted-foreground">{pago.notas}</p>
-                    </div>
-                </div>
-            )}
         </div>
+        
+        {pago.notas && (
+            <>
+                <Separator />
+                <div className="space-y-2">
+                    <h4 className="font-medium text-sm flex items-center gap-2"><Notebook className="w-4 h-4 text-muted-foreground" /> Notas</h4>
+                    <p className="text-sm text-muted-foreground pl-6">{pago.notas}</p>
+                </div>
+            </>
+        )}
       </div>
-      <DialogFooter className="flex-wrap justify-end gap-2">
-          <Button variant="outline" onClick={handleCopyReminder} disabled={pago.estado === 'pagado'}>
+
+      <DialogFooter className="flex-col gap-2">
+          <Button onClick={onToggleStatus} disabled={isRecurring} size="lg" className="w-full">
+            {pago.estado === 'pendiente' ? 'Marcar como Pagado' : 'Marcar como Pendiente'}
+          </Button>
+          <Button variant="outline" onClick={handleCopyReminder} disabled={pago.estado === 'pagado'} className="w-full">
               <Copy className="mr-2 h-4 w-4" />
               Copiar Recordatorio
           </Button>
-
-          <Button onClick={onToggleStatus} disabled={isRecurring}>
-            {pago.estado === 'pendiente' ? 'Marcar como Pagado' : 'Marcar como Pendiente'}
-          </Button>
-
-          <Button variant="ghost" onClick={() => onOpenCliente(pago.clienteId)}>
+          <Button variant="ghost" onClick={() => onOpenCliente(pago.clienteId)} className="w-full">
             <ExternalLink className="mr-2 h-4 w-4" />
-            Ver Expediente
+            Ver Expediente del Cliente
           </Button>
       </DialogFooter>
     </DialogContent>
