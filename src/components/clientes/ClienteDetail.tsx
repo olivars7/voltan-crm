@@ -27,7 +27,7 @@ interface ClienteDetailProps {
 }
 
 export function ClienteDetail({ cliente, clientes, onEditRequest }: ClienteDetailProps) {
-  const { getPagosByClienteId, updatePago } = usePagos();
+  const { pagos, getPagosByClienteId, updatePago } = usePagos();
   const { updateCliente } = useClientes();
   const { toast } = useToast();
 
