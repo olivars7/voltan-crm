@@ -1,30 +1,38 @@
-"use client";
+'use client';
 
 import useLocalStorage from './useLocalStorage';
 import type { Pago } from '@/lib/types';
 import { mockPagos } from '@/data/mockData';
+import { useCallback } from 'react';
 
 export const usePagos = () => {
   const [pagos, setPagos] = useLocalStorage<Pago[]>('pagos', mockPagos);
 
-  const addPago = (pago: Omit<Pago, 'id' | 'estado'>) => {
-    const newPago: Pago = {
-      ...pago,
-      id: `pa-${Date.now()}`,
-      estado: 'pendiente',
-    };
-    setPagos((prev) => [...prev, newPago]);
-  };
+  const addPago = useCallback(
+    (pago: Omit<Pago, 'id' | 'estado'>) => {
+      const newPago: Pago = {
+        ...pago,
+        id: `pa-${Date.now()}`,
+        estado: 'pendiente',
+      };
+      setPagos((prev) => [...prev, newPago]);
+    },
+    [setPagos]
+  );
 
-  const updatePago = (updatedPago: Pago) => {
-    setPagos((prev) =>
-      prev.map((p) => (p.id === updatedPago.id ? updatedPago : p))
-    );
-  };
+  const updatePago = useCallback(
+    (updatedPago: Pago) => {
+      setPagos((prev) => prev.map((p) => (p.id === updatedPago.id ? updatedPago : p)));
+    },
+    [setPagos]
+  );
 
-  const getPagosByClienteId = (clienteId: string) => {
-    return pagos.filter(p => p.clienteId === clienteId);
-  }
+  const getPagosByClienteId = useCallback(
+    (clienteId: string) => {
+      return pagos.filter((p) => p.clienteId === clienteId);
+    },
+    [pagos]
+  );
 
   return { pagos, addPago, updatePago, getPagosByClienteId };
 };
