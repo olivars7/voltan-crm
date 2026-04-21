@@ -2,8 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Card, CardContent } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { useClientes } from '@/hooks/useClientes';
 import { useToast } from '@/hooks/use-toast';
 import { Pago } from '@/lib/types';
@@ -63,24 +61,22 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest 
   return (
     <DialogContent className="sm:max-w-md">
       <DialogHeader>
-        <div className="flex items-center justify-between gap-4">
-            <DialogTitle>Detalles del Pago</DialogTitle>
-            <Button variant="outline" size="icon" onClick={onEditRequest} disabled={isRecurring}>
-                <Pencil className="h-4 w-4" />
-                <span className="sr-only">Editar Pago</span>
-            </Button>
+        <div className="flex items-start justify-between">
+          <DialogTitle>Detalles del Pago</DialogTitle>
+          <Button variant="outline" size="icon" onClick={onEditRequest} disabled={isRecurring} className="-mt-2">
+              <Pencil className="h-4 w-4" />
+              <span className="sr-only">Editar Pago</span>
+          </Button>
         </div>
       </DialogHeader>
 
-      <div className="space-y-6 py-4">
-        <Card className="bg-muted/30 dark:bg-muted/50 text-center">
-            <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground">{pago.concepto}</p>
-                <p className="text-4xl font-bold tracking-tight">{formatCurrency(pago.monto)}</p>
-            </CardContent>
-        </Card>
+      <div className="py-2 space-y-6">
+        <div className="text-center">
+            <p className="text-4xl font-bold tracking-tighter">{formatCurrency(pago.monto)}</p>
+            <p className="text-muted-foreground">{pago.concepto}</p>
+        </div>
 
-        <div className="space-y-3 text-sm">
+        <div className="space-y-4 rounded-lg border bg-muted/50 p-4 text-sm">
             <div className="flex items-center justify-between">
                 <span className="text-muted-foreground flex items-center gap-2"><User className="w-4 h-4" /> Cliente</span>
                 <span className="font-medium text-right">{cliente?.nombre}</span>
@@ -96,17 +92,14 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest 
         </div>
         
         {pago.notas && (
-            <>
-                <Separator />
-                <div className="space-y-2">
-                    <h4 className="font-medium text-sm flex items-center gap-2"><Notebook className="w-4 h-4 text-muted-foreground" /> Notas</h4>
-                    <p className="text-sm text-muted-foreground pl-6">{pago.notas}</p>
-                </div>
-            </>
+            <div className="space-y-2">
+                <h4 className="font-medium text-sm flex items-center gap-2"><Notebook className="w-4 h-4 text-muted-foreground" /> Notas</h4>
+                <p className="text-sm text-muted-foreground pl-4 border-l-2 ml-2">{pago.notas}</p>
+            </div>
         )}
       </div>
 
-      <DialogFooter className="flex-col gap-2">
+      <DialogFooter className="flex-col gap-2 sm:flex-col sm:space-x-0">
           <Button onClick={onToggleStatus} disabled={isRecurring} size="lg" className="w-full">
             {pago.estado === 'pendiente' ? 'Marcar como Pagado' : 'Marcar como Pendiente'}
           </Button>
