@@ -15,6 +15,7 @@ export const useClientes = () => {
       estado: 'activo',
     };
     setClientes((prev) => [...prev, newCliente]);
+    return newCliente;
   };
 
   const updateCliente = (updatedCliente: Cliente) => {

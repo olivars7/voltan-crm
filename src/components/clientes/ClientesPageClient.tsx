@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { PlusCircle, Search } from 'lucide-react';
 import { useClientes } from '@/hooks/useClientes';
+import { usePagos } from '@/hooks/usePagos';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,6 +30,7 @@ import { es } from 'date-fns/locale';
 
 export function ClientesPageClient() {
   const { clientes, addCliente, updateCliente } = useClientes();
+  const { addPago } = usePagos();
   const [isFormOpen, setFormOpen] = React.useState(false);
   const [isDetailOpen, setDetailOpen] = React.useState(false);
 
@@ -39,8 +41,21 @@ export function ClientesPageClient() {
   const [searchTerm, setSearchTerm] = React.useState('');
 
   const handleAddSubmit = (values: any) => {
-    addCliente(values);
+    const newClient = addCliente(values);
     toast({ title: "Cliente añadido", description: "El nuevo cliente ha sido guardado." });
+    
+    if (values.montoApertura && values.montoApertura > 0) {
+      addPago({
+        clienteId: newClient.id,
+        monto: values.montoApertura,
+        fechaLimite: new Date().toISOString(),
+        estado: 'pagado',
+        fechaPago: new Date().toISOString(),
+        notas: 'Pago de apertura',
+      })
+      toast({ title: "Pago de apertura registrado", description: "El pago inicial ha sido marcado como pagado." });
+    }
+
     setFormOpen(false);
   };
 

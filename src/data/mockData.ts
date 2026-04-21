@@ -1,5 +1,5 @@
 import type { Cliente, Pago } from '@/lib/types';
-import { subDays, addDays, formatISO, subMonths, addMonths, subYears } from 'date-fns';
+import { subDays, addDays, formatISO, subMonths, addMonths, subYears, startOfMonth, parseISO } from 'date-fns';
 
 const today = new Date();
 
@@ -98,7 +98,7 @@ export const mockClientes: Cliente[] = [
     fechaInicio: formatISO(subDays(today, 10)),
     estado: 'activo',
     diaDePago: 25,
-    montoRecurrente: 0,
+    montoRecurrente: 1500,
     proyecto: {
         nombre: 'Sitio Web Informativo',
         descripcion: 'Landing page y secciones de servicios.',
@@ -194,7 +194,7 @@ export const mockClientes: Cliente[] = [
     fechaInicio: formatISO(subDays(today, 20)),
     estado: 'activo',
     diaDePago: 15,
-    montoRecurrente: 0,
+    montoRecurrente: 800,
     proyecto: {
         nombre: 'Video Promocional',
         descripcion: 'Edición de video para redes sociales.',
@@ -242,7 +242,7 @@ export const mockClientes: Cliente[] = [
     fechaInicio: formatISO(subMonths(today, 3)),
     estado: 'activo',
     diaDePago: 10,
-    montoRecurrente: 0,
+    montoRecurrente: 2000,
     proyecto: {
         nombre: 'Campaña Fotográfica Q3',
         descripcion: 'Producción y retoque de fotos para catálogo.',
@@ -330,65 +330,77 @@ export const mockClientes: Cliente[] = [
   }
 ];
 
-export const mockPagos: Pago[] = [
-  // Pagos Cliente 1 (Ana Torres)
-  { id: 'pa-1', clienteId: 'cl-1', monto: 15000, fechaPago: formatISO(subDays(today, 40)), fechaLimite: formatISO(subDays(today, 40)), estado: 'pagado', notas: 'Anticipo CRM (50%)' },
-  { id: 'pa-2', clienteId: 'cl-1', monto: 15000, fechaLimite: formatISO(addDays(today, 75)), estado: 'pendiente', notas: 'Pago final CRM' },
+// Generate pagos based on clientes to ensure consistency
+export const mockPagos: Pago[] = [];
 
-  // Pagos Cliente 2 (Carlos Mendoza)
-  { id: 'pa-3', clienteId: 'cl-2', monto: 7500, fechaPago: formatISO(subMonths(today, 1)), fechaLimite: formatISO(subMonths(today, 1)), estado: 'pagado', notas: 'Retainer Mensual' },
-  { id: 'pa-4', clienteId: 'cl-2', monto: 10000, fechaLimite: formatISO(addMonths(today, 1)), estado: 'pendiente', notas: 'Hito 1 SEO' },
-  
-  // Pagos Cliente 3 (Beatriz Navarro) - varios pagos de retainer
-  ...Array.from({length: 3}).map((_, i) => ({ id: `pa-5-${i}`, clienteId: 'cl-3', monto: 3000, fechaPago: formatISO(subMonths(today, i + 1)), fechaLimite: formatISO(subMonths(today, i + 1)), estado: 'pagado' as const, notas: 'Mantenimiento Web' })),
-  
-  // Pagos Cliente 4 (David Ríos)
-  { id: 'pa-6', clienteId: 'cl-4', monto: 20000, fechaPago: formatISO(subMonths(today, 9)), fechaLimite: formatISO(subMonths(today, 9)), estado: 'pagado', notas: 'Anticipo App' },
-  
-  // Pagos Cliente 5 (Elena Garza) - pago vencido
-  { id: 'pa-7', clienteId: 'cl-5', monto: 12000, fechaPago: formatISO(subMonths(today, 5)), fechaLimite: formatISO(subMonths(today, 5)), estado: 'pagado', notas: 'Anticipo E-commerce' },
-  { id: 'pa-8', clienteId: 'cl-5', monto: 8000, fechaLimite: formatISO(subDays(today, 15)), estado: 'pendiente', notas: 'Hito Diseño (Vencido)' },
+mockClientes.forEach(cliente => {
+    // 1. Add Opening Payment for each client
+    const montoApertura = cliente.montoRecurrente * 1.5;
+    const fechaInicioDate = parseISO(cliente.fechaInicio);
+    mockPagos.push({
+        id: `pa-open-${cliente.id}`,
+        clienteId: cliente.id,
+        monto: montoApertura,
+        fechaPago: formatISO(fechaInicioDate),
+        fechaLimite: formatISO(fechaInicioDate),
+        estado: 'pagado',
+        notas: 'Pago de apertura'
+    });
 
-  // Pagos Cliente 6 (Francisco León)
-  { id: 'pa-9', clienteId: 'cl-6', monto: 4000, fechaLimite: formatISO(addDays(today, 5)), estado: 'pendiente', notas: 'Pago único Sitio Web' },
+    // 2. Add historical recurring payments
+    const monthsSinceStart = (today.getFullYear() - fechaInicioDate.getFullYear()) * 12 + (today.getMonth() - fechaInicioDate.getMonth());
+    if (cliente.montoRecurrente > 0) {
+        for (let i = 1; i < monthsSinceStart; i++) {
+            const paymentDate = addMonths(startOfMonth(fechaInicioDate), i);
+            paymentDate.setDate(cliente.diaDePago);
+            
+            // Randomly decide if a past payment was "missed" (only for specific clients)
+             if (cliente.id === 'cl-8' && i === monthsSinceStart -1) {
+                // This will be the overdue payment for Hugo Valdez
+                mockPagos.push({
+                    id: `pa-hist-${cliente.id}-${i}`,
+                    clienteId: cliente.id,
+                    monto: cliente.montoRecurrente,
+                    fechaLimite: formatISO(paymentDate),
+                    estado: 'pendiente',
+                    notas: 'Pago recurrente'
+                });
+                continue; // Skip making it 'pagado'
+            }
 
-  // Pagos Cliente 7 (Gloria Ponce)
-  { id: 'pa-10', clienteId: 'cl-7', monto: 25000, fechaPago: formatISO(subYears(today, 1)), fechaLimite: formatISO(subYears(today, 1)), estado: 'pagado', notas: 'Pago Final Membresías' },
+            if (cliente.id === 'cl-5' && i > 2) {
+                 // Simulate paused payments for Elena Garza
+                continue;
+            }
 
-  // Pagos Cliente 8 (Hugo Valdez) - pago vencido
-  { id: 'pa-11', clienteId: 'cl-8', monto: 5000, fechaPago: formatISO(subMonths(today, 1)), fechaLimite: formatISO(subMonths(today, 1)), estado: 'pagado', notas: 'Retainer' },
-  { id: 'pa-12', clienteId: 'cl-8', monto: 5000, fechaLimite: formatISO(subDays(today, 12)), estado: 'pendiente', notas: 'Retainer (Vencido)' },
 
-  // Pagos Cliente 9 (Irene Soto)
-  { id: 'pa-13', clienteId: 'cl-9', monto: 18000, fechaPago: formatISO(subMonths(today, 11)), fechaLimite: formatISO(subMonths(today, 11)), estado: 'pagado', notas: 'Pago Portafolio' },
-  
-  // Pagos Cliente 10 (Javier Luna)
-  { id: 'pa-14', clienteId: 'cl-10', monto: 50000, fechaPago: formatISO(subMonths(today, 2)), fechaLimite: formatISO(subMonths(today, 2)), estado: 'pagado', notas: 'Anticipo Trading (40%)' },
-  { id: 'pa-15', clienteId: 'cl-10', monto: 75000, fechaLimite: formatISO(addMonths(today, 3)), estado: 'pendiente', notas: 'Pago Final Trading (60%)' },
-  
-  // Pagos Cliente 12 (Luis Marín)
-  { id: 'pa-16', clienteId: 'cl-12', monto: 3500, fechaPago: formatISO(subDays(today, 4)), fechaLimite: formatISO(subDays(today, 5)), estado: 'pagado', notas: 'Pago Video Promo' },
+            mockPagos.push({
+                id: `pa-hist-${cliente.id}-${i}`,
+                clienteId: cliente.id,
+                monto: cliente.montoRecurrente,
+                fechaPago: formatISO(paymentDate),
+                fechaLimite: formatISO(paymentDate),
+                estado: 'pagado',
+                notas: 'Pago recurrente'
+            });
+        }
+    }
 
-  // Pagos Cliente 13 (Mónica Solís)
-  { id: 'pa-17', clienteId: 'cl-13', monto: 2500, fechaPago: formatISO(subMonths(today, 1)), fechaLimite: formatISO(subMonths(today, 1)), estado: 'pagado', notas: 'Mantenimiento' },
-  { id: 'pa-18', clienteId: 'cl-13', monto: 2500, fechaLimite: formatISO(addDays(today, 28)), estado: 'pendiente', notas: 'Mantenimiento' },
-
-  // Pagos Cliente 15 (Olivia Cárdenas)
-  { id: 'pa-19', clienteId: 'cl-15', monto: 9000, fechaPago: formatISO(subMonths(today, 3)), fechaLimite: formatISO(subMonths(today, 3)), estado: 'pagado', notas: 'Anticipo Campaña' },
-  { id: 'pa-20', clienteId: 'cl-15', monto: 9000, fechaLimite: formatISO(addDays(today, 7)), estado: 'pendiente', notas: 'Pago contra-entrega' },
-  
-  // Pagos Cliente 17 (Quintín Rocha)
-  { id: 'pa-21', clienteId: 'cl-17', monto: 80000, fechaPago: formatISO(subDays(today, 55)), fechaLimite: formatISO(subDays(today, 55)), estado: 'pagado', notas: 'Fase 1 - Intranet' },
-  { id: 'pa-22', clienteId: 'cl-17', monto: 80000, fechaLimite: formatISO(addMonths(today, 2)), estado: 'pendiente', notas: 'Fase 2 - Intranet' },
-
-  // Pagos Cliente 18 (Raquel Alarcón)
-  { id: 'pa-23', clienteId: 'cl-18', monto: 15000, fechaPago: formatISO(subMonths(today, 7)), fechaLimite: formatISO(subMonths(today, 7)), estado: 'pagado', notas: 'Anticipo App Bodas' },
-  
-  // Pagos Cliente 19 (Sergio Villa)
-  ...Array.from({length: 4}).map((_, i) => ({ id: `pa-27-${i}`, clienteId: 'cl-19', monto: 6000, fechaPago: formatISO(subMonths(today, i + 1)), fechaLimite: formatISO(subMonths(today, i + 1)), estado: 'pagado' as const, notas: 'Retainer Contable' })),
-  
-  // Pagos Cliente 20 (Teresa Ocampo)
-  { id: 'pa-24', clienteId: 'cl-20', monto: 10000, fechaPago: formatISO(subMonths(today, 10)), fechaLimite: formatISO(subMonths(today, 10)), estado: 'pagado', notas: 'Anticipo Recorridos' },
-  { id: 'pa-25', clienteId: 'cl-20', monto: 10000, fechaPago: formatISO(subMonths(today, 8)), fechaLimite: formatISO(subMonths(today, 8)), estado: 'pagado', notas: 'Pago intermedio' },
-  { id: 'pa-26', clienteId: 'cl-20', monto: 10000, fechaPago: formatISO(subMonths(today, 7)), fechaLimite: formatISO(subMonths(today, 7)), estado: 'pagado', notas: 'Finiquito' },
-];
+    // 3. Add specific project-based payments
+    if (cliente.id === 'cl-1') { // Ana Torres - CRM Project
+        mockPagos.push({ id: 'pa-proj-1', clienteId: 'cl-1', monto: 15000, fechaLimite: formatISO(addDays(today, 75)), estado: 'pendiente', notas: 'Pago final CRM' });
+    }
+    if (cliente.id === 'cl-10') { // Javier Luna - Trading Platform
+        mockPagos.push({ id: 'pa-proj-10', clienteId: 'cl-10', monto: 75000, fechaLimite: formatISO(addMonths(today, 3)), estado: 'pendiente', notas: 'Pago Final Trading (60%)' });
+    }
+    if (cliente.id === 'cl-15') { // Olivia Cárdenas - Photo Campaign
+         mockPagos.push({ id: 'pa-proj-15', clienteId: 'cl-15', monto: 9000, fechaLimite: formatISO(addDays(today, 7)), estado: 'pendiente', notas: 'Pago contra-entrega' });
+    }
+    if (cliente.id === 'cl-17') { // Quintín Rocha - Intranet
+        mockPagos.push({ id: 'pa-proj-17', clienteId: 'cl-17', monto: 80000, fechaLimite: formatISO(addMonths(today, 2)), estado: 'pendiente', notas: 'Fase 2 - Intranet' });
+    }
+     if (cliente.id === 'cl-20') { // Teresa Ocampo - Virtual Tours
+        mockPagos.push({ id: 'pa-proj-20-1', clienteId: 'cl-20', monto: 10000, fechaPago: formatISO(subMonths(today, 8)), fechaLimite: formatISO(subMonths(today, 8)), estado: 'pagado', notas: 'Pago intermedio' });
+        mockPagos.push({ id: 'pa-proj-20-2', clienteId: 'cl-20', monto: 10000, fechaPago: formatISO(subMonths(today, 7)), fechaLimite: formatISO(subMonths(today, 7)), estado: 'pagado', notas: 'Finiquito' });
+    }
+});

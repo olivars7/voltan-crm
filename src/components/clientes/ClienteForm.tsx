@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import type { Cliente } from '@/lib/types';
-import { CalendarDays, ClipboardCheck, User } from 'lucide-react';
+import { CalendarDays, ClipboardCheck, DollarSign, User } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useEffect } from 'react';
 
@@ -38,8 +38,9 @@ const formSchema = z.object({
   empresa: z.string().min(2, { message: 'La empresa es requerida.' }),
   email: z.string().email({ message: 'Email inválido.' }),
   telefono: z.string().min(10, { message: 'Teléfono inválido.' }),
-  diaDePago: z.preprocess((val) => (val === "" || val == null || val === 'not-specified') ? undefined : Number(val), z.number().int().min(1).max(31).optional()),
-  montoRecurrente: z.preprocess((val) => (val === "" || val == null || !String(val).trim()) ? undefined : Number(val), z.number().positive({message: 'El monto debe ser un número positivo.'}).optional()),
+  montoApertura: z.coerce.number().min(0, { message: 'El monto no puede ser negativo.' }).optional(),
+  diaDePago: z.preprocess((val) => Number(val), z.number().int().min(1, {message: "El día de pago es requerido."}).max(31)),
+  montoRecurrente: z.coerce.number().min(0, { message: 'El monto recurrente no puede ser negativo.' }),
   proyecto: z.object({
     nombre: z.string(),
     descripcion: z.string(),
@@ -71,8 +72,9 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
         empresa: '',
         email: '',
         telefono: '',
-        diaDePago: undefined,
-        montoRecurrente: undefined,
+        montoApertura: 0,
+        diaDePago: 1,
+        montoRecurrente: 0,
         proyecto: {
             nombre: '',
             descripcion: '',
@@ -88,8 +90,9 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
         empresa: cliente?.empresa || '',
         email: cliente?.email || '',
         telefono: cliente?.telefono || '',
-        diaDePago: cliente?.diaDePago || undefined,
-        montoRecurrente: cliente?.montoRecurrente || undefined,
+        montoApertura: 0, // Not edited after creation
+        diaDePago: cliente?.diaDePago || 1,
+        montoRecurrente: cliente?.montoRecurrente ?? 0,
         proyecto: cliente?.proyecto ? {
             ...cliente.proyecto,
             fechaEntrega: cliente.proyecto.fechaEntrega.split('T')[0]
@@ -139,13 +142,21 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
                 <h3 className="text-lg font-medium flex items-center gap-2"><CalendarDays className="h-5 w-5"/> Pagos Recurrentes</h3>
                 <Separator />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {!cliente && (
+                        <FormField control={form.control} name="montoApertura" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Monto de Apertura (MXN)</FormLabel>
+                                <FormControl><Input type="number" step="0.01" placeholder="2500.00" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    )}
                      <FormField control={form.control} name="diaDePago" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Día de Pago Mensual</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value ? String(field.value) : 'not-specified'}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="No especificado" /></SelectTrigger></FormControl>
+                            <Select onValueChange={field.onChange} value={String(field.value)}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Selecciona un día" /></SelectTrigger></FormControl>
                                 <SelectContent>
-                                    <SelectItem value="not-specified">No especificado</SelectItem>
                                     {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (<SelectItem key={day} value={String(day)}>{day}</SelectItem>))}
                                 </SelectContent>
                             </Select>
@@ -153,9 +164,9 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
                         </FormItem>
                     )} />
                     <FormField control={form.control} name="montoRecurrente" render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={!cliente ? '' : 'md:col-span-2'}>
                             <FormLabel>Monto Recurrente (MXN)</FormLabel>
-                            <FormControl><Input type="number" step="0.01" placeholder="5000.00" {...field} value={field.value ?? ''} /></FormControl>
+                            <FormControl><Input type="number" step="0.01" placeholder="5000.00" {...field} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
