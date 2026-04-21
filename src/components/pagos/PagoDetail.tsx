@@ -8,7 +8,7 @@ import { Pago } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { differenceInDays, formatDistanceStrict, isPast, isToday, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Calendar, User, Info, Notebook, ExternalLink, Copy, Pencil } from 'lucide-react';
+import { Calendar, User, Info, Notebook, ExternalLink, Copy, Pencil, CheckCircle } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
 
 interface PagoDetailProps {
@@ -81,9 +81,15 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest 
                 <span className="font-medium text-right">{cliente?.nombre}</span>
             </div>
             <div className="flex items-center justify-between">
-                <span className="text-muted-foreground flex items-center gap-2"><Calendar className="w-4 h-4" /> {pago.estado === 'pagado' ? 'Fecha de Pago' : 'Fecha Límite'}</span>
-                <span className="font-medium">{formatDate(pago.estado === 'pagado' ? pago.fechaPago! : pago.fechaLimite)}</span>
+                <span className="text-muted-foreground flex items-center gap-2"><Calendar className="w-4 h-4" /> Fecha Límite</span>
+                <span className="font-medium">{formatDate(pago.fechaLimite)}</span>
             </div>
+            {pago.estado === 'pagado' && pago.fechaPago && (
+                <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground flex items-center gap-2"><CheckCircle className="w-4 h-4" /> Fecha de Pago</span>
+                    <span className="font-medium">{formatDate(pago.fechaPago)}</span>
+                </div>
+            )}
             <div className="flex items-center justify-between">
                 <span className="text-muted-foreground flex items-center gap-2"><Info className="w-4 h-4" /> Estado</span>
                 <StatusBadge status={pago.estado} />
