@@ -31,6 +31,7 @@ import { Textarea } from '@/components/ui/textarea';
 import type { Cliente } from '@/lib/types';
 import { CalendarDays, ClipboardCheck, User } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { useEffect } from 'react';
 
 const formSchema = z.object({
   nombre: z.string().min(2, { message: 'El nombre es requerido.' }),
@@ -66,6 +67,23 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+        nombre: '',
+        empresa: '',
+        email: '',
+        telefono: '',
+        diaDePago: undefined,
+        montoRecurrente: undefined,
+        proyecto: {
+            nombre: '',
+            descripcion: '',
+            fechaEntrega: '',
+            estado: undefined,
+        }
+    },
+  });
+
+  useEffect(() => {
+    const defaultValues = {
         nombre: cliente?.nombre || '',
         empresa: cliente?.empresa || '',
         email: cliente?.email || '',
@@ -81,8 +99,9 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
             fechaEntrega: '',
             estado: undefined,
         }
-    },
-  });
+    };
+    form.reset(defaultValues);
+  }, [cliente, form]);
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
     const submissionValues: any = { ...values };
