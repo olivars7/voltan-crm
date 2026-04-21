@@ -11,7 +11,7 @@ import { Briefcase, Mail, Phone, DollarSign, ClipboardCheck, CalendarDays, Penci
 import { StatusBadge } from '../shared/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Button } from '@/components/ui/button';
-import { isBefore, parseISO } from 'date-fns';
+import { isBefore, parseISO, addMonths } from 'date-fns';
 import { PagoDetail } from '../pagos/PagoDetail';
 import { useToast } from '@/hooks/use-toast';
 
@@ -26,16 +26,54 @@ export function ClienteDetail({ cliente, onEditRequest }: ClienteDetailProps) {
 
   const [isPagoDetailOpen, setPagoDetailOpen] = React.useState(false);
   const [selectedPago, setSelectedPago] = React.useState<Pago | undefined>(undefined);
+  const [allPagos, setAllPagos] = React.useState<Pago[]>([]);
+  
+  React.useEffect(() => {
+    const clientPagos = getPagosByClienteId(cliente.id);
+    let combinedPagos = [...clientPagos];
+    const now = new Date();
 
-  const pagos = getPagosByClienteId(cliente.id);
-  const sortedPagos = [...pagos].sort((a, b) => {
-    const dateA = parseISO(a.estado === 'pagado' ? a.fechaPago! : a.fechaLimite);
-    const dateB = parseISO(b.estado === 'pagado' ? b.fechaPago! : b.fechaLimite);
-    return dateB.getTime() - dateA.getTime();
-  });
+    if (cliente.diaDePago && cliente.montoRecurrente > 0) {
+        const paymentDay = cliente.diaDePago;
+        let nextPaymentDate = new Date(now.getFullYear(), now.getMonth(), paymentDay);
+        
+        if (isBefore(nextPaymentDate, now)) {
+            nextPaymentDate = addMonths(nextPaymentDate, 1);
+        }
+
+        const existingRecurringPayment = clientPagos.find(p => 
+            p.concepto === 'Mensualidad' &&
+            p.estado === 'pendiente' &&
+            parseISO(p.fechaLimite).getFullYear() === nextPaymentDate.getFullYear() &&
+            parseISO(p.fechaLimite).getMonth() === nextPaymentDate.getMonth()
+        );
+
+        if (!existingRecurringPayment) {
+            const syntheticPago: Pago = {
+                id: `recurring-${cliente.id}-${nextPaymentDate.toISOString()}`,
+                clienteId: cliente.id,
+                monto: cliente.montoRecurrente,
+                concepto: 'Mensualidad',
+                fechaLimite: nextPaymentDate.toISOString(),
+                estado: 'pendiente',
+                notas: 'Pago recurrente autogenerado.',
+            };
+            combinedPagos.push(syntheticPago);
+        }
+    }
+
+    const sorted = combinedPagos.sort((a, b) => {
+        const dateA = parseISO(a.estado === 'pagado' ? a.fechaPago! : a.fechaLimite);
+        const dateB = parseISO(b.estado === 'pagado' ? b.fechaPago! : b.fechaLimite);
+        return dateB.getTime() - dateA.getTime();
+    });
+    
+    setAllPagos(sorted);
+
+  }, [cliente, getPagosByClienteId]);
 
 
-  const totalAdeudo = pagos
+  const totalAdeudo = allPagos
     .filter(p => p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), new Date()))
     .reduce((sum, p) => sum + p.monto, 0);
 
@@ -181,7 +219,7 @@ export function ClienteDetail({ cliente, onEditRequest }: ClienteDetailProps) {
                   )}
                 </CardHeader>
                 <CardContent>
-                  {sortedPagos.length > 0 ? (
+                  {allPagos.length > 0 ? (
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -192,7 +230,7 @@ export function ClienteDetail({ cliente, onEditRequest }: ClienteDetailProps) {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {sortedPagos.map(pago => (
+                        {allPagos.map(pago => (
                           <TableRow key={pago.id} onClick={() => handlePagoClick(pago)} className="cursor-pointer">
                             <TableCell className="font-medium">{pago.concepto}</TableCell>
                             <TableCell>{formatCurrency(pago.monto)}</TableCell>

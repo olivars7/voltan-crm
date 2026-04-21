@@ -2,10 +2,14 @@
 
 import { Button } from '@/components/ui/button';
 import { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useClientes } from '@/hooks/useClientes';
+import { useToast } from '@/hooks/use-toast';
 import { Pago } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Calendar, User, DollarSign, Info, Notebook, ExternalLink } from 'lucide-react';
+import { differenceInDays, formatDistanceStrict, isPast, isToday, parseISO } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { Calendar, User, DollarSign, Info, Notebook, ExternalLink, Copy } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
 
 interface PagoDetailProps {
@@ -17,6 +21,42 @@ interface PagoDetailProps {
 export function PagoDetail({ pago, onOpenCliente, onToggleStatus }: PagoDetailProps) {
   const { getClienteById } = useClientes();
   const cliente = getClienteById(pago.clienteId);
+  const { toast } = useToast();
+  const isRecurring = String(pago.id).startsWith('recurring-');
+
+  const handleCopyReminder = () => {
+    if (!cliente) return;
+
+    const dueDate = parseISO(pago.fechaLimite);
+    const clientName = cliente.nombre;
+    const amount = formatCurrency(pago.monto);
+    const concept = pago.concepto;
+    let reminderText = '';
+    const now = new Date();
+
+    if (isPast(dueDate) && !isToday(dueDate)) {
+        const daysText = formatDistanceStrict(dueDate, now, { unit: 'day', locale: es, addSuffix: false });
+        const daysOverdue = differenceInDays(now, dueDate);
+        if (daysOverdue > 15) {
+            reminderText = `Hola ${clientName}, te informamos que tu pago de ${amount} por concepto de '${concept}' tiene un atraso de ${daysText}. Para evitar la suspensión de tu servicio, te pedimos regularizar tu situación a la brevedad.`;
+        } else {
+            reminderText = `Hola ${clientName}, te informamos que tu pago de ${amount} por concepto de '${concept}' tiene un atraso de ${daysText}. Te pedimos realizarlo a la brevedad.`;
+        }
+    } else if (isToday(dueDate)) {
+        reminderText = `Hola ${clientName}, te recordamos que tu pago de ${amount} por concepto de '${concept}' vence el día de hoy.`;
+    } else {
+        const daysText = formatDistanceStrict(now, dueDate, { unit: 'day', locale: es, addSuffix: false });
+        reminderText = `Hola ${clientName}, te recordamos que tu pago de ${amount} por concepto de '${concept}' vence en ${daysText}.`;
+    }
+
+    navigator.clipboard.writeText(reminderText).then(() => {
+        toast({
+            title: "Recordatorio copiado",
+            description: "El mensaje de recordatorio se ha copiado al portapapeles.",
+        });
+    });
+};
+
 
   return (
     <DialogContent className="sm:max-w-lg">
@@ -63,13 +103,36 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus }: PagoDetailPr
         </div>
       </div>
       <DialogFooter className="flex-wrap justify-end gap-2">
-          <Button onClick={onToggleStatus}>
-            {pago.estado === 'pendiente' ? 'Marcar como Pagado' : 'Marcar como Pendiente'}
+          <Button variant="outline" onClick={handleCopyReminder} disabled={pago.estado === 'pagado'}>
+              <Copy className="mr-2 h-4 w-4" />
+              Copiar Recordatorio
           </Button>
+
+          {isRecurring ? (
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <span tabIndex={0}>
+                            <Button disabled>
+                                {pago.estado === 'pendiente' ? 'Marcar como Pagado' : 'Marcar como Pendiente'}
+                            </Button>
+                        </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Esta acción no está disponible para pagos recurrentes.</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+          ) : (
+             <Button onClick={onToggleStatus}>
+                {pago.estado === 'pendiente' ? 'Marcar como Pagado' : 'Marcar como Pendiente'}
+            </Button>
+          )}
+
           <Button variant="ghost" onClick={() => onOpenCliente(pago.clienteId)}>
             <ExternalLink className="mr-2 h-4 w-4" />
             Ver Expediente del Cliente
-        </Button>
+          </Button>
       </DialogFooter>
     </DialogContent>
   )

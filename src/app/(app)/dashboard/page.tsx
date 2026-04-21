@@ -59,16 +59,6 @@ export default function DashboardPage() {
 
   // Handlers for dialogs
   const handleOpenPagoDetail = (pago: Pago) => {
-    if (String(pago.id).startsWith('recurring-')) {
-        toast({
-            title: "Pago Recurrente",
-            description: "Este es un pago recurrente autogenerado. Para gestionarlo, edita el expediente del cliente.",
-            variant: "default",
-        });
-        const cliente = getClienteById(pago.clienteId);
-        if (cliente) handleOpenClienteDetail(cliente);
-        return;
-    }
     setSelectedPago(pago);
     setPagoDetailOpen(true);
   }
@@ -172,6 +162,17 @@ export default function DashboardPage() {
             }
 
             if (isWithinInterval(nextPaymentDate, { start: now, end: addWeeks(now, 2) })) {
+                // Check if a real payment for this recurring period already exists
+                const existingRecurringPayment = pagos.find(p => 
+                    p.clienteId === cl.id &&
+                    p.concepto === 'Mensualidad' &&
+                    p.estado === 'pendiente' &&
+                    parseISO(p.fechaLimite).getFullYear() === nextPaymentDate.getFullYear() &&
+                    parseISO(p.fechaLimite).getMonth() === nextPaymentDate.getMonth()
+                );
+
+                if (existingRecurringPayment) return;
+
                 const syntheticPago: Pago = {
                   id: `recurring-${cl.id}-${nextPaymentDate.toISOString()}`,
                   clienteId: cl.id,

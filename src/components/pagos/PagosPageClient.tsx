@@ -93,16 +93,6 @@ export function PagosPageClient() {
   }
   
   const handleOpenPagoDetail = (pago: Pago) => {
-     if (pago.id.startsWith('recurring-')) {
-        toast({
-            title: "Pago Recurrente",
-            description: "Este es un pago recurrente autogenerado. Para gestionarlo, edita el expediente del cliente.",
-            variant: "default",
-        });
-        const cliente = getClienteById(pago.clienteId);
-        if (cliente) handleOpenCliente(cliente.id);
-        return;
-    }
     setSelectedPago(pago);
     setPagoDetailOpen(true);
   }
@@ -143,13 +133,23 @@ export function PagosPageClient() {
     });
 
     clientes.forEach(cl => {
-        if (cl.diaDePago && cl.montoRecurrente) {
+        if (cl.diaDePago && cl.montoRecurrente > 0) {
             const paymentDay = cl.diaDePago;
             let nextPaymentDate = new Date(now.getFullYear(), now.getMonth(), paymentDay);
 
             if (isBefore(nextPaymentDate, now)) {
                 nextPaymentDate = addMonths(nextPaymentDate, 1);
             }
+
+            const existingRecurringPayment = pagos.find(p => 
+                p.clienteId === cl.id &&
+                p.concepto === 'Mensualidad' &&
+                p.estado === 'pendiente' &&
+                parseISO(p.fechaLimite).getFullYear() === nextPaymentDate.getFullYear() &&
+                parseISO(p.fechaLimite).getMonth() === nextPaymentDate.getMonth()
+            );
+
+            if (existingRecurringPayment) return;
             
             const syntheticPago: Pago = {
                 id: `recurring-${cl.id}-${nextPaymentDate.toISOString()}`,
