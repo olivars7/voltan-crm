@@ -35,26 +35,18 @@ import { useEffect } from 'react';
 
 const formSchema = z.object({
   nombre: z.string().min(2, { message: 'El nombre es requerido.' }),
-  empresa: z.string().min(2, { message: 'La empresa es requerida.' }),
+  empresa: z.string().optional(),
   email: z.string().email({ message: 'Email inválido.' }),
   telefono: z.string().min(10, { message: 'Teléfono inválido.' }),
   montoApertura: z.coerce.number().min(0, { message: 'El monto no puede ser negativo.' }).optional(),
   diaDePago: z.preprocess((val) => Number(val), z.number().int().min(1, {message: "El día de pago es requerido."}).max(31)),
   montoRecurrente: z.coerce.number().min(0, { message: 'El monto recurrente no puede ser negativo.' }),
   proyecto: z.object({
-    nombre: z.string(),
-    descripcion: z.string(),
-    fechaEntrega: z.string(),
+    nombre: z.string().min(1, { message: 'El nombre del proyecto es requerido.' }),
+    descripcion: z.string().optional(),
+    fechaEntrega: z.string().min(1, { message: 'La fecha de entrega es requerida.' }),
     estado: z.enum(['en-progreso', 'completado', 'pausado', 'cancelado']),
-  }).partial().optional(),
-}).refine(data => {
-    if (data.proyecto?.nombre && (!data.proyecto.fechaEntrega || !data.proyecto.estado)) {
-        return false;
-    }
-    return true;
-}, {
-    message: "Si se define un nombre de proyecto, la fecha de entrega y el estado son requeridos.",
-    path: ["proyecto.nombre"],
+  }),
 });
 
 
@@ -79,39 +71,49 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
             nombre: '',
             descripcion: '',
             fechaEntrega: '',
-            estado: undefined,
+            estado: 'en-progreso',
         }
     },
   });
 
   useEffect(() => {
-    const defaultValues = {
-        nombre: cliente?.nombre || '',
-        empresa: cliente?.empresa || '',
-        email: cliente?.email || '',
-        telefono: cliente?.telefono || '',
-        montoApertura: 0, // Not edited after creation
-        diaDePago: cliente?.diaDePago || 1,
-        montoRecurrente: cliente?.montoRecurrente ?? 0,
-        proyecto: cliente?.proyecto ? {
-            ...cliente.proyecto,
-            fechaEntrega: cliente.proyecto.fechaEntrega.split('T')[0]
-        } : {
-            nombre: '',
-            descripcion: '',
-            fechaEntrega: '',
-            estado: undefined,
-        }
-    };
-    form.reset(defaultValues);
+    if (cliente) {
+        const defaultValues = {
+            ...cliente,
+            montoApertura: 0, // Not edited
+            proyecto: {
+                ...cliente.proyecto,
+                fechaEntrega: cliente.proyecto.fechaEntrega.split('T')[0]
+            }
+        };
+        form.reset(defaultValues);
+    } else {
+        form.reset({
+             nombre: '',
+            empresa: '',
+            email: '',
+            telefono: '',
+            montoApertura: 0,
+            diaDePago: 1,
+            montoRecurrente: 0,
+            proyecto: {
+                nombre: '',
+                descripcion: '',
+                fechaEntrega: '',
+                estado: 'en-progreso',
+            }
+        });
+    }
   }, [cliente, form]);
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
     const submissionValues: any = { ...values };
-    if (values.proyecto?.nombre && values.proyecto.fechaEntrega) {
-        submissionValues.proyecto.fechaEntrega = new Date(values.proyecto.fechaEntrega).toISOString();
-    } else if (!values.proyecto?.nombre) {
-        delete submissionValues.proyecto;
+    if (values.proyecto?.fechaEntrega) {
+        // Ensure time is included for proper ISO conversion
+        const dateValue = values.proyecto.fechaEntrega.includes('T')
+            ? values.proyecto.fechaEntrega
+            : `${values.proyecto.fechaEntrega}T00:00:00`;
+        submissionValues.proyecto.fechaEntrega = new Date(dateValue).toISOString();
     }
     onSubmit(submissionValues);
     setOpen(false);
@@ -131,7 +133,7 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
                 <Separator />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField control={form.control} name="nombre" render={({ field }) => (<FormItem><FormLabel>Nombre</FormLabel><FormControl><Input placeholder="John Doe" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={form.control} name="empresa" render={({ field }) => (<FormItem><FormLabel>Empresa</FormLabel><FormControl><Input placeholder="ACME Inc." {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="empresa" render={({ field }) => (<FormItem><FormLabel>Empresa (Opcional)</FormLabel><FormControl><Input placeholder="ACME Inc." {...field} /></FormControl><FormMessage /></FormItem>)} />
                     <FormField control={form.control} name="email" render={({ field }) => (<FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="john@acme.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
                     <FormField control={form.control} name="telefono" render={({ field }) => (<FormItem><FormLabel>Teléfono</FormLabel><FormControl><Input placeholder="55-1234-5678" {...field} /></FormControl><FormMessage /></FormItem>)} />
                 </div>
@@ -141,7 +143,7 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
             <div className="space-y-4">
                 <h3 className="text-lg font-medium flex items-center gap-2"><CalendarDays className="h-5 w-5"/> Pagos Recurrentes</h3>
                 <Separator />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {!cliente && (
                         <FormField control={form.control} name="montoApertura" render={({ field }) => (
                             <FormItem>
@@ -164,7 +166,7 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
                         </FormItem>
                     )} />
                     <FormField control={form.control} name="montoRecurrente" render={({ field }) => (
-                        <FormItem className={!cliente ? '' : 'md:col-span-2'}>
+                        <FormItem>
                             <FormLabel>Monto Recurrente (MXN)</FormLabel>
                             <FormControl><Input type="number" step="0.01" placeholder="5000.00" {...field} /></FormControl>
                             <FormMessage />
@@ -175,14 +177,14 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
 
             {/* Project Details Section */}
             <div className="space-y-4">
-                 <h3 className="text-lg font-medium flex items-center gap-2"><ClipboardCheck className="h-5 w-5"/> Detalles del Proyecto (Opcional)</h3>
+                 <h3 className="text-lg font-medium flex items-center gap-2"><ClipboardCheck className="h-5 w-5"/> Detalles del Proyecto</h3>
                  <Separator />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      <FormField control={form.control} name="proyecto.nombre" render={({ field }) => (<FormItem><FormLabel>Nombre del Proyecto</FormLabel><FormControl><Input placeholder="Ej. Sitio Web Corporativo" {...field} /></FormControl><FormMessage /></FormItem>)} />
                      <FormField control={form.control} name="proyecto.estado" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Estado del Proyecto</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value ?? ''}>
+                            <Select onValueChange={field.onChange} value={field.value ?? 'en-progreso'}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Selecciona un estado" /></SelectTrigger></FormControl>
                                 <SelectContent>
                                     <SelectItem value="en-progreso">En Progreso</SelectItem>
@@ -196,7 +198,7 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
                         )}
                     />
                     <FormField control={form.control} name="proyecto.fechaEntrega" render={({ field }) => (<FormItem><FormLabel>Fecha de Entrega</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={form.control} name="proyecto.descripcion" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Descripción del Proyecto</FormLabel><FormControl><Textarea placeholder="Descripción breve del proyecto..." {...field} /></FormControl><FormMessage /></FormItem>)}/>
+                    <FormField control={form.control} name="proyecto.descripcion" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Descripción del Proyecto (Opcional)</FormLabel><FormControl><Textarea placeholder="Descripción breve del proyecto..." {...field} /></FormControl><FormMessage /></FormItem>)}/>
                 </div>
             </div>
 

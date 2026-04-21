@@ -8,7 +8,7 @@ export type Cliente = {
   estado: 'activo' | 'inactivo';
   diaDePago: number;
   montoRecurrente: number;
-  proyecto?: Proyecto;
+  proyecto: Proyecto;
 };
 
 export type ProyectoEstado = 'en-progreso' | 'completado' | 'pausado' | 'cancelado';

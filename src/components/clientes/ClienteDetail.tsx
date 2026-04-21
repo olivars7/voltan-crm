@@ -1,13 +1,14 @@
 'use client';
 import React from 'react';
 import { usePagos } from '@/hooks/usePagos';
-import type { Cliente, Pago } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useClientes } from '@/hooks/useClientes';
+import type { Cliente, Pago, ProyectoEstado } from '@/lib/types';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Briefcase, Mail, Phone, DollarSign, ClipboardCheck, CalendarDays, Pencil } from 'lucide-react';
+import { Briefcase, Mail, Phone, DollarSign, ClipboardCheck, CalendarDays, Pencil, CheckCircle } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,9 @@ import { isBefore, parseISO, addMonths } from 'date-fns';
 import { PagoDetail } from '../pagos/PagoDetail';
 import { useToast } from '@/hooks/use-toast';
 import { PagoForm } from '../pagos/PagoForm';
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ClienteDetailProps {
   cliente: Cliente;
@@ -24,6 +28,7 @@ interface ClienteDetailProps {
 
 export function ClienteDetail({ cliente, clientes, onEditRequest }: ClienteDetailProps) {
   const { getPagosByClienteId, updatePago } = usePagos();
+  const { updateCliente } = useClientes();
   const { toast } = useToast();
 
   const [isPagoDetailOpen, setPagoDetailOpen] = React.useState(false);
@@ -66,14 +71,14 @@ export function ClienteDetail({ cliente, clientes, onEditRequest }: ClienteDetai
     }
 
     const sorted = combinedPagos.sort((a, b) => {
-        const dateA = parseISO(a.estado === 'pagado' ? a.fechaPago! : a.fechaLimite);
-        const dateB = parseISO(b.estado === 'pagado' ? b.fechaPago! : b.fechaLimite);
+        const dateA = parseISO(a.estado === 'pagado' && a.fechaPago ? a.fechaPago : a.fechaLimite);
+        const dateB = parseISO(b.estado === 'pagado' && b.fechaPago ? b.fechaPago : b.fechaLimite);
         return dateB.getTime() - dateA.getTime();
     });
     
     setAllPagos(sorted);
 
-  }, [cliente, getPagosByClienteId]);
+  }, [cliente, getPagosByClienteId, pagos]);
 
 
   const totalAdeudo = allPagos
@@ -90,18 +95,8 @@ export function ClienteDetail({ cliente, clientes, onEditRequest }: ClienteDetai
   }
   
   const handleToggleStatusFromDetail = (pago: Pago) => {
-    if (pago.estado === 'pendiente') {
-      const updatedPago = { ...pago, estado: 'pagado' as const, fechaPago: new Date().toISOString() };
-      updatePago(updatedPago);
-      toast({ title: "Pago actualizado", description: "El pago ha sido marcado como pagado." });
-      setSelectedPago(updatedPago);
-    } else {
-      const { fechaPago, ...rest } = pago;
-      const updatedPago = { ...rest, estado: 'pendiente' as const };
-      updatePago(updatedPago);
-      toast({ title: "Pago actualizado", description: "El pago ha sido marcado como pendiente." });
-      setSelectedPago(updatedPago);
-    }
+    updatePago({ ...pago, estado: pago.estado === 'pendiente' ? 'pagado' : 'pendiente', fechaPago: new Date().toISOString() });
+    toast({ title: "Pago actualizado", description: `El pago ha sido marcado como ${pago.estado === 'pendiente' ? 'pagado' : 'pendiente'}.` });
     setPagoDetailOpen(false);
   }
 
@@ -113,12 +108,34 @@ export function ClienteDetail({ cliente, clientes, onEditRequest }: ClienteDetai
 
   const handleEditPagoSubmit = (values: any) => {
     if (editingPago) {
-      const updatedData = { ...editingPago, ...values };
-      updatePago(updatedData);
+      updatePago({ ...editingPago, ...values });
       toast({ title: "Pago actualizado", description: "Los datos del pago han sido actualizados." });
       setPagoFormOpen(false);
       setEditingPago(undefined);
     }
+  };
+
+  const handleStatusToggle = (checked: boolean) => {
+    const newStatus = checked ? 'activo' : 'inactivo';
+    updateCliente({ ...cliente, estado: newStatus });
+    toast({ title: "Cliente actualizado", description: `El cliente ha sido marcado como ${newStatus}.` });
+  };
+
+  const handleProjectStatusChange = (newStatus: ProyectoEstado) => {
+    updateCliente({ ...cliente, proyecto: { ...cliente.proyecto, estado: newStatus } });
+    toast({ title: "Proyecto actualizado", description: `El estado del proyecto es ahora: ${newStatus}.` });
+  };
+
+  const handleConfirmDelivery = () => {
+    updateCliente({
+        ...cliente,
+        proyecto: {
+            ...cliente.proyecto,
+            estado: 'completado',
+            fechaEntrega: new Date().toISOString(),
+        }
+    });
+    toast({ title: "¡Entrega Confirmada!", description: "El proyecto ha sido marcado como completado." });
   };
 
   return (
@@ -137,15 +154,21 @@ export function ClienteDetail({ cliente, clientes, onEditRequest }: ClienteDetai
                 </Avatar>
                 <div className="flex-1">
                     <div className="flex items-start justify-between">
-                        <div>
-                            <h2 className="text-2xl font-bold flex items-center gap-2">
+                        <div className="flex flex-col gap-2">
+                             <h2 className="text-2xl font-bold flex items-center gap-2">
                                 {cliente.nombre}
                                 <StatusBadge status={cliente.estado} />
                             </h2>
-                            <p className="text-muted-foreground flex items-center gap-2">
-                                <Briefcase className="w-4 h-4" />
-                                {cliente.empresa}
-                            </p>
+                            <div className="flex items-center space-x-2">
+                                <Switch
+                                    id="client-status"
+                                    checked={cliente.estado === 'activo'}
+                                    onCheckedChange={handleStatusToggle}
+                                />
+                                <Label htmlFor="client-status" className="text-sm font-medium">
+                                    {cliente.estado === 'activo' ? 'Activo' : 'Inactivo'}
+                                </Label>
+                            </div>
                         </div>
                         <Button variant="outline" size="icon" onClick={onEditRequest}>
                             <Pencil className="h-4 w-4" />
@@ -198,30 +221,46 @@ export function ClienteDetail({ cliente, clientes, onEditRequest }: ClienteDetai
             )}
 
             {/* Project Details */}
-            {cliente.proyecto && (
-                <Card className="bg-muted/50">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-base">
-                            <ClipboardCheck className="w-5 h-5" />
-                            Detalles del Proyecto
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="grid gap-4 md:grid-cols-3">
-                        <div className="space-y-1">
-                            <p className="font-semibold">{cliente.proyecto.nombre}</p>
-                            <p className="text-sm text-muted-foreground">{cliente.proyecto.descripcion}</p>
-                        </div>
-                        <div className="space-y-1">
-                            <p className="font-semibold">Fecha de Entrega</p>
-                            <p className="text-sm text-muted-foreground">{formatDate(cliente.proyecto.fechaEntrega)}</p>
-                        </div>
-                        <div className="space-y-1">
-                            <p className="font-semibold">Estado</p>
-                            <StatusBadge status={cliente.proyecto.estado} />
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
+            <Card className="bg-muted/50">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                        <ClipboardCheck className="w-5 h-5" />
+                        Detalles del Proyecto
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-4 md:grid-cols-3">
+                    <div className="space-y-1 md:col-span-3">
+                        <p className="font-semibold">{cliente.proyecto.nombre}</p>
+                        <p className="text-sm text-muted-foreground">{cliente.proyecto.descripcion}</p>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="font-semibold">Fecha de Entrega</p>
+                        <p className="text-sm text-muted-foreground">{formatDate(cliente.proyecto.fechaEntrega)}</p>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="font-semibold">Estado</p>
+                         <Select onValueChange={(value: ProyectoEstado) => handleProjectStatusChange(value)} value={cliente.proyecto.estado}>
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Estado del proyecto" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="en-progreso">En Progreso</SelectItem>
+                                <SelectItem value="completado">Completado</SelectItem>
+                                <SelectItem value="pausado">Pausado</SelectItem>
+                                <SelectItem value="cancelado">Cancelado</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </CardContent>
+                {cliente.proyecto.estado !== 'completado' && (
+                    <CardFooter>
+                        <Button onClick={handleConfirmDelivery}>
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Confirmar Entrega
+                        </Button>
+                    </CardFooter>
+                )}
+            </Card>
 
             {/* History Section */}
             <div className="grid md:grid-cols-1 gap-6">
@@ -253,7 +292,7 @@ export function ClienteDetail({ cliente, clientes, onEditRequest }: ClienteDetai
                           <TableRow key={pago.id} onClick={() => handlePagoClick(pago)} className="cursor-pointer">
                             <TableCell className="font-medium">{pago.concepto}</TableCell>
                             <TableCell>{formatCurrency(pago.monto)}</TableCell>
-                            <TableCell>{formatDate(pago.estado === 'pagado' ? pago.fechaPago! : pago.fechaLimite)}</TableCell>
+                            <TableCell>{formatDate(pago.estado === 'pagado' && pago.fechaPago ? pago.fechaPago : pago.fechaLimite)}</TableCell>
                             <TableCell><StatusBadge status={pago.estado} /></TableCell>
                           </TableRow>
                         ))}
