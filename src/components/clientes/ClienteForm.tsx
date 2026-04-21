@@ -118,12 +118,12 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
   };
 
   return (
-    <DialogContent className="sm:max-w-3xl">
+    <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col">
       <DialogHeader>
         <DialogTitle>{cliente ? 'Editar Cliente' : 'Añadir Cliente'}</DialogTitle>
       </DialogHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8 py-4 max-h-[80vh] overflow-y-auto pr-4 custom-scrollbar">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8 py-4 flex-grow overflow-y-auto pr-4 custom-scrollbar">
             
             {/* Contact Info Section */}
             <div className="space-y-4">
@@ -200,7 +200,7 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
                 </div>
             </div>
 
-            <DialogFooter className="pt-4">
+            <DialogFooter className="pt-4 bg-background sticky bottom-0">
                 <DialogClose asChild>
                     <Button type="button" variant="secondary">Cancelar</Button>
                 </DialogClose>

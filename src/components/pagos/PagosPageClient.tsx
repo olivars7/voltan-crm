@@ -31,6 +31,7 @@ import { isBefore, parseISO, addMonths } from 'date-fns';
 const formSchema = z.object({
   clienteId: z.string().min(1),
   monto: z.coerce.number().positive(),
+  concepto: z.string().min(1),
   fechaLimite: z.string().min(1),
   notas: z.string().optional(),
 });
@@ -154,9 +155,10 @@ export function PagosPageClient() {
                 id: `recurring-${cl.id}-${nextPaymentDate.toISOString()}`,
                 clienteId: cl.id,
                 monto: cl.montoRecurrente,
+                concepto: 'Mensualidad',
                 fechaLimite: nextPaymentDate.toISOString(),
                 estado: 'pendiente',
-                notas: 'Pago recurrente',
+                notas: 'Pago recurrente autogenerado.',
             };
             proximos.push(syntheticPago);
         }
@@ -166,14 +168,15 @@ export function PagosPageClient() {
   }, [pagos, clientes, now]);
 
 
-  const pagosVencidos = now ? pagos.filter(p => p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), now)) : [];
-  const historialPagos = pagos.filter(p => p.estado === 'pagado');
+  const pagosVencidos = now ? pagos.filter(p => p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), now)).sort((a,b) => parseISO(b.fechaLimite).getTime() - parseISO(a.fechaLimite).getTime()) : [];
+  const historialPagos = pagos.filter(p => p.estado === 'pagado').sort((a,b) => parseISO(b.fechaPago!).getTime() - parseISO(a.fechaPago!).getTime());
   
   const PagosTable = ({ data, isPending = false }: { data: Pago[], isPending?: boolean }) => (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>Cliente</TableHead>
+          <TableHead className="hidden sm:table-cell">Concepto</TableHead>
           <TableHead>Monto</TableHead>
           <TableHead>{isPending ? 'Fecha Límite' : 'Fecha de Pago'}</TableHead>
           <TableHead>Estado</TableHead>
@@ -183,9 +186,10 @@ export function PagosPageClient() {
         {data.map((pago) => (
             <TableRow key={pago.id} onClick={() => handleOpenPagoDetail(pago)} className="cursor-pointer">
                 <TableCell>{getClienteById(pago.clienteId)?.nombre}</TableCell>
+                <TableCell className="hidden sm:table-cell">{pago.concepto}</TableCell>
                 <TableCell>{formatCurrency(pago.monto)}</TableCell>
                 <TableCell>
-                  <span className={isPending && now && isBefore(parseISO(pago.fechaLimite), now) ? 'text-status-danger' : ''}>
+                  <span className={isPending && now && isBefore(parseISO(pago.fechaLimite), now) ? 'text-status-danger font-medium' : ''}>
                     {formatDate(isPending ? pago.fechaLimite : pago.fechaPago!)}
                   </span>
                 </TableCell>

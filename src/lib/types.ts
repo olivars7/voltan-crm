@@ -24,6 +24,7 @@ export type Pago = {
   id: string;
   clienteId: string;
   monto: number;
+  concepto: string;
   fechaPago?: string;
   fechaLimite: string;
   estado: 'pagado' | 'pendiente';

@@ -21,7 +21,7 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus }: PagoDetailPr
   return (
     <DialogContent className="sm:max-w-lg">
       <DialogHeader>
-        <DialogTitle>Detalles del Pago</DialogTitle>
+        <DialogTitle>Detalles del Pago - {pago.concepto}</DialogTitle>
         <DialogDescription>
           Pago de {cliente?.nombre || 'N/A'} por un monto de {formatCurrency(pago.monto)}.
         </DialogDescription>
@@ -32,6 +32,11 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus }: PagoDetailPr
                 <User className="w-5 h-5 text-muted-foreground" />
                 <span className="font-semibold">Cliente:</span>
                 <span>{cliente?.nombre}</span>
+            </div>
+             <div className="flex items-center gap-3">
+                <Info className="w-5 h-5 text-muted-foreground" />
+                <span className="font-semibold">Concepto:</span>
+                <span>{pago.concepto}</span>
             </div>
             <div className="flex items-center gap-3">
                 <DollarSign className="w-5 h-5 text-muted-foreground" />

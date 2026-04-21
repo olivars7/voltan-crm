@@ -33,6 +33,7 @@ import type { Pago, Cliente } from '@/lib/types';
 const formSchema = z.object({
   clienteId: z.string().min(1, { message: 'Debes seleccionar un cliente.' }),
   monto: z.coerce.number().positive({ message: 'El monto debe ser positivo.' }),
+  concepto: z.string().min(1, { message: 'El concepto es requerido.' }),
   fechaLimite: z.string().min(1, { message: 'La fecha límite es requerida.' }),
   notas: z.string().optional(),
 });
@@ -50,6 +51,7 @@ export function PagoForm({ pago, clientes, onSubmit, setOpen }: PagoFormProps) {
     defaultValues: pago ? { ...pago, fechaLimite: pago.fechaLimite.split('T')[0] } : {
       clienteId: '',
       monto: 0,
+      concepto: '',
       fechaLimite: '',
       notas: '',
     },
@@ -93,6 +95,19 @@ export function PagoForm({ pago, clientes, onSubmit, setOpen }: PagoFormProps) {
           />
           <FormField
             control={form.control}
+            name="concepto"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Concepto</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ej. Mensualidad, Adelanto, etc." {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
             name="monto"
             render={({ field }) => (
               <FormItem>
@@ -124,7 +139,7 @@ export function PagoForm({ pago, clientes, onSubmit, setOpen }: PagoFormProps) {
               <FormItem>
                 <FormLabel>Notas (opcional)</FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Ej. Pago mensual de mantenimiento web" {...field} />
+                  <Textarea placeholder="Detalles adicionales sobre el pago..." {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

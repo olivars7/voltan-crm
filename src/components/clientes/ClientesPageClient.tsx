@@ -51,7 +51,8 @@ export function ClientesPageClient() {
         fechaLimite: new Date().toISOString(),
         estado: 'pagado',
         fechaPago: new Date().toISOString(),
-        notas: 'Pago de apertura',
+        concepto: 'Apertura',
+        notas: 'Pago inicial de proyecto/servicio.'
       })
       toast({ title: "Pago de apertura registrado", description: "El pago inicial ha sido marcado como pagado." });
     }
@@ -90,7 +91,9 @@ export function ClientesPageClient() {
     setDetailOpen(true);
   }
 
-  const filteredClientes = clientes.filter(cliente => {
+  const sortedClientes = [...clientes].sort((a, b) => parseISO(b.fechaInicio).getTime() - parseISO(a.fechaInicio).getTime());
+
+  const filteredClientes = sortedClientes.filter(cliente => {
     const search = searchTerm.toLowerCase();
     const monthName = format(parseISO(cliente.fechaInicio), 'MMMM', { locale: es });
 

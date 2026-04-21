@@ -138,8 +138,9 @@ export default function DashboardPage() {
   // General Console Data
   const timelineItems: TimelineItem[] = [];
   if (now) {
+    // Overdue recurring payments
     pagos.forEach(p => {
-      if (p.estado === 'pendiente') {
+      if (p.estado === 'pendiente' && p.concepto === 'Mensualidad' && isBefore(parseISO(p.fechaLimite), now)) {
         timelineItems.push({
           date: parseISO(p.fechaLimite),
           type: 'pago',
@@ -149,6 +150,7 @@ export default function DashboardPage() {
       }
     });
   
+    // Project deliveries
     clientes.forEach(cl => {
       if (cl.proyecto && cl.proyecto.estado === 'en-progreso') {
         timelineItems.push({
@@ -160,6 +162,7 @@ export default function DashboardPage() {
       }
     });
 
+    // Upcoming recurring payments
     clientes.forEach(cl => {
         if (cl.diaDePago && cl.montoRecurrente) {
             const paymentDay = cl.diaDePago;
@@ -173,9 +176,10 @@ export default function DashboardPage() {
                   id: `recurring-${cl.id}-${nextPaymentDate.toISOString()}`,
                   clienteId: cl.id,
                   monto: cl.montoRecurrente,
+                  concepto: 'Mensualidad',
                   fechaLimite: nextPaymentDate.toISOString(),
                   estado: 'pendiente',
-                  notas: 'Pago recurrente',
+                  notas: 'Pago recurrente autogenerado.',
                 };
                 timelineItems.push({
                     date: nextPaymentDate,
@@ -291,11 +295,11 @@ export default function DashboardPage() {
                               <TimelineIcon type={item.type} />
                               <div className="flex-1 space-y-1">
                                   <p className="text-sm font-medium leading-none">
-                                      {item.type === 'pago' && `Pago de ${formatCurrency(item.data.monto)}${item.data.notas ? ` (${item.data.notas})`: ''}`}
+                                      {item.type === 'pago' && `${item.data.concepto}: ${formatCurrency(item.data.monto)}`}
                                       {item.type === 'entrega' && `Entrega: ${item.data.nombre}`}
                                   </p>
                                   <p className="text-sm text-muted-foreground">
-                                      <span className={now && isBefore(item.date, now) && item.type !== 'entrega' ? 'text-status-danger font-medium' : ''}>
+                                      <span className={now && isBefore(item.date, now) && item.type === 'pago' ? 'text-status-danger font-medium' : ''}>
                                         {formatDate(item.date, "d MMM, yyyy")}
                                       </span>
                                       {' • '}

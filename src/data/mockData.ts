@@ -1,406 +1,106 @@
 import type { Cliente, Pago } from '@/lib/types';
-import { subDays, addDays, formatISO, subMonths, addMonths, subYears, startOfMonth, parseISO } from 'date-fns';
+import { subDays, addDays, formatISO, subMonths, addMonths, subYears, startOfMonth, parseISO, endOfMonth } from 'date-fns';
 
 const today = new Date();
 
-export const mockClientes: Cliente[] = [
-  // 1. Active, new project, small retainer
-  {
-    id: 'cl-1',
-    nombre: 'Ana Torres',
-    empresa: 'Innovatech Solutions',
-    telefono: '55-1122-3344',
-    email: 'ana.torres@innovatech.com',
-    fechaInicio: formatISO(subDays(today, 45)),
-    estado: 'activo',
-    diaDePago: 1,
-    montoRecurrente: 500,
-    proyecto: {
-        nombre: 'Plataforma CRM',
-        descripcion: 'Desarrollo de un sistema CRM a medida.',
-        fechaEntrega: formatISO(addDays(today, 75)),
-        estado: 'en-progreso',
-    }
-  },
-  // 2. Active, retainer + project
-  {
-    id: 'cl-2',
-    nombre: 'Carlos Mendoza',
-    empresa: 'Quantum Dynamics',
-    telefono: '55-2233-4455',
-    email: 'carlos.m@quantum.com',
-    fechaInicio: formatISO(subMonths(today, 8)),
-    estado: 'activo',
-    diaDePago: 5,
-    montoRecurrente: 7500,
-    proyecto: {
-        nombre: 'Optimización SEO',
-        descripcion: 'Campaña de 6 meses para mejorar posicionamiento.',
-        fechaEntrega: formatISO(addMonths(today, 4)),
-        estado: 'en-progreso',
-    }
-  },
-  // 3. Active, completed long ago, retainer only
-  {
-    id: 'cl-3',
-    nombre: 'Beatriz Navarro',
-    empresa: 'Creaciones Visuales',
-    telefono: '55-3344-5566',
-    email: 'beatriz.n@visuales.mx',
-    fechaInicio: formatISO(subYears(today, 2)),
-    estado: 'activo',
-    diaDePago: 10,
-    montoRecurrente: 3000,
-  },
-  // 4. Inactive, cancelled project
-  {
-    id: 'cl-4',
-    nombre: 'David Ríos',
-    empresa: 'Constructora Atlas',
-    telefono: '55-4455-6677',
-    email: 'david.rios@atlas.com',
-    fechaInicio: formatISO(subMonths(today, 10)),
-    estado: 'inactivo',
-    diaDePago: 1,
-    montoRecurrente: 0,
-    proyecto: {
-        nombre: 'App de Logística',
-        descripcion: 'App para gestión de inventario en obra.',
-        fechaEntrega: formatISO(subMonths(today, 6)),
-        estado: 'cancelado',
-    }
-  },
-  // 5. Active, paused project
-  {
-    id: 'cl-5',
-    nombre: 'Elena Garza',
-    empresa: 'Gourmet World',
-    telefono: '55-5566-7788',
-    email: 'elena.g@gourmet.com',
-    fechaInicio: formatISO(subMonths(today, 5)),
-    estado: 'activo',
-    diaDePago: 15,
-    montoRecurrente: 1200,
-    proyecto: {
-        nombre: 'E-commerce de Vinos',
-        descripcion: 'Tienda en línea con pasarela de pago.',
-        fechaEntrega: formatISO(addDays(today, 40)),
-        estado: 'pausado',
-    }
-  },
-  // 6. Very new client
-  {
-    id: 'cl-6',
-    nombre: 'Francisco León',
-    empresa: 'Asesoría Legal Integral',
-    telefono: '55-6677-8899',
-    email: 'f.leon@legalintegral.com',
-    fechaInicio: formatISO(subDays(today, 10)),
-    estado: 'activo',
-    diaDePago: 25,
-    montoRecurrente: 1500,
-    proyecto: {
-        nombre: 'Sitio Web Informativo',
-        descripcion: 'Landing page y secciones de servicios.',
-        fechaEntrega: formatISO(addDays(today, 20)),
-        estado: 'en-progreso',
-    }
-  },
-  // 7. Old client, multiple completed projects (showing last one)
-  {
-    id: 'cl-7',
-    nombre: 'Gloria Ponce',
-    empresa: 'Salud y Bienestar Corp',
-    telefono: '55-7788-9900',
-    email: 'gloria.p@sybcorp.com',
-    fechaInicio: formatISO(subYears(today, 3)),
-    estado: 'activo',
-    diaDePago: 1,
-    montoRecurrente: 1500,
-    proyecto: {
-        nombre: 'Sistema de Membresías',
-        descripcion: 'Plataforma para gestionar miembros del gimnasio.',
-        fechaEntrega: formatISO(subYears(today, 1)),
-        estado: 'completado',
-    }
-  },
-  // 8. Active client with overdue payment
-  {
-    id: 'cl-8',
-    nombre: 'Hugo Valdez',
-    empresa: 'Transportes Rápidos',
-    telefono: '55-8899-0011',
-    email: 'hugo.v@rapidos.net',
-    fechaInicio: formatISO(subMonths(today, 4)),
-    estado: 'activo',
-    diaDePago: 20,
-    montoRecurrente: 5000,
-  },
-  // 9. Inactive, project completed
-  {
-    id: 'cl-9',
-    nombre: 'Irene Soto',
-    empresa: 'Estudio de Arquitectura',
-    telefono: '55-9900-1122',
-    email: 'irene.soto@arquestudio.com',
-    fechaInicio: formatISO(subMonths(today, 14)),
-    estado: 'inactivo',
-    diaDePago: 1,
-    montoRecurrente: 0,
-    proyecto: {
-        nombre: 'Portafolio Digital',
-        descripcion: 'Sitio web para mostrar proyectos de arquitectura.',
-        fechaEntrega: formatISO(subMonths(today, 11)),
-        estado: 'completado',
-    }
-  },
-  // 10. Active, high-value project
-  {
-    id: 'cl-10',
-    nombre: 'Javier Luna',
-    empresa: 'Fintech Global',
-    telefono: '55-1020-3040',
-    email: 'j.luna@fintechglobal.com',
-    fechaInicio: formatISO(subMonths(today, 2)),
-    estado: 'activo',
-    diaDePago: 1,
-    montoRecurrente: 25000,
-    proyecto: {
-        nombre: 'Plataforma de Trading',
-        descripcion: 'Desarrollo de front-end para plataforma de inversiones.',
-        fechaEntrega: formatISO(addMonths(today, 3)),
-        estado: 'en-progreso',
-    }
-  },
-  // 11. New active client, retainer only
-  {
-    id: 'cl-11',
-    nombre: 'Karla Ríos',
-    empresa: 'KR Comunicaciones',
-    telefono: '55-2030-4050',
-    email: 'karla@krcom.com',
-    fechaInicio: formatISO(subMonths(today, 1)),
-    estado: 'activo',
-    diaDePago: 1,
-    montoRecurrente: 10000,
-  },
-  // 12. Client with a very short project, recently completed
-  {
-    id: 'cl-12',
-    nombre: 'Luis Marín',
-    empresa: 'El Buen Comer',
-    telefono: '55-3040-5060',
-    email: 'luis.marin@elbuencomer.com',
-    fechaInicio: formatISO(subDays(today, 20)),
-    estado: 'activo',
-    diaDePago: 15,
-    montoRecurrente: 800,
-    proyecto: {
-        nombre: 'Video Promocional',
-        descripcion: 'Edición de video para redes sociales.',
-        fechaEntrega: formatISO(subDays(today, 5)),
-        estado: 'completado',
-    }
-  },
-  // 13. Client with many small payments for maintenance
-  {
-    id: 'cl-13',
-    nombre: 'Mónica Solís',
-    empresa: 'EducaMás Online',
-    telefono: '55-4050-6070',
-    email: 'monica.solis@educamas.com',
-    fechaInicio: formatISO(subMonths(today, 9)),
-    estado: 'activo',
-    diaDePago: 1,
-    montoRecurrente: 2500,
-    proyecto: {
-        nombre: 'Mantenimiento Plataforma',
-        descripcion: 'Soporte y actualizaciones mensuales.',
-        fechaEntrega: formatISO(addMonths(today, 3)),
-        estado: 'en-progreso',
-    }
-  },
-  // 14. Inactive, business closed, no contact
-  {
-    id: 'cl-14',
-    nombre: 'Néstor Paredes',
-    empresa: 'Viajes El Mundo',
-    telefono: '55-5060-7080',
-    email: 'nestor.p@viajeselmundo.com',
-    fechaInicio: formatISO(subYears(today, 2)),
-    estado: 'inactivo',
-    diaDePago: 1,
-    montoRecurrente: 0,
-  },
-  // 15. Active, project about to be delivered
-  {
-    id: 'cl-15',
-    nombre: 'Olivia Cárdenas',
-    empresa: 'Moda Urbana',
-    telefono: '55-6070-8090',
-    email: 'olivia.c@modaurbana.com',
-    fechaInicio: formatISO(subMonths(today, 3)),
-    estado: 'activo',
-    diaDePago: 10,
-    montoRecurrente: 2000,
-    proyecto: {
-        nombre: 'Campaña Fotográfica Q3',
-        descripcion: 'Producción y retoque de fotos para catálogo.',
-        fechaEntrega: formatISO(addDays(today, 7)),
-        estado: 'en-progreso',
-    }
-  },
-  // 16. Active, recurring only, long time client
-  {
-    id: 'cl-16',
-    nombre: 'Pedro Galindo',
-    empresa: 'Clínica Dental Sonríe',
-    telefono: '55-7080-9010',
-    email: 'pedro.g@sonrie.com',
-    fechaInicio: formatISO(subYears(today, 4)),
-    estado: 'activo',
-    diaDePago: 15,
-    montoRecurrente: 4500,
-  },
-  // 17. New, enterprise client, large project
-  {
-    id: 'cl-17',
-    nombre: 'Quintín Rocha',
-    empresa: 'Corporativo Oceánica',
-    telefono: '55-8090-1020',
-    email: 'q.rocha@oceanica.com',
-    fechaInicio: formatISO(subDays(today, 60)),
-    estado: 'activo',
-    diaDePago: 30,
-    montoRecurrente: 50000,
-    proyecto: {
-        nombre: 'Intranet Corporativa',
-        descripcion: 'Rediseño y migración de la intranet.',
-        fechaEntrega: formatISO(addMonths(today, 6)),
-        estado: 'en-progreso',
-    }
-  },
-  // 18. Active, but project on hold, may become inactive
-  {
-    id: 'cl-18',
-    nombre: 'Raquel Alarcón',
-    empresa: 'Eventos Mágicos',
-    telefono: '55-9010-2030',
-    email: 'raquel.a@eventosmagicos.com',
-    fechaInicio: formatISO(subMonths(today, 7)),
-    estado: 'activo',
-    diaDePago: 20,
-    montoRecurrente: 1000,
-     proyecto: {
-        nombre: 'App para Bodas',
-        descripcion: 'Aplicación para organización de eventos.',
-        fechaEntrega: formatISO(addMonths(today, 2)),
-        estado: 'pausado',
-    }
-  },
-  // 19. Loyal client, always on time
-  {
-    id: 'cl-19',
-    nombre: 'Sergio Villa',
-    empresa: 'SV Contadores',
-    telefono: '55-1234-5678',
-    email: 'sergio.v@svcontadores.com',
-    fechaInicio: formatISO(subYears(today, 5)),
-    estado: 'activo',
-    diaDePago: 1,
-    montoRecurrente: 6000,
-  },
-  // 20. Client with irregular project payments, project completed
-  {
-    id: 'cl-20',
-    nombre: 'Teresa Ocampo',
-    empresa: 'Inmobiliaria Tu Hogar',
-    telefono: '55-2345-6789',
-    email: 'teresa.o@tuhogar.com',
-    fechaInicio: formatISO(subMonths(today, 10)),
-    estado: 'activo',
-    diaDePago: 1,
-    montoRecurrente: 0,
-    proyecto: {
-        nombre: 'Recorridos Virtuales 360',
-        descripcion: 'Creación de recorridos para 10 propiedades.',
-        fechaEntrega: formatISO(subMonths(today, 7)),
-        estado: 'completado',
-    }
-  }
-];
+export const mockClientes: Cliente[] = Array.from({ length: 20 }, (_, i) => {
+    const id = `cl-${i + 1}`;
+    const monthsAgo = Math.floor(Math.random() * 36) + 1; // 1 to 36 months ago
+    const fechaInicio = subMonths(today, monthsAgo);
+    
+    const names = ['Ana Torres', 'Carlos Mendoza', 'Beatriz Navarro', 'David Ríos', 'Elena Garza', 'Francisco León', 'Gloria Ponce', 'Hugo Valdez', 'Irene Soto', 'Javier Luna', 'Karla Ríos', 'Luis Marín', 'Mónica Solís', 'Néstor Paredes', 'Olivia Cárdenas', 'Pedro Galindo', 'Quintín Rocha', 'Raquel Alarcón', 'Sergio Villa', 'Teresa Ocampo'];
+    const companies = ['Innovatech', 'Quantum Dynamics', 'Creaciones Visuales', 'Constructora Atlas', 'Gourmet World', 'Legal Integral', 'Salud y Bienestar', 'Transportes Rápidos', 'Arquestudio', 'Fintech Global', 'KR Comunicaciones', 'El Buen Comer', 'EducaMás', 'Viajes El Mundo', 'Moda Urbana', 'Dental Sonríe', 'Oceánica Corp', 'Eventos Mágicos', 'SV Contadores', 'Inmobiliaria Tu Hogar'];
 
-// Generate pagos based on clientes to ensure consistency
+    const client: Cliente = {
+        id: id,
+        nombre: names[i],
+        empresa: companies[i],
+        telefono: `55-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`,
+        email: `${names[i].split(' ')[0].toLowerCase()}@${companies[i].split(' ')[0].toLowerCase()}.com`,
+        fechaInicio: formatISO(fechaInicio),
+        estado: (i % 4 === 0 && i > 0) ? 'inactivo' : 'activo', // some inactive clients
+        diaDePago: Math.floor(Math.random() * 28) + 1,
+        montoRecurrente: (Math.floor(Math.random() * 20) + 1) * 500, // 500 to 10000
+    };
+
+    if (i % 3 === 0) { // Add projects to some clients
+        const projectStates: ('en-progreso' | 'completado' | 'pausado' | 'cancelado')[] = ['en-progreso', 'completado', 'pausado', 'cancelado'];
+        client.proyecto = {
+            nombre: `Proyecto ${companies[i]}`,
+            descripcion: `Descripción del proyecto para ${companies[i]}.`,
+            fechaEntrega: formatISO(i % 2 === 0 ? addMonths(today, Math.floor(Math.random() * 6)) : subMonths(today, Math.floor(Math.random() * 6))),
+            estado: projectStates[i % 4],
+        }
+    }
+
+    return client;
+});
+
+
 export const mockPagos: Pago[] = [];
 
 mockClientes.forEach(cliente => {
-    // 1. Add Opening Payment for each client
-    const montoApertura = cliente.montoRecurrente * 1.5;
     const fechaInicioDate = parseISO(cliente.fechaInicio);
+    const montoApertura = cliente.montoRecurrente * (Math.random() * 2 + 1); // 1x to 3x recurring
+
+    // 1. Add Opening Payment for each client
     mockPagos.push({
         id: `pa-open-${cliente.id}`,
         clienteId: cliente.id,
         monto: montoApertura,
+        concepto: 'Apertura',
         fechaPago: formatISO(fechaInicioDate),
         fechaLimite: formatISO(fechaInicioDate),
         estado: 'pagado',
-        notas: 'Pago de apertura'
+        notas: ''
     });
 
-    // 2. Add historical recurring payments
-    const monthsSinceStart = (today.getFullYear() - fechaInicioDate.getFullYear()) * 12 + (today.getMonth() - fechaInicioDate.getMonth());
-    if (cliente.montoRecurrente > 0) {
-        for (let i = 1; i < monthsSinceStart; i++) {
-            const paymentDate = addMonths(startOfMonth(fechaInicioDate), i);
-            paymentDate.setDate(cliente.diaDePago);
-            
-            // Randomly decide if a past payment was "missed" (only for specific clients)
-             if (cliente.id === 'cl-8' && i === monthsSinceStart -1) {
-                // This will be the overdue payment for Hugo Valdez
-                mockPagos.push({
-                    id: `pa-hist-${cliente.id}-${i}`,
-                    clienteId: cliente.id,
-                    monto: cliente.montoRecurrente,
-                    fechaLimite: formatISO(paymentDate),
-                    estado: 'pendiente',
-                    notas: 'Pago recurrente'
-                });
-                continue; // Skip making it 'pagado'
-            }
+    // 2. Add historical recurring payments if client is active
+    if (cliente.estado === 'activo') {
+      const monthsSinceStart = (today.getFullYear() - fechaInicioDate.getFullYear()) * 12 + (today.getMonth() - fechaInicioDate.getMonth());
+      
+      for (let i = 1; i < monthsSinceStart; i++) {
+          let paymentDate = addMonths(startOfMonth(fechaInicioDate), i);
+          // Ensure payment date for a given month is not in the future relative to that month's end
+          paymentDate = new Date(Math.min(paymentDate.getTime(), endOfMonth(paymentDate).getTime()));
+          paymentDate.setDate(cliente.diaDePago);
 
-            if (cliente.id === 'cl-5' && i > 2) {
-                 // Simulate paused payments for Elena Garza
-                continue;
-            }
+          // For 'Hugo Valdez', make the last payment overdue
+          if (cliente.id === 'cl-8' && i === monthsSinceStart - 1) {
+              mockPagos.push({
+                  id: `pa-hist-${cliente.id}-${i}`,
+                  clienteId: cliente.id,
+                  monto: cliente.montoRecurrente,
+                  concepto: 'Mensualidad',
+                  fechaLimite: formatISO(paymentDate),
+                  estado: 'pendiente',
+                  notas: ''
+              });
+              continue; 
+          }
 
-
-            mockPagos.push({
-                id: `pa-hist-${cliente.id}-${i}`,
-                clienteId: cliente.id,
-                monto: cliente.montoRecurrente,
-                fechaPago: formatISO(paymentDate),
-                fechaLimite: formatISO(paymentDate),
-                estado: 'pagado',
-                notas: 'Pago recurrente'
-            });
-        }
+          mockPagos.push({
+              id: `pa-hist-${cliente.id}-${i}`,
+              clienteId: cliente.id,
+              monto: cliente.montoRecurrente,
+              concepto: 'Mensualidad',
+              fechaPago: formatISO(paymentDate),
+              fechaLimite: formatISO(paymentDate),
+              estado: 'pagado',
+              notas: ''
+          });
+      }
     }
-
-    // 3. Add specific project-based payments
-    if (cliente.id === 'cl-1') { // Ana Torres - CRM Project
-        mockPagos.push({ id: 'pa-proj-1', clienteId: 'cl-1', monto: 15000, fechaLimite: formatISO(addDays(today, 75)), estado: 'pendiente', notas: 'Pago final CRM' });
-    }
-    if (cliente.id === 'cl-10') { // Javier Luna - Trading Platform
-        mockPagos.push({ id: 'pa-proj-10', clienteId: 'cl-10', monto: 75000, fechaLimite: formatISO(addMonths(today, 3)), estado: 'pendiente', notas: 'Pago Final Trading (60%)' });
-    }
-    if (cliente.id === 'cl-15') { // Olivia Cárdenas - Photo Campaign
-         mockPagos.push({ id: 'pa-proj-15', clienteId: 'cl-15', monto: 9000, fechaLimite: formatISO(addDays(today, 7)), estado: 'pendiente', notas: 'Pago contra-entrega' });
-    }
-    if (cliente.id === 'cl-17') { // Quintín Rocha - Intranet
-        mockPagos.push({ id: 'pa-proj-17', clienteId: 'cl-17', monto: 80000, fechaLimite: formatISO(addMonths(today, 2)), estado: 'pendiente', notas: 'Fase 2 - Intranet' });
-    }
-     if (cliente.id === 'cl-20') { // Teresa Ocampo - Virtual Tours
-        mockPagos.push({ id: 'pa-proj-20-1', clienteId: 'cl-20', monto: 10000, fechaPago: formatISO(subMonths(today, 8)), fechaLimite: formatISO(subMonths(today, 8)), estado: 'pagado', notas: 'Pago intermedio' });
-        mockPagos.push({ id: 'pa-proj-20-2', clienteId: 'cl-20', monto: 10000, fechaPago: formatISO(subMonths(today, 7)), fechaLimite: formatISO(subMonths(today, 7)), estado: 'pagado', notas: 'Finiquito' });
+     // 3. Add specific project-based payments for variety
+    if (cliente.proyecto && cliente.proyecto.estado === 'en-progreso') {
+        mockPagos.push({ 
+            id: `pa-proj-${cliente.id}`, 
+            clienteId: cliente.id, 
+            monto: cliente.montoRecurrente * 5, 
+            concepto: 'Pago Proyecto',
+            fechaLimite: formatISO(parseISO(cliente.proyecto.fechaEntrega)), 
+            estado: 'pendiente', 
+            notas: `Pago final para ${cliente.proyecto.nombre}` 
+        });
     }
 });
