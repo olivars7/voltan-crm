@@ -13,8 +13,8 @@ import { useToast } from '@/hooks/use-toast';
 import { PagoDetail } from '@/components/pagos/PagoDetail';
 import { ClienteDetail } from '@/components/clientes/ClienteDetail';
 import { PageHeader } from '@/components/shared/PageHeader';
-import { ClienteForm } from '../clientes/ClienteForm';
-import { PagoForm } from '../pagos/PagoForm';
+import { ClienteForm } from '@/components/clientes/ClienteForm';
+import { PagoForm } from '@/components/pagos/PagoForm';
 
 type TimelineItem = {
   date: Date;
@@ -24,7 +24,7 @@ type TimelineItem = {
   cliente: any;
 }
 
-export function ConsolePageClient() {
+export default function ConsolePage() {
   const { clientes, getClienteById, updateCliente } = useClientes();
   const { pagos, updatePago } = usePagos();
   const [now, setNow] = useState<Date | null>(null);
