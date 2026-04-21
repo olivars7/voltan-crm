@@ -2,7 +2,7 @@
 import { useClientes } from '@/hooks/useClientes';
 import { usePagos } from '@/hooks/usePagos';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Users, DollarSign, AlertTriangle, ClipboardCheck } from 'lucide-react';
+import { Users, DollarSign, AlertTriangle, ClipboardCheck, RotateCw } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis } from "recharts"
@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { PagoDetail } from '@/components/pagos/PagoDetail';
 import { ClienteDetail } from '@/components/clientes/ClienteDetail';
 import { ClienteForm } from '@/components/clientes/ClienteForm';
+import { Button } from '@/components/ui/button';
 
 type TimelineItem = {
   date: Date;
@@ -45,6 +46,17 @@ export default function DashboardPage() {
     setNow(new Date());
   }, []);
   
+  const handleResetData = () => {
+    const isConfirmed = window.confirm(
+      '¿Estás seguro de que quieres reiniciar todos los datos a su estado inicial? Esta acción eliminará todos los cambios que hayas hecho.'
+    );
+    if (isConfirmed) {
+      window.localStorage.removeItem('clientes');
+      window.localStorage.removeItem('pagos');
+      window.location.reload();
+    }
+  };
+
   // Handlers for dialogs
   const handleOpenPagoDetail = (pago: Pago) => {
     if (String(pago.id).startsWith('recurring-')) {
@@ -361,6 +373,24 @@ export default function DashboardPage() {
             setOpen={setClienteFormOpen}
         />
       </Dialog>
+
+      <Card className="mt-8">
+        <CardHeader>
+          <CardTitle>Zona de Desarrollador</CardTitle>
+          <CardDescription>
+            Acciones para ayudar durante el desarrollo.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="destructive" onClick={handleResetData}>
+            <RotateCw className="mr-2 h-4 w-4" />
+            Reiniciar Datos de Prueba
+          </Button>
+          <p className="text-sm text-muted-foreground mt-2">
+            Esto eliminará todos los clientes y pagos guardados y los restaurará a los datos de prueba iniciales.
+          </p>
+        </CardContent>
+      </Card>
     </>
   );
 }

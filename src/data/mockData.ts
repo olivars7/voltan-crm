@@ -38,7 +38,7 @@ export const mockClientes: Cliente[] = [
         estado: 'en-progreso',
     }
   },
-  // 3. Active, completed long ago
+  // 3. Active, completed long ago, retainer only
   {
     id: 'cl-3',
     nombre: 'Beatriz Navarro',
@@ -98,7 +98,7 @@ export const mockClientes: Cliente[] = [
         estado: 'en-progreso',
     }
   },
-  // 7. Old client, multiple completed projects
+  // 7. Old client, multiple completed projects (showing last one)
   {
     id: 'cl-7',
     nombre: 'Gloria Ponce',
@@ -158,7 +158,7 @@ export const mockClientes: Cliente[] = [
         estado: 'en-progreso',
     }
   },
-  // 11. New active client, retainer
+  // 11. New active client, retainer only
   {
     id: 'cl-11',
     nombre: 'Karla Ríos',
@@ -170,7 +170,7 @@ export const mockClientes: Cliente[] = [
     diaDePago: 1,
     montoRecurrente: 10000,
   },
-  // 12. Client with a very short project
+  // 12. Client with a very short project, recently completed
   {
     id: 'cl-12',
     nombre: 'Luis Marín',
@@ -186,7 +186,7 @@ export const mockClientes: Cliente[] = [
         estado: 'completado',
     }
   },
-  // 13. Client with many small payments
+  // 13. Client with many small payments for maintenance
   {
     id: 'cl-13',
     nombre: 'Mónica Solís',
@@ -202,7 +202,7 @@ export const mockClientes: Cliente[] = [
         estado: 'en-progreso',
     }
   },
-  // 14. Inactive, business closed
+  // 14. Inactive, business closed, no contact
   {
     id: 'cl-14',
     nombre: 'Néstor Paredes',
@@ -240,7 +240,7 @@ export const mockClientes: Cliente[] = [
     diaDePago: 15,
     montoRecurrente: 4500,
   },
-  // 17. New, enterprise client
+  // 17. New, enterprise client, large project
   {
     id: 'cl-17',
     nombre: 'Quintín Rocha',
@@ -284,7 +284,7 @@ export const mockClientes: Cliente[] = [
     diaDePago: 1,
     montoRecurrente: 6000,
   },
-  // 20. Client with irregular project payments
+  // 20. Client with irregular project payments, project completed
   {
     id: 'cl-20',
     nombre: 'Teresa Ocampo',
@@ -311,13 +311,13 @@ export const mockPagos: Pago[] = [
   { id: 'pa-3', clienteId: 'cl-2', monto: 7500, fechaPago: formatISO(subMonths(today, 1)), fechaLimite: formatISO(subMonths(today, 1)), estado: 'pagado', notas: 'Retainer Mensual' },
   { id: 'pa-4', clienteId: 'cl-2', monto: 10000, fechaLimite: formatISO(addMonths(today, 1)), estado: 'pendiente', notas: 'Hito 1 SEO' },
   
-  // Pagos Cliente 3 (Beatriz Navarro)
+  // Pagos Cliente 3 (Beatriz Navarro) - varios pagos de retainer
   ...Array.from({length: 3}).map((_, i) => ({ id: `pa-5-${i}`, clienteId: 'cl-3', monto: 3000, fechaPago: formatISO(subMonths(today, i + 1)), fechaLimite: formatISO(subMonths(today, i + 1)), estado: 'pagado' as const, notas: 'Mantenimiento Web' })),
   
   // Pagos Cliente 4 (David Ríos)
   { id: 'pa-6', clienteId: 'cl-4', monto: 20000, fechaPago: formatISO(subMonths(today, 9)), fechaLimite: formatISO(subMonths(today, 9)), estado: 'pagado', notas: 'Anticipo App' },
   
-  // Pagos Cliente 5 (Elena Garza)
+  // Pagos Cliente 5 (Elena Garza) - pago vencido
   { id: 'pa-7', clienteId: 'cl-5', monto: 12000, fechaPago: formatISO(subMonths(today, 5)), fechaLimite: formatISO(subMonths(today, 5)), estado: 'pagado', notas: 'Anticipo E-commerce' },
   { id: 'pa-8', clienteId: 'cl-5', monto: 8000, fechaLimite: formatISO(subDays(today, 15)), estado: 'pendiente', notas: 'Hito Diseño (Vencido)' },
 
@@ -327,7 +327,7 @@ export const mockPagos: Pago[] = [
   // Pagos Cliente 7 (Gloria Ponce)
   { id: 'pa-10', clienteId: 'cl-7', monto: 25000, fechaPago: formatISO(subYears(today, 1)), fechaLimite: formatISO(subYears(today, 1)), estado: 'pagado', notas: 'Pago Final Membresías' },
 
-  // Pagos Cliente 8 (Hugo Valdez)
+  // Pagos Cliente 8 (Hugo Valdez) - pago vencido
   { id: 'pa-11', clienteId: 'cl-8', monto: 5000, fechaPago: formatISO(subMonths(today, 1)), fechaLimite: formatISO(subMonths(today, 1)), estado: 'pagado', notas: 'Retainer' },
   { id: 'pa-12', clienteId: 'cl-8', monto: 5000, fechaLimite: formatISO(subDays(today, 12)), estado: 'pendiente', notas: 'Retainer (Vencido)' },
 
