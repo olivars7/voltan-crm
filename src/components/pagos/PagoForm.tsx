@@ -29,6 +29,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import type { Pago, Cliente } from '@/lib/types';
+import { useEffect } from 'react';
 
 const formSchema = z.object({
   clienteId: z.string().min(1, { message: 'Debes seleccionar un cliente.' }),
@@ -48,7 +49,7 @@ type PagoFormProps = {
 export function PagoForm({ pago, clientes, onSubmit, setOpen }: PagoFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: pago ? { ...pago, fechaLimite: pago.fechaLimite.split('T')[0] } : {
+    defaultValues: {
       clienteId: '',
       monto: 0,
       concepto: '',
@@ -56,6 +57,20 @@ export function PagoForm({ pago, clientes, onSubmit, setOpen }: PagoFormProps) {
       notas: '',
     },
   });
+
+  useEffect(() => {
+    form.reset(
+      pago
+        ? { ...pago, fechaLimite: pago.fechaLimite.split('T')[0] }
+        : {
+            clienteId: '',
+            monto: 0,
+            concepto: '',
+            fechaLimite: '',
+            notas: '',
+          }
+    );
+  }, [pago, form]);
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
     onSubmit({ ...values, fechaLimite: new Date(values.fechaLimite).toISOString() });
@@ -75,7 +90,7 @@ export function PagoForm({ pago, clientes, onSubmit, setOpen }: PagoFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Cliente</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!pago}>
+                <Select onValueChange={field.onChange} value={field.value} disabled={!!pago}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecciona un cliente" />

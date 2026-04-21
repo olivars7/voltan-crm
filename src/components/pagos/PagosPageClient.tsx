@@ -39,12 +39,13 @@ const formSchema = z.object({
 export function PagosPageClient() {
   const { pagos, addPago, updatePago } = usePagos();
   const { clientes, getClienteById, updateCliente: updateClienteData } = useClientes();
-  const [isFormOpen, setFormOpen] = React.useState(false);
+  const [isPagoFormOpen, setPagoFormOpen] = React.useState(false);
   const [isPagoDetailOpen, setPagoDetailOpen] = React.useState(false);
   const [isClienteDetailOpen, setClienteDetailOpen] = React.useState(false);
   const [isClienteFormOpen, setClienteFormOpen] = React.useState(false);
 
   const [selectedPago, setSelectedPago] = React.useState<Pago | undefined>(undefined);
+  const [editingPago, setEditingPago] = React.useState<Pago | undefined>(undefined);
   const [selectedCliente, setSelectedCliente] = React.useState<Cliente | undefined>(undefined);
   const [editingCliente, setEditingCliente] = React.useState<Cliente | undefined>(undefined);
   
@@ -58,7 +59,17 @@ export function PagosPageClient() {
   const handleAddSubmit = (values: z.infer<typeof formSchema>) => {
     addPago(values);
     toast({ title: "Pago registrado", description: "El nuevo pago ha sido guardado." });
-    setFormOpen(false);
+    setPagoFormOpen(false);
+  };
+
+  const handleEditSubmit = (values: z.infer<typeof formSchema>) => {
+    if (editingPago) {
+        const updatedData = { ...editingPago, ...values };
+        updatePago(updatedData);
+        toast({ title: "Pago actualizado", description: "Los datos del pago han sido actualizados." });
+        setPagoFormOpen(false);
+        setEditingPago(undefined);
+    }
   };
   
   const handleEditClienteSubmit = (values: any) => {
@@ -105,6 +116,12 @@ export function PagosPageClient() {
     }
     setPagoDetailOpen(false);
   }
+
+  const handleOpenEditPago = (pago: Pago) => {
+    setEditingPago(pago);
+    setPagoDetailOpen(false);
+    setPagoFormOpen(true);
+  }
   
   const handleOpenCliente = (clienteId: string) => {
     const cliente = getClienteById(clienteId);
@@ -119,6 +136,11 @@ export function PagosPageClient() {
     setEditingCliente(cliente);
     setClienteDetailOpen(false);
     setClienteFormOpen(true);
+  }
+
+  const handleOpenNewPagoForm = () => {
+    setEditingPago(undefined);
+    setPagoFormOpen(true);
   }
 
   const pagosProximos = React.useMemo(() => {
@@ -206,7 +228,7 @@ export function PagosPageClient() {
         title="Pagos"
         description="Gestiona los pagos de tus clientes."
       >
-        <Button onClick={() => setFormOpen(true)}>
+        <Button onClick={handleOpenNewPagoForm}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Registrar Pago
         </Button>
@@ -253,11 +275,12 @@ export function PagosPageClient() {
         </TabsContent>
       </Tabs>
 
-      <Dialog open={isFormOpen} onOpenChange={setFormOpen}>
+      <Dialog open={isPagoFormOpen} onOpenChange={setPagoFormOpen}>
         <PagoForm 
+            pago={editingPago}
             clientes={clientes} 
-            onSubmit={handleAddSubmit} 
-            setOpen={setFormOpen}
+            onSubmit={editingPago ? handleEditSubmit : handleAddSubmit} 
+            setOpen={setPagoFormOpen}
         />
       </Dialog>
       
@@ -266,6 +289,7 @@ export function PagosPageClient() {
             pago={selectedPago} 
             onOpenCliente={handleOpenCliente}
             onToggleStatus={() => handleToggleStatusFromDetail(selectedPago)}
+            onEditRequest={() => handleOpenEditPago(selectedPago)}
             />}
       </Dialog>
       

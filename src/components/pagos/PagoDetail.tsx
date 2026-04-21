@@ -2,23 +2,23 @@
 
 import { Button } from '@/components/ui/button';
 import { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useClientes } from '@/hooks/useClientes';
 import { useToast } from '@/hooks/use-toast';
 import { Pago } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { differenceInDays, formatDistanceStrict, isPast, isToday, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Calendar, User, DollarSign, Info, Notebook, ExternalLink, Copy } from 'lucide-react';
+import { Calendar, User, DollarSign, Info, Notebook, ExternalLink, Copy, Pencil } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
 
 interface PagoDetailProps {
   pago: Pago;
   onOpenCliente: (clienteId: string) => void;
   onToggleStatus: () => void;
+  onEditRequest: () => void;
 }
 
-export function PagoDetail({ pago, onOpenCliente, onToggleStatus }: PagoDetailProps) {
+export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest }: PagoDetailProps) {
   const { getClienteById } = useClientes();
   const cliente = getClienteById(pago.clienteId);
   const { toast } = useToast();
@@ -108,30 +108,18 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus }: PagoDetailPr
               Copiar Recordatorio
           </Button>
 
-          {isRecurring ? (
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <span tabIndex={0}>
-                            <Button disabled>
-                                {pago.estado === 'pendiente' ? 'Marcar como Pagado' : 'Marcar como Pendiente'}
-                            </Button>
-                        </span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>Esta acción no está disponible para pagos recurrentes.</p>
-                    </TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
-          ) : (
-             <Button onClick={onToggleStatus}>
-                {pago.estado === 'pendiente' ? 'Marcar como Pagado' : 'Marcar como Pendiente'}
-            </Button>
-          )}
+           <Button variant="secondary" onClick={onEditRequest} disabled={isRecurring}>
+              <Pencil className="mr-2 h-4 w-4" />
+              Editar
+          </Button>
+
+          <Button onClick={onToggleStatus} disabled={isRecurring}>
+            {pago.estado === 'pendiente' ? 'Marcar como Pagado' : 'Marcar como Pendiente'}
+          </Button>
 
           <Button variant="ghost" onClick={() => onOpenCliente(pago.clienteId)}>
             <ExternalLink className="mr-2 h-4 w-4" />
-            Ver Expediente del Cliente
+            Ver Expediente
           </Button>
       </DialogFooter>
     </DialogContent>

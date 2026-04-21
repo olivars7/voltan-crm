@@ -7,6 +7,7 @@ import {
   Users,
   DollarSign,
   Package,
+  History,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -20,6 +21,7 @@ const navItems = [
   { href: '/dashboard', icon: Home, label: 'Dashboard' },
   { href: '/clientes', icon: Users, label: 'Clientes' },
   { href: '/pagos', icon: DollarSign, label: 'Pagos' },
+  { href: '/console', icon: History, label: 'Consola' },
 ];
 
 export function Sidebar() {
