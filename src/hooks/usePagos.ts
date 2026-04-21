@@ -9,11 +9,10 @@ export const usePagos = () => {
   const [pagos, setPagos] = useLocalStorage<Pago[]>('pagos', mockPagos);
 
   const addPago = useCallback(
-    (pago: Omit<Pago, 'id' | 'estado'>) => {
+    (pago: Omit<Pago, 'id'>) => {
       const newPago: Pago = {
         ...pago,
         id: `pa-${Date.now()}`,
-        estado: 'pendiente',
       };
       setPagos((prev) => [...prev, newPago]);
     },
@@ -22,6 +21,18 @@ export const usePagos = () => {
 
   const updatePago = useCallback(
     (updatedPago: Pago) => {
+      const isSynthetic = updatedPago.id.startsWith('recurring-');
+      if (isSynthetic) {
+        // When a synthetic payment is acted upon (paid or edited),
+        // we create a new "real" payment record instead of trying to update it.
+        const realPago: Pago = {
+          ...updatedPago,
+          id: `pa-${Date.now()}`, // Assign a new, permanent ID
+        };
+        setPagos((prev) => [...prev, realPago]);
+        return;
+      }
+      
       setPagos((prev) => prev.map((p) => (p.id === updatedPago.id ? updatedPago : p)));
     },
     [setPagos]

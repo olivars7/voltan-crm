@@ -47,7 +47,6 @@ export function ClienteDetail({ cliente, clientes, onEditRequest }: ClienteDetai
 
         const existingRecurringPayment = clientPagos.find(p => 
             p.concepto === 'Mensualidad' &&
-            p.estado === 'pendiente' &&
             parseISO(p.fechaLimite).getFullYear() === nextPaymentDate.getFullYear() &&
             parseISO(p.fechaLimite).getMonth() === nextPaymentDate.getMonth()
         );

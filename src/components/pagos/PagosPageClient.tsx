@@ -57,7 +57,7 @@ export function PagosPageClient() {
   }, []);
 
   const handleAddSubmit = (values: z.infer<typeof formSchema>) => {
-    addPago(values);
+    addPago({ ...values, estado: 'pendiente' });
     toast({ title: "Pago registrado", description: "El nuevo pago ha sido guardado." });
     setPagoFormOpen(false);
   };
@@ -166,7 +166,6 @@ export function PagosPageClient() {
             const existingRecurringPayment = pagos.find(p => 
                 p.clienteId === cl.id &&
                 p.concepto === 'Mensualidad' &&
-                p.estado === 'pendiente' &&
                 parseISO(p.fechaLimite).getFullYear() === nextPaymentDate.getFullYear() &&
                 parseISO(p.fechaLimite).getMonth() === nextPaymentDate.getMonth()
             );

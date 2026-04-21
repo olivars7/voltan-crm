@@ -188,7 +188,6 @@ export default function DashboardPage() {
                 const existingRecurringPayment = pagos.find(p => 
                     p.clienteId === cl.id &&
                     p.concepto === 'Mensualidad' &&
-                    p.estado === 'pendiente' &&
                     parseISO(p.fechaLimite).getFullYear() === nextPaymentDate.getFullYear() &&
                     parseISO(p.fechaLimite).getMonth() === nextPaymentDate.getMonth()
                 );

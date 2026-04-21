@@ -22,7 +22,6 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest 
   const { getClienteById } = useClientes();
   const cliente = getClienteById(pago.clienteId);
   const { toast } = useToast();
-  const isRecurring = String(pago.id).startsWith('recurring-');
 
   const handleCopyReminder = () => {
     if (!cliente) return;
@@ -63,7 +62,7 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest 
       <DialogHeader>
         <div className="flex items-start justify-between">
           <DialogTitle>Detalles del Pago</DialogTitle>
-          <Button variant="outline" size="icon" onClick={onEditRequest} disabled={isRecurring} className="-mt-2">
+          <Button variant="outline" size="icon" onClick={onEditRequest} className="-mt-2">
               <Pencil className="h-4 w-4" />
               <span className="sr-only">Editar Pago</span>
           </Button>
@@ -100,7 +99,7 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest 
       </div>
 
       <DialogFooter className="flex-col gap-2 sm:flex-col sm:space-x-0">
-          <Button onClick={onToggleStatus} disabled={isRecurring} size="lg" className="w-full">
+          <Button onClick={onToggleStatus} size="lg" className="w-full">
             {pago.estado === 'pendiente' ? 'Marcar como Pagado' : 'Marcar como Pendiente'}
           </Button>
           <Button variant="outline" onClick={handleCopyReminder} disabled={pago.estado === 'pagado'} className="w-full">

@@ -53,7 +53,7 @@ export function ClientesPageClient() {
         fechaPago: new Date().toISOString(),
         concepto: 'Apertura',
         notas: 'Pago inicial de proyecto/servicio.'
-      })
+      });
       toast({ title: "Pago de apertura registrado", description: "El pago inicial ha sido marcado como pagado." });
     }
 
