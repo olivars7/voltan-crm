@@ -36,7 +36,7 @@ export function ClienteDetail({ cliente, onEditRequest }: ClienteDetailProps) {
       <DialogHeader>
         <DialogTitle>Expediente del Cliente</DialogTitle>
       </DialogHeader>
-      <div className="grid gap-6 py-4 overflow-y-auto pr-4">
+      <div className="grid gap-6 py-4 overflow-y-auto pr-4 custom-scrollbar">
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row items-start gap-6">
             <Avatar className="w-24 h-24 text-xl border-2 border-primary/10">

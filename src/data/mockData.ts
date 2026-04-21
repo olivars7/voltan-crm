@@ -4,7 +4,7 @@ import { subDays, addDays, formatISO, subMonths, addMonths, subYears } from 'dat
 const today = new Date();
 
 export const mockClientes: Cliente[] = [
-  // 1. Active, new project
+  // 1. Active, new project, small retainer
   {
     id: 'cl-1',
     nombre: 'Ana Torres',
@@ -13,6 +13,8 @@ export const mockClientes: Cliente[] = [
     email: 'ana.torres@innovatech.com',
     fechaInicio: formatISO(subDays(today, 45)),
     estado: 'activo',
+    diaDePago: 1,
+    montoRecurrente: 500,
     proyecto: {
         nombre: 'Plataforma CRM',
         descripcion: 'Desarrollo de un sistema CRM a medida.',
@@ -59,6 +61,8 @@ export const mockClientes: Cliente[] = [
     email: 'david.rios@atlas.com',
     fechaInicio: formatISO(subMonths(today, 10)),
     estado: 'inactivo',
+    diaDePago: 1,
+    montoRecurrente: 0,
     proyecto: {
         nombre: 'App de Logística',
         descripcion: 'App para gestión de inventario en obra.',
@@ -75,6 +79,8 @@ export const mockClientes: Cliente[] = [
     email: 'elena.g@gourmet.com',
     fechaInicio: formatISO(subMonths(today, 5)),
     estado: 'activo',
+    diaDePago: 15,
+    montoRecurrente: 1200,
     proyecto: {
         nombre: 'E-commerce de Vinos',
         descripcion: 'Tienda en línea con pasarela de pago.',
@@ -91,6 +97,8 @@ export const mockClientes: Cliente[] = [
     email: 'f.leon@legalintegral.com',
     fechaInicio: formatISO(subDays(today, 10)),
     estado: 'activo',
+    diaDePago: 25,
+    montoRecurrente: 0,
     proyecto: {
         nombre: 'Sitio Web Informativo',
         descripcion: 'Landing page y secciones de servicios.',
@@ -107,6 +115,8 @@ export const mockClientes: Cliente[] = [
     email: 'gloria.p@sybcorp.com',
     fechaInicio: formatISO(subYears(today, 3)),
     estado: 'activo',
+    diaDePago: 1,
+    montoRecurrente: 1500,
     proyecto: {
         nombre: 'Sistema de Membresías',
         descripcion: 'Plataforma para gestionar miembros del gimnasio.',
@@ -135,6 +145,8 @@ export const mockClientes: Cliente[] = [
     email: 'irene.soto@arquestudio.com',
     fechaInicio: formatISO(subMonths(today, 14)),
     estado: 'inactivo',
+    diaDePago: 1,
+    montoRecurrente: 0,
     proyecto: {
         nombre: 'Portafolio Digital',
         descripcion: 'Sitio web para mostrar proyectos de arquitectura.',
@@ -151,6 +163,8 @@ export const mockClientes: Cliente[] = [
     email: 'j.luna@fintechglobal.com',
     fechaInicio: formatISO(subMonths(today, 2)),
     estado: 'activo',
+    diaDePago: 1,
+    montoRecurrente: 25000,
     proyecto: {
         nombre: 'Plataforma de Trading',
         descripcion: 'Desarrollo de front-end para plataforma de inversiones.',
@@ -179,6 +193,8 @@ export const mockClientes: Cliente[] = [
     email: 'luis.marin@elbuencomer.com',
     fechaInicio: formatISO(subDays(today, 20)),
     estado: 'activo',
+    diaDePago: 15,
+    montoRecurrente: 0,
     proyecto: {
         nombre: 'Video Promocional',
         descripcion: 'Edición de video para redes sociales.',
@@ -195,6 +211,8 @@ export const mockClientes: Cliente[] = [
     email: 'monica.solis@educamas.com',
     fechaInicio: formatISO(subMonths(today, 9)),
     estado: 'activo',
+    diaDePago: 1,
+    montoRecurrente: 2500,
     proyecto: {
         nombre: 'Mantenimiento Plataforma',
         descripcion: 'Soporte y actualizaciones mensuales.',
@@ -211,6 +229,8 @@ export const mockClientes: Cliente[] = [
     email: 'nestor.p@viajeselmundo.com',
     fechaInicio: formatISO(subYears(today, 2)),
     estado: 'inactivo',
+    diaDePago: 1,
+    montoRecurrente: 0,
   },
   // 15. Active, project about to be delivered
   {
@@ -221,6 +241,8 @@ export const mockClientes: Cliente[] = [
     email: 'olivia.c@modaurbana.com',
     fechaInicio: formatISO(subMonths(today, 3)),
     estado: 'activo',
+    diaDePago: 10,
+    montoRecurrente: 0,
     proyecto: {
         nombre: 'Campaña Fotográfica Q3',
         descripcion: 'Producción y retoque de fotos para catálogo.',
@@ -249,6 +271,8 @@ export const mockClientes: Cliente[] = [
     email: 'q.rocha@oceanica.com',
     fechaInicio: formatISO(subDays(today, 60)),
     estado: 'activo',
+    diaDePago: 30,
+    montoRecurrente: 50000,
     proyecto: {
         nombre: 'Intranet Corporativa',
         descripcion: 'Rediseño y migración de la intranet.',
@@ -265,6 +289,8 @@ export const mockClientes: Cliente[] = [
     email: 'raquel.a@eventosmagicos.com',
     fechaInicio: formatISO(subMonths(today, 7)),
     estado: 'activo',
+    diaDePago: 20,
+    montoRecurrente: 1000,
      proyecto: {
         nombre: 'App para Bodas',
         descripcion: 'Aplicación para organización de eventos.',
@@ -293,6 +319,8 @@ export const mockClientes: Cliente[] = [
     email: 'teresa.o@tuhogar.com',
     fechaInicio: formatISO(subMonths(today, 10)),
     estado: 'activo',
+    diaDePago: 1,
+    montoRecurrente: 0,
     proyecto: {
         nombre: 'Recorridos Virtuales 360',
         descripcion: 'Creación de recorridos para 10 propiedades.',
@@ -355,6 +383,9 @@ export const mockPagos: Pago[] = [
 
   // Pagos Cliente 18 (Raquel Alarcón)
   { id: 'pa-23', clienteId: 'cl-18', monto: 15000, fechaPago: formatISO(subMonths(today, 7)), fechaLimite: formatISO(subMonths(today, 7)), estado: 'pagado', notas: 'Anticipo App Bodas' },
+  
+  // Pagos Cliente 19 (Sergio Villa)
+  ...Array.from({length: 4}).map((_, i) => ({ id: `pa-27-${i}`, clienteId: 'cl-19', monto: 6000, fechaPago: formatISO(subMonths(today, i + 1)), fechaLimite: formatISO(subMonths(today, i + 1)), estado: 'pagado' as const, notas: 'Retainer Contable' })),
   
   // Pagos Cliente 20 (Teresa Ocampo)
   { id: 'pa-24', clienteId: 'cl-20', monto: 10000, fechaPago: formatISO(subMonths(today, 10)), fechaLimite: formatISO(subMonths(today, 10)), estado: 'pagado', notas: 'Anticipo Recorridos' },

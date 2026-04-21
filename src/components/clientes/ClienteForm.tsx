@@ -120,7 +120,7 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
         <DialogTitle>{cliente ? 'Editar Cliente' : 'Añadir Cliente'}</DialogTitle>
       </DialogHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8 py-4 max-h-[80vh] overflow-y-auto pr-4">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8 py-4 max-h-[80vh] overflow-y-auto pr-4 custom-scrollbar">
             
             {/* Contact Info Section */}
             <div className="space-y-4">

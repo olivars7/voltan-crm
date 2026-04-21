@@ -98,6 +98,8 @@ export function PagosPageClient() {
             description: "Este es un pago recurrente autogenerado. Para gestionarlo, edita el expediente del cliente.",
             variant: "default",
         });
+        const cliente = getClienteById(pago.clienteId);
+        if (cliente) handleOpenCliente(cliente.id);
         return;
     }
     setSelectedPago(pago);
