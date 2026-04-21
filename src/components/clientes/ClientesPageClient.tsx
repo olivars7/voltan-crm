@@ -176,7 +176,7 @@ export function ClientesPageClient() {
       </Dialog>
 
       <Dialog open={isDetailOpen} onOpenChange={setDetailOpen}>
-        {selectedCliente && <ClienteDetail cliente={selectedCliente} onEditRequest={() => openEditDialog(selectedCliente)} />}
+        {selectedCliente && <ClienteDetail cliente={selectedCliente} clientes={clientes} onEditRequest={() => openEditDialog(selectedCliente)} />}
       </Dialog>
     </>
   );

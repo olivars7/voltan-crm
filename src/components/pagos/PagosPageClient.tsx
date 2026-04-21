@@ -294,7 +294,7 @@ export function PagosPageClient() {
       </Dialog>
       
       <Dialog open={isClienteDetailOpen} onOpenChange={setClienteDetailOpen}>
-        {selectedCliente && <ClienteDetail cliente={selectedCliente} onEditRequest={() => handleOpenEditCliente(selectedCliente)} />}
+        {selectedCliente && <ClienteDetail cliente={selectedCliente} clientes={clientes} onEditRequest={() => handleOpenEditCliente(selectedCliente)} />}
       </Dialog>
 
       <Dialog open={isClienteFormOpen} onOpenChange={setClienteFormOpen}>

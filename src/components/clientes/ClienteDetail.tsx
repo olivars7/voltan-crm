@@ -7,26 +7,30 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Briefcase, Mail, Phone, DollarSign, ClipboardCheck, CalendarDays, Pencil, ExternalLink } from 'lucide-react';
+import { Briefcase, Mail, Phone, DollarSign, ClipboardCheck, CalendarDays, Pencil } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Button } from '@/components/ui/button';
 import { isBefore, parseISO, addMonths } from 'date-fns';
 import { PagoDetail } from '../pagos/PagoDetail';
 import { useToast } from '@/hooks/use-toast';
+import { PagoForm } from '../pagos/PagoForm';
 
 interface ClienteDetailProps {
   cliente: Cliente;
+  clientes: Cliente[];
   onEditRequest: () => void;
 }
 
-export function ClienteDetail({ cliente, onEditRequest }: ClienteDetailProps) {
+export function ClienteDetail({ cliente, clientes, onEditRequest }: ClienteDetailProps) {
   const { getPagosByClienteId, updatePago } = usePagos();
   const { toast } = useToast();
 
   const [isPagoDetailOpen, setPagoDetailOpen] = React.useState(false);
   const [selectedPago, setSelectedPago] = React.useState<Pago | undefined>(undefined);
   const [allPagos, setAllPagos] = React.useState<Pago[]>([]);
+  const [isPagoFormOpen, setPagoFormOpen] = React.useState(false);
+  const [editingPago, setEditingPago] = React.useState<Pago | undefined>(undefined);
   
   React.useEffect(() => {
     const clientPagos = getPagosByClienteId(cliente.id);
@@ -101,6 +105,22 @@ export function ClienteDetail({ cliente, onEditRequest }: ClienteDetailProps) {
     }
     setPagoDetailOpen(false);
   }
+
+  const handleOpenEditPago = (pago: Pago) => {
+    setEditingPago(pago);
+    setPagoDetailOpen(false);
+    setPagoFormOpen(true);
+  }
+
+  const handleEditPagoSubmit = (values: any) => {
+    if (editingPago) {
+      const updatedData = { ...editingPago, ...values };
+      updatePago(updatedData);
+      toast({ title: "Pago actualizado", description: "Los datos del pago han sido actualizados." });
+      setPagoFormOpen(false);
+      setEditingPago(undefined);
+    }
+  };
 
   return (
     <>
@@ -255,7 +275,16 @@ export function ClienteDetail({ cliente, onEditRequest }: ClienteDetailProps) {
             pago={selectedPago}
             onOpenCliente={() => {}} 
             onToggleStatus={() => handleToggleStatusFromDetail(selectedPago)}
+            onEditRequest={() => handleOpenEditPago(selectedPago)}
         />}
+      </Dialog>
+      <Dialog open={isPagoFormOpen} onOpenChange={setPagoFormOpen}>
+        <PagoForm 
+            pago={editingPago}
+            clientes={clientes} 
+            onSubmit={handleEditPagoSubmit}
+            setOpen={setPagoFormOpen}
+        />
       </Dialog>
     </>
   );

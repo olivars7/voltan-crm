@@ -14,6 +14,7 @@ import { PagoDetail } from '@/components/pagos/PagoDetail';
 import { ClienteDetail } from '@/components/clientes/ClienteDetail';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { ClienteForm } from '../clientes/ClienteForm';
+import { PagoForm } from '../pagos/PagoForm';
 
 type TimelineItem = {
   date: Date;
@@ -34,10 +35,12 @@ export function ConsolePageClient() {
   const [isPagoDetailOpen, setPagoDetailOpen] = useState(false);
   const [isClienteDetailOpen, setClienteDetailOpen] = useState(false);
   const [isClienteFormOpen, setClienteFormOpen] = useState(false);
+  const [isPagoFormOpen, setPagoFormOpen] = useState(false);
 
   const [selectedPago, setSelectedPago] = useState<Pago | undefined>(undefined);
   const [selectedCliente, setSelectedCliente] = useState<Cliente | undefined>(undefined);
   const [editingCliente, setEditingCliente] = useState<Cliente | undefined>(undefined);
+  const [editingPago, setEditingPago] = useState<Pago | undefined>(undefined);
 
   useEffect(() => {
     setNow(startOfToday());
@@ -95,6 +98,25 @@ export function ConsolePageClient() {
       }
       setClienteFormOpen(false);
       setEditingCliente(undefined);
+    }
+  };
+
+  const handleOpenEditPago = (pago: Pago) => {
+    setEditingPago(pago);
+    setPagoDetailOpen(false);
+    setPagoFormOpen(true);
+  };
+
+  const handleEditPagoSubmit = (values: any) => {
+    if (editingPago) {
+      const updatedData = { ...editingPago, ...values };
+      updatePago(updatedData);
+      toast({ title: "Pago actualizado", description: "Los datos del pago han sido actualizados." });
+      if (selectedPago?.id === updatedData.id) {
+          setSelectedPago(updatedData);
+      }
+      setPagoFormOpen(false);
+      setEditingPago(undefined);
     }
   };
   
@@ -280,17 +302,25 @@ export function ConsolePageClient() {
             pago={selectedPago} 
             onOpenCliente={handleOpenClienteFromPago}
             onToggleStatus={() => handleToggleStatusFromDetail(selectedPago)}
-            onEditRequest={() => { /* Editing is handled on Pagos Page */ }}
+            onEditRequest={() => handleOpenEditPago(selectedPago)}
             />}
       </Dialog>
       <Dialog open={isClienteDetailOpen} onOpenChange={setClienteDetailOpen}>
-        {selectedCliente && <ClienteDetail cliente={selectedCliente} onEditRequest={() => handleOpenEditCliente(selectedCliente)} />}
+        {selectedCliente && <ClienteDetail cliente={selectedCliente} clientes={clientes} onEditRequest={() => handleOpenEditCliente(selectedCliente)} />}
       </Dialog>
       <Dialog open={isClienteFormOpen} onOpenChange={setClienteFormOpen}>
         <ClienteForm 
             cliente={editingCliente} 
             onSubmit={handleEditClienteSubmit} 
             setOpen={setClienteFormOpen}
+        />
+      </Dialog>
+      <Dialog open={isPagoFormOpen} onOpenChange={setPagoFormOpen}>
+        <PagoForm 
+            pago={editingPago}
+            clientes={clientes} 
+            onSubmit={handleEditPagoSubmit} 
+            setOpen={setPagoFormOpen}
         />
       </Dialog>
     </>

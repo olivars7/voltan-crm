@@ -61,10 +61,18 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest 
   return (
     <DialogContent className="sm:max-w-lg">
       <DialogHeader>
-        <DialogTitle>Detalles del Pago - {pago.concepto}</DialogTitle>
-        <DialogDescription>
-          Pago de {cliente?.nombre || 'N/A'} por un monto de {formatCurrency(pago.monto)}.
-        </DialogDescription>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <DialogTitle>Detalles del Pago - {pago.concepto}</DialogTitle>
+            <DialogDescription className="mt-1">
+              Pago de {cliente?.nombre || 'N/A'} por un monto de {formatCurrency(pago.monto)}.
+            </DialogDescription>
+          </div>
+          <Button variant="outline" size="icon" onClick={onEditRequest} disabled={isRecurring}>
+            <Pencil className="h-4 w-4" />
+            <span className="sr-only">Editar Pago</span>
+          </Button>
+        </div>
       </DialogHeader>
       <div className="grid gap-4 py-4">
         <div className="grid gap-2">
@@ -106,11 +114,6 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest 
           <Button variant="outline" onClick={handleCopyReminder} disabled={pago.estado === 'pagado'}>
               <Copy className="mr-2 h-4 w-4" />
               Copiar Recordatorio
-          </Button>
-
-           <Button variant="secondary" onClick={onEditRequest} disabled={isRecurring}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Editar
           </Button>
 
           <Button onClick={onToggleStatus} disabled={isRecurring}>
