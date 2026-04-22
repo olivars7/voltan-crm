@@ -6,7 +6,7 @@ import { usePagos } from '@/hooks/usePagos';
 import { useClientes } from '@/hooks/useClientes';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardDescription, CardTitle } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -292,7 +292,7 @@ export function PagosPageClient() {
       </Dialog>
       
       <Dialog open={isClienteDetailOpen} onOpenChange={setClienteDetailOpen}>
-        {selectedCliente && <ClienteDetail cliente={selectedCliente} clientes={clientes} onEditRequest={() => handleOpenEditCliente(selectedCliente)} />}
+        {selectedCliente && <ClienteDetail cliente={selectedCliente} clientes={clientes} onEditRequest={() => handleOpenEditCliente(selectedCliente)} onUpdateCliente={updateClienteData} />}
       </Dialog>
 
       <Dialog open={isClienteFormOpen} onOpenChange={setClienteFormOpen}>

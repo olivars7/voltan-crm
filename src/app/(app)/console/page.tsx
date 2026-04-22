@@ -304,7 +304,7 @@ export default function ConsolePage() {
             />}
       </Dialog>
       <Dialog open={isClienteDetailOpen} onOpenChange={setClienteDetailOpen}>
-        {selectedCliente && <ClienteDetail cliente={selectedCliente} clientes={clientes} onEditRequest={() => handleOpenEditCliente(selectedCliente)} />}
+        {selectedCliente && <ClienteDetail cliente={selectedCliente} clientes={clientes} onEditRequest={() => handleOpenEditCliente(selectedCliente)} onUpdateCliente={updateCliente} />}
       </Dialog>
       <Dialog open={isClienteFormOpen} onOpenChange={setClienteFormOpen}>
         <ClienteForm 

@@ -65,6 +65,10 @@ export function ClientesPageClient() {
       const updatedData = { ...editingCliente, ...values };
       updateCliente(updatedData);
       toast({ title: "Cliente actualizado", description: "Los datos del cliente han sido actualizados." });
+      if (selectedClienteId === updatedData.id) {
+        setSelectedClienteId(undefined); 
+        setSelectedClienteId(updatedData.id);
+      }
       setFormOpen(false);
       setEditingCliente(undefined);
     }
@@ -174,7 +178,7 @@ export function ClientesPageClient() {
       </Dialog>
 
       <Dialog open={isDetailOpen} onOpenChange={setDetailOpen}>
-        {selectedCliente && <ClienteDetail cliente={selectedCliente} clientes={clientes} onEditRequest={() => openEditDialog(selectedCliente)} />}
+        {selectedCliente && <ClienteDetail cliente={selectedCliente} clientes={clientes} onEditRequest={() => openEditDialog(selectedCliente)} onUpdateCliente={updateCliente} />}
       </Dialog>
     </>
   );

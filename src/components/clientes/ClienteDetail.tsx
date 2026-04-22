@@ -1,7 +1,6 @@
 'use client';
 import React from 'react';
 import { usePagos } from '@/hooks/usePagos';
-import { useClientes } from '@/hooks/useClientes';
 import type { Cliente, Pago, ProyectoEstado } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -24,11 +23,11 @@ interface ClienteDetailProps {
   cliente: Cliente;
   clientes: Cliente[];
   onEditRequest: () => void;
+  onUpdateCliente: (cliente: Cliente) => void;
 }
 
-export function ClienteDetail({ cliente, clientes, onEditRequest }: ClienteDetailProps) {
+export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateCliente }: ClienteDetailProps) {
   const { pagos, getPagosByClienteId, updatePago } = usePagos();
-  const { updateCliente } = useClientes();
   const { toast } = useToast();
 
   const [isPagoDetailOpen, setPagoDetailOpen] = React.useState(false);
@@ -117,17 +116,17 @@ export function ClienteDetail({ cliente, clientes, onEditRequest }: ClienteDetai
 
   const handleStatusToggle = (checked: boolean) => {
     const newStatus = checked ? 'activo' : 'inactivo';
-    updateCliente({ ...cliente, estado: newStatus });
+    onUpdateCliente({ ...cliente, estado: newStatus });
     toast({ title: "Cliente actualizado", description: `El cliente ha sido marcado como ${newStatus}.` });
   };
 
   const handleProjectStatusChange = (newStatus: ProyectoEstado) => {
-    updateCliente({ ...cliente, proyecto: { ...cliente.proyecto, estado: newStatus } });
+    onUpdateCliente({ ...cliente, proyecto: { ...cliente.proyecto, estado: newStatus } });
     toast({ title: "Proyecto actualizado", description: `El estado del proyecto es ahora: ${newStatus}.` });
   };
 
   const handleConfirmDelivery = () => {
-    updateCliente({
+    onUpdateCliente({
         ...cliente,
         proyecto: {
             ...cliente.proyecto,
