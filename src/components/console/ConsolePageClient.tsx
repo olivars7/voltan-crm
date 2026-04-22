@@ -38,7 +38,7 @@ export function ConsolePageClient() {
   const [isPagoFormOpen, setPagoFormOpen] = useState(false);
 
   const [selectedPago, setSelectedPago] = useState<Pago | undefined>(undefined);
-  const [selectedCliente, setSelectedCliente] = useState<Cliente | undefined>(undefined);
+  const [selectedClienteId, setSelectedClienteId] = useState<string | undefined>(undefined);
   const [editingCliente, setEditingCliente] = useState<Cliente | undefined>(undefined);
   const [editingPago, setEditingPago] = useState<Pago | undefined>(undefined);
 
@@ -53,7 +53,7 @@ export function ConsolePageClient() {
   }
 
   const handleOpenClienteDetail = (cliente: Cliente) => {
-    setSelectedCliente(cliente);
+    setSelectedClienteId(cliente.id);
     setClienteDetailOpen(true);
   }
 
@@ -76,7 +76,7 @@ export function ConsolePageClient() {
   const handleOpenClienteFromPago = (clienteId: string) => {
     const cliente = getClienteById(clienteId);
     if (cliente) {
-      setSelectedCliente(cliente);
+      setSelectedClienteId(cliente.id);
       setPagoDetailOpen(false);
       setClienteDetailOpen(true);
     }
@@ -93,9 +93,6 @@ export function ConsolePageClient() {
       const updatedData = { ...editingCliente, ...values };
       updateCliente(updatedData);
       toast({ title: "Cliente actualizado", description: "Los datos del cliente han sido actualizados." });
-      if (selectedCliente?.id === updatedData.id) {
-        setSelectedCliente(updatedData);
-      }
       setClienteFormOpen(false);
       setEditingCliente(undefined);
     }
@@ -215,6 +212,7 @@ export function ConsolePageClient() {
 
   const sortedUpcoming = upcomingItems.sort((a, b) => a.date.getTime() - b.date.getTime());
   const sortedCompleted = completedItems.sort((a, b) => b.date.getTime() - a.date.getTime());
+  const selectedCliente = selectedClienteId ? clientes.find(c => c.id === selectedClienteId) : undefined;
   
   const TimelineIcon = ({ type, subType }: { type: TimelineItem['type'], subType: TimelineItem['subType'] }) => {
     if (subType === 'completed') {
