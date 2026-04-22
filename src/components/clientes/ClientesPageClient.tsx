@@ -34,7 +34,7 @@ export function ClientesPageClient() {
   const [isFormOpen, setFormOpen] = React.useState(false);
   const [isDetailOpen, setDetailOpen] = React.useState(false);
 
-  const [selectedCliente, setSelectedCliente] = React.useState<Cliente | undefined>(undefined);
+  const [selectedClienteId, setSelectedClienteId] = React.useState<string | undefined>(undefined);
   const [editingCliente, setEditingCliente] = React.useState<Cliente | undefined>(undefined);
   const { toast } = useToast();
   
@@ -65,10 +65,6 @@ export function ClientesPageClient() {
       const updatedData = { ...editingCliente, ...values };
       updateCliente(updatedData);
       toast({ title: "Cliente actualizado", description: "Los datos del cliente han sido actualizados." });
-      // If the detail view was open for the edited client, update its data
-      if (selectedCliente?.id === updatedData.id) {
-        setSelectedCliente(updatedData);
-      }
       setFormOpen(false);
       setEditingCliente(undefined);
     }
@@ -86,7 +82,7 @@ export function ClientesPageClient() {
   }
 
   const openDetailDialog = (cliente: Cliente) => {
-    setSelectedCliente(cliente);
+    setSelectedClienteId(cliente.id);
     setFormOpen(false);
     setDetailOpen(true);
   }
@@ -99,12 +95,14 @@ export function ClientesPageClient() {
 
     return (
         cliente.nombre.toLowerCase().includes(search) ||
-        cliente.empresa.toLowerCase().includes(search) ||
+        (cliente.empresa || '').toLowerCase().includes(search) ||
         cliente.telefono.includes(search) ||
         cliente.estado.toLowerCase().includes(search) ||
         monthName.toLowerCase().includes(search)
     );
   });
+
+  const selectedCliente = selectedClienteId ? clientes.find(c => c.id === selectedClienteId) : undefined;
 
 
   return (

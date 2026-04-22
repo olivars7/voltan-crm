@@ -46,7 +46,7 @@ export function PagosPageClient() {
 
   const [selectedPago, setSelectedPago] = React.useState<Pago | undefined>(undefined);
   const [editingPago, setEditingPago] = React.useState<Pago | undefined>(undefined);
-  const [selectedCliente, setSelectedCliente] = React.useState<Cliente | undefined>(undefined);
+  const [selectedClienteId, setSelectedClienteId] = React.useState<string | undefined>(undefined);
   const [editingCliente, setEditingCliente] = React.useState<Cliente | undefined>(undefined);
   
   const { toast } = useToast();
@@ -77,9 +77,6 @@ export function PagosPageClient() {
       const updatedData = { ...editingCliente, ...values };
       updateClienteData(updatedData);
       toast({ title: "Cliente actualizado", description: "Los datos del cliente han sido actualizados." });
-      if (selectedCliente?.id === updatedData.id) {
-        setSelectedCliente(updatedData);
-      }
       setClienteFormOpen(false);
       setEditingCliente(undefined);
     }
@@ -126,7 +123,7 @@ export function PagosPageClient() {
   const handleOpenCliente = (clienteId: string) => {
     const cliente = getClienteById(clienteId);
     if(cliente) {
-      setSelectedCliente(cliente);
+      setSelectedClienteId(cliente.id);
       setPagoDetailOpen(false);
       setClienteDetailOpen(true);
     }
@@ -191,6 +188,8 @@ export function PagosPageClient() {
 
   const pagosVencidos = now ? pagos.filter(p => p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), now)).sort((a,b) => parseISO(b.fechaLimite).getTime() - parseISO(a.fechaLimite).getTime()) : [];
   const historialPagos = pagos.filter(p => p.estado === 'pagado').sort((a,b) => parseISO(b.fechaPago!).getTime() - parseISO(a.fechaPago!).getTime());
+  
+  const selectedCliente = selectedClienteId ? clientes.find(c => c.id === selectedClienteId) : undefined;
   
   const PagosTable = ({ data, isPending = false }: { data: Pago[], isPending?: boolean }) => (
     <Table>
