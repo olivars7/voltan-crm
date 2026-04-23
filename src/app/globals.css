@@ -79,6 +79,11 @@
 }
 
 @layer utilities {
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.5) transparent;
+  }
+  
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
     height: 6px;
