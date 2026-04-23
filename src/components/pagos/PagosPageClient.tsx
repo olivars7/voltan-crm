@@ -121,12 +121,9 @@ export function PagosPageClient() {
   }
   
   const handleOpenCliente = (clienteId: string) => {
-    const cliente = getClienteById(clienteId);
-    if(cliente) {
-      setSelectedClienteId(cliente.id);
-      setPagoDetailOpen(false);
-      setClienteDetailOpen(true);
-    }
+    setSelectedClienteId(clienteId);
+    setPagoDetailOpen(false);
+    setClienteDetailOpen(true);
   }
 
   const handleOpenEditCliente = (cliente: Cliente) => {
@@ -146,13 +143,14 @@ export function PagosPageClient() {
     const proximos: Pago[] = [];
 
     pagos.forEach(p => {
-        if (p.estado === 'pendiente' && !isBefore(parseISO(p.fechaLimite), now)) {
+        const cliente = getClienteById(p.clienteId);
+        if (cliente && cliente.estado === 'activo' && p.estado === 'pendiente' && !isBefore(parseISO(p.fechaLimite), now)) {
             proximos.push(p);
         }
     });
 
     clientes.forEach(cl => {
-        if (cl.diaDePago && cl.montoRecurrente > 0) {
+        if (cl.estado === 'activo' && cl.diaDePago && cl.montoRecurrente > 0) {
             const paymentDay = cl.diaDePago;
             let nextPaymentDate = new Date(now.getFullYear(), now.getMonth(), paymentDay);
 
@@ -183,11 +181,19 @@ export function PagosPageClient() {
     });
 
     return proximos.sort((a,b) => parseISO(a.fechaLimite).getTime() - parseISO(b.fechaLimite).getTime());
-  }, [pagos, clientes, now]);
+  }, [pagos, clientes, now, getClienteById]);
 
 
-  const pagosVencidos = now ? pagos.filter(p => p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), now)).sort((a,b) => parseISO(b.fechaLimite).getTime() - parseISO(a.fechaLimite).getTime()) : [];
-  const historialPagos = pagos.filter(p => p.estado === 'pagado').sort((a,b) => parseISO(b.fechaPago!).getTime() - parseISO(a.fechaPago!).getTime());
+  const pagosVencidos = now ? pagos.filter(p => {
+    const cliente = getClienteById(p.clienteId);
+    return cliente && cliente.estado === 'activo' && p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), now);
+  }).sort((a,b) => parseISO(b.fechaLimite).getTime() - parseISO(a.fechaLimite).getTime()) : [];
+
+  const historialPagos = pagos.filter(p => p.estado === 'pagado').sort((a,b) => {
+    const dateA = a.fechaPago ? parseISO(a.fechaPago) : new Date(0);
+    const dateB = b.fechaPago ? parseISO(b.fechaPago) : new Date(0);
+    return dateB.getTime() - dateA.getTime();
+  });
   
   const selectedCliente = selectedClienteId ? clientes.find(c => c.id === selectedClienteId) : undefined;
   

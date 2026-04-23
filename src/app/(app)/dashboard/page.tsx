@@ -67,13 +67,13 @@ export default function DashboardPage() {
     setPagoDetailOpen(true);
   }
 
-  const handleOpenClienteDetail = (cliente: Cliente) => {
-    setSelectedClienteId(cliente.id);
+  const handleOpenClienteDetail = (clienteId: string) => {
+    setSelectedClienteId(clienteId);
     setClienteDetailOpen(true);
   }
 
   const handleToggleStatusFromDetail = (pago: Pago) => {
-    if (pago.estado === 'pendiente') {
+     if (pago.estado === 'pendiente') {
       const updatedPago = { ...pago, estado: 'pagado' as const, fechaPago: new Date().toISOString() };
       updatePago(updatedPago);
       toast({ title: "Pago actualizado", description: "El pago ha sido marcado como pagado." });
@@ -89,12 +89,9 @@ export default function DashboardPage() {
   }
 
   const handleOpenClienteFromPago = (clienteId: string) => {
-    const cliente = getClienteById(clienteId);
-    if (cliente) {
-      setSelectedClienteId(cliente.id);
-      setPagoDetailOpen(false);
-      setClienteDetailOpen(true);
-    }
+    setSelectedClienteId(clienteId);
+    setPagoDetailOpen(false);
+    setClienteDetailOpen(true);
   }
 
   const handleOpenEditCliente = (cliente: Cliente) => {
@@ -136,13 +133,21 @@ export default function DashboardPage() {
     if (item.type === 'pago') {
       handleOpenPagoDetail(item.data as Pago);
     } else if (item.type === 'entrega') {
-      handleOpenClienteDetail(item.cliente);
+      const cliente = clientes.find(c => c.id === item.cliente.id);
+      if (cliente) {
+        handleOpenClienteDetail(cliente.id);
+      }
     }
   };
 
 
   const activeClients = clientes.filter((c) => c.estado === 'activo').length;
-  const pendingPayments = now ? pagos.filter((p) => p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), now)) : [];
+  
+  const pendingPayments = now ? pagos.filter((p) => {
+    const cliente = getClienteById(p.clienteId);
+    return cliente?.estado === 'activo' && p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), now);
+  }) : [];
+
   const totalPendingAmount = pendingPayments.reduce((sum, p) => sum + p.monto, 0);
 
   // General Console Data
@@ -161,7 +166,7 @@ export default function DashboardPage() {
   
     // Project deliveries
     clientes.forEach(cl => {
-      if (cl.proyecto && cl.proyecto.estado === 'en-progreso') {
+      if (cl.estado === 'activo' && cl.proyecto && cl.proyecto.estado === 'en-progreso') {
         const entregaDate = parseISO(cl.proyecto.fechaEntrega);
         timelineItems.push({
           date: entregaDate,
@@ -175,7 +180,7 @@ export default function DashboardPage() {
 
     // Upcoming recurring payments
     clientes.forEach(cl => {
-        if (cl.diaDePago && cl.montoRecurrente) {
+        if (cl.estado === 'activo' && cl.diaDePago && cl.montoRecurrente) {
             const paymentDay = cl.diaDePago;
             let nextPaymentDate = new Date(now.getFullYear(), now.getMonth(), paymentDay);
             if (isBefore(nextPaymentDate, now)) {

@@ -52,8 +52,8 @@ export default function ConsolePage() {
     setPagoDetailOpen(true);
   }
 
-  const handleOpenClienteDetail = (cliente: Cliente) => {
-    setSelectedClienteId(cliente.id);
+  const handleOpenClienteDetail = (clienteId: string) => {
+    setSelectedClienteId(clienteId);
     setClienteDetailOpen(true);
   }
 
@@ -74,12 +74,9 @@ export default function ConsolePage() {
   }
 
   const handleOpenClienteFromPago = (clienteId: string) => {
-    const cliente = getClienteById(clienteId);
-    if (cliente) {
-      setSelectedClienteId(cliente.id);
-      setPagoDetailOpen(false);
-      setClienteDetailOpen(true);
-    }
+    setSelectedClienteId(clienteId);
+    setPagoDetailOpen(false);
+    setClienteDetailOpen(true);
   }
 
   const handleOpenEditCliente = (cliente: Cliente) => {
@@ -121,7 +118,10 @@ export default function ConsolePage() {
     if (item.type === 'pago') {
       handleOpenPagoDetail(item.data as Pago);
     } else if (item.type === 'entrega') {
-      handleOpenClienteDetail(item.cliente);
+      const cliente = clientes.find(c => c.id === item.cliente.id);
+      if (cliente) {
+        handleOpenClienteDetail(cliente.id);
+      }
     }
   };
 
@@ -132,30 +132,32 @@ export default function ConsolePage() {
     // Process real payments
     pagos.forEach(p => {
       const cliente = getClienteById(p.clienteId);
-      if (p.estado === 'pendiente') {
-        const dueDate = parseISO(p.fechaLimite);
-        upcomingItems.push({
-          date: dueDate,
-          type: 'pago',
-          subType: isBefore(dueDate, now) ? 'overdue' : 'upcoming',
-          data: p,
-          cliente: cliente
-        });
-      } else if (p.estado === 'pagado' && p.fechaPago) {
-        completedItems.push({
-          date: parseISO(p.fechaPago),
-          type: 'pago',
-          subType: 'completed',
-          data: p,
-          cliente: cliente
-        });
+      if (cliente) {
+        if (cliente.estado === 'activo' && p.estado === 'pendiente') {
+          const dueDate = parseISO(p.fechaLimite);
+          upcomingItems.push({
+            date: dueDate,
+            type: 'pago',
+            subType: isBefore(dueDate, now) ? 'overdue' : 'upcoming',
+            data: p,
+            cliente: cliente
+          });
+        } else if (p.estado === 'pagado' && p.fechaPago) {
+          completedItems.push({
+            date: parseISO(p.fechaPago),
+            type: 'pago',
+            subType: 'completed',
+            data: p,
+            cliente: cliente
+          });
+        }
       }
     });
 
     // Process projects and synthetic recurring payments
     clientes.forEach(cl => {
       if (cl.proyecto) {
-        if (cl.proyecto.estado === 'en-progreso') {
+        if (cl.estado === 'activo' && cl.proyecto.estado === 'en-progreso') {
           upcomingItems.push({
             date: parseISO(cl.proyecto.fechaEntrega),
             type: 'entrega',
@@ -163,8 +165,8 @@ export default function ConsolePage() {
             data: cl.proyecto,
             cliente: cl
           });
-        } else if (cl.proyecto.estado === 'completado') {
-          completedItems.push({
+        } else if (cl.proyecto.estado === 'completado' && cl.proyecto.fechaEntrega) {
+           completedItems.push({
             date: parseISO(cl.proyecto.fechaEntrega), 
             type: 'entrega',
             subType: 'completed',
@@ -174,7 +176,7 @@ export default function ConsolePage() {
         }
       }
 
-      if (cl.diaDePago && cl.montoRecurrente) {
+      if (cl.estado === 'activo' && cl.diaDePago && cl.montoRecurrente) {
           const paymentDay = cl.diaDePago;
           let nextPaymentDate = new Date(now.getFullYear(), now.getMonth(), paymentDay);
           if (isBefore(nextPaymentDate, now)) {
