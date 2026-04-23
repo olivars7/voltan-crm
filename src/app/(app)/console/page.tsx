@@ -209,7 +209,11 @@ export default function ConsolePage() {
     });
   }
 
-  const sortedUpcoming = upcomingItems.sort((a, b) => a.date.getTime() - b.date.getTime());
+  const sortedUpcoming = upcomingItems.sort((a, b) => {
+    if (a.subType === 'overdue' && b.subType !== 'overdue') return -1;
+    if (a.subType !== 'overdue' && b.subType === 'overdue') return 1;
+    return a.date.getTime() - b.date.getTime();
+  });
   const sortedCompleted = completedItems.sort((a, b) => b.date.getTime() - a.date.getTime());
   
   const selectedCliente = selectedClienteId ? clientes.find(c => c.id === selectedClienteId) : undefined;

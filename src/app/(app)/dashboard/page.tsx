@@ -22,6 +22,7 @@ import { PagoForm } from '@/components/pagos/PagoForm';
 type TimelineItem = {
   date: Date;
   type: 'pago' | 'entrega';
+  subType: 'overdue' | 'upcoming';
   data: any;
   cliente: any;
 }
@@ -147,24 +148,25 @@ export default function DashboardPage() {
   // General Console Data
   const timelineItems: TimelineItem[] = [];
   if (now) {
-    // Overdue recurring payments
-    pagos.forEach(p => {
-      if (p.estado === 'pendiente' && p.concepto === 'Mensualidad' && isBefore(parseISO(p.fechaLimite), now)) {
-        timelineItems.push({
-          date: parseISO(p.fechaLimite),
-          type: 'pago',
-          data: p,
-          cliente: getClienteById(p.clienteId)
-        });
-      }
+    // Add all overdue payments
+    pendingPayments.forEach(p => {
+      timelineItems.push({
+        date: parseISO(p.fechaLimite),
+        type: 'pago',
+        subType: 'overdue',
+        data: p,
+        cliente: getClienteById(p.clienteId)
+      });
     });
   
     // Project deliveries
     clientes.forEach(cl => {
       if (cl.proyecto && cl.proyecto.estado === 'en-progreso') {
+        const entregaDate = parseISO(cl.proyecto.fechaEntrega);
         timelineItems.push({
-          date: parseISO(cl.proyecto.fechaEntrega),
+          date: entregaDate,
           type: 'entrega',
+          subType: isBefore(entregaDate, now) ? 'overdue' : 'upcoming',
           data: cl.proyecto,
           cliente: cl
         });
@@ -203,6 +205,7 @@ export default function DashboardPage() {
                 timelineItems.push({
                     date: nextPaymentDate,
                     type: 'pago',
+                    subType: 'upcoming',
                     data: syntheticPago,
                     cliente: cl,
                 });
@@ -211,7 +214,13 @@ export default function DashboardPage() {
     });
   }
   
-  const sortedTimeline = timelineItems.sort((a,b) => a.date.getTime() - b.date.getTime());
+  const uniqueTimelineItems = [...new Map(timelineItems.map(item => [item.data.id || `${item.data.nombre}-${item.cliente.id}`, item])).values()];
+  
+  const sortedTimeline = uniqueTimelineItems.sort((a, b) => {
+    if (a.subType === 'overdue' && b.subType !== 'overdue') return -1;
+    if (a.subType !== 'overdue' && b.subType === 'overdue') return 1;
+    return a.date.getTime() - b.date.getTime();
+  });
 
   // Statistics Data
   const last4Months = now ? Array.from({ length: 4 }).map((_, i) => subMonths(now, 3 - i)) : [];
@@ -320,7 +329,7 @@ export default function DashboardPage() {
                                       {item.type === 'entrega' && `Entrega: ${item.data.nombre}`}
                                   </p>
                                   <p className="text-sm text-muted-foreground">
-                                      <span className={now && isBefore(item.date, now) && item.type === 'pago' ? 'text-status-danger font-medium' : ''}>
+                                      <span className={item.subType === 'overdue' ? 'text-status-danger font-medium' : ''}>
                                         {formatDate(item.date, "d MMM, yyyy")}
                                       </span>
                                       {' • '}
