@@ -33,7 +33,6 @@ export default function ConsolePage() {
   
   // State for dialogs
   const [isPagoDetailOpen, setPagoDetailOpen] = useState(false);
-  const [isClienteDetailOpen, setClienteDetailOpen] = useState(false);
   const [isClienteFormOpen, setClienteFormOpen] = useState(false);
   const [isPagoFormOpen, setPagoFormOpen] = useState(false);
 
@@ -54,7 +53,6 @@ export default function ConsolePage() {
 
   const handleOpenClienteDetail = (clienteId: string) => {
     setSelectedClienteId(clienteId);
-    setClienteDetailOpen(true);
   }
 
   const handleToggleStatusFromDetail = (pago: Pago) => {
@@ -76,12 +74,11 @@ export default function ConsolePage() {
   const handleOpenClienteFromPago = (clienteId: string) => {
     setSelectedClienteId(clienteId);
     setPagoDetailOpen(false);
-    setClienteDetailOpen(true);
   }
 
   const handleOpenEditCliente = (cliente: Cliente) => {
     setEditingCliente(cliente);
-    setClienteDetailOpen(false);
+    setSelectedClienteId(undefined);
     setClienteFormOpen(true);
   }
 
@@ -132,8 +129,8 @@ export default function ConsolePage() {
     // Process real payments
     pagos.forEach(p => {
       const cliente = getClienteById(p.clienteId);
-      if (cliente) {
-        if (cliente.estado === 'activo' && p.estado === 'pendiente') {
+      if (cliente && cliente.estado === 'activo') {
+        if (p.estado === 'pendiente') {
           const dueDate = parseISO(p.fechaLimite);
           upcomingItems.push({
             date: dueDate,
@@ -156,8 +153,8 @@ export default function ConsolePage() {
 
     // Process projects and synthetic recurring payments
     clientes.forEach(cl => {
-      if (cl.proyecto) {
-        if (cl.estado === 'activo' && cl.proyecto.estado === 'en-progreso') {
+      if (cl.estado === 'activo' && cl.proyecto) {
+        if (cl.proyecto.estado === 'en-progreso') {
           upcomingItems.push({
             date: parseISO(cl.proyecto.fechaEntrega),
             type: 'entrega',
@@ -176,7 +173,7 @@ export default function ConsolePage() {
         }
       }
 
-      if (cl.estado === 'activo' && cl.diaDePago && cl.montoRecurrente) {
+      if (cl.estado === 'activo' && cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
           const paymentDay = cl.diaDePago;
           let nextPaymentDate = new Date(now.getFullYear(), now.getMonth(), paymentDay);
           if (isBefore(nextPaymentDate, now)) {
@@ -193,7 +190,7 @@ export default function ConsolePage() {
               const syntheticPago: Pago = {
                 id: `recurring-${cl.id}-${nextPaymentDate.toISOString()}`,
                 clienteId: cl.id,
-                monto: cl.montoRecurrente,
+                monto: cl.cuotaMensual,
                 concepto: 'Mensualidad',
                 fechaLimite: nextPaymentDate.toISOString(),
                 estado: 'pendiente',
@@ -309,7 +306,7 @@ export default function ConsolePage() {
             onEditRequest={() => handleOpenEditPago(selectedPago)}
             />}
       </Dialog>
-      <Dialog open={isClienteDetailOpen} onOpenChange={setClienteDetailOpen}>
+      <Dialog open={!!selectedClienteId} onOpenChange={(isOpen) => !isOpen && setSelectedClienteId(undefined)}>
         {selectedCliente && <ClienteDetail cliente={selectedCliente} clientes={clientes} onEditRequest={() => handleOpenEditCliente(selectedCliente)} onUpdateCliente={updateCliente} />}
       </Dialog>
       <Dialog open={isClienteFormOpen} onOpenChange={setClienteFormOpen}>

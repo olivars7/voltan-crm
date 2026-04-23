@@ -32,8 +32,7 @@ export function ClientesPageClient() {
   const { clientes, addCliente, updateCliente } = useClientes();
   const { addPago } = usePagos();
   const [isFormOpen, setFormOpen] = React.useState(false);
-  const [isDetailOpen, setDetailOpen] = React.useState(false);
-
+  
   const [selectedClienteId, setSelectedClienteId] = React.useState<string | undefined>(undefined);
   const [editingCliente, setEditingCliente] = React.useState<Cliente | undefined>(undefined);
   const { toast } = useToast();
@@ -41,20 +40,39 @@ export function ClientesPageClient() {
   const [searchTerm, setSearchTerm] = React.useState('');
 
   const handleAddSubmit = (values: any) => {
-    const newClient = addCliente(values);
+    const { montoAdelanto, fechaAdelanto, montoApertura, fechaApertura, ...clienteData } = values;
+
+    const finalClienteData = {
+        ...clienteData,
+        cuotaMensual: values.cuotaMensual ? Number(values.cuotaMensual) : 0,
+        diaDePago: values.diaDePago ? Number(values.diaDePago) : undefined,
+    };
+
+    const newClient = addCliente(finalClienteData);
     toast({ title: "Cliente añadido", description: "El nuevo cliente ha sido guardado." });
     
-    if (values.montoApertura && values.montoApertura > 0) {
+    if (montoAdelanto && montoAdelanto > 0 && fechaAdelanto) {
       addPago({
         clienteId: newClient.id,
-        monto: values.montoApertura,
-        fechaLimite: new Date().toISOString(),
-        estado: 'pagado',
-        fechaPago: new Date().toISOString(),
-        concepto: 'Apertura',
-        notas: 'Pago inicial de proyecto/servicio.'
+        monto: montoAdelanto,
+        fechaLimite: fechaAdelanto,
+        estado: 'pendiente',
+        concepto: 'Adelanto',
+        notas: 'Pago de adelanto inicial.'
       });
-      toast({ title: "Pago de apertura registrado", description: "El pago inicial ha sido marcado como pagado." });
+      toast({ title: "Pago de adelanto creado", description: "El pago de adelanto ha sido registrado como pendiente." });
+    }
+
+    if (montoApertura && montoApertura > 0 && fechaApertura) {
+      addPago({
+        clienteId: newClient.id,
+        monto: montoApertura,
+        fechaLimite: fechaApertura,
+        estado: 'pendiente',
+        concepto: 'Apertura',
+        notas: 'Pago de apertura de proyecto/servicio.'
+      });
+      toast({ title: "Pago de apertura creado", description: "El pago de apertura ha sido registrado como pendiente." });
     }
 
     setFormOpen(false);
@@ -66,6 +84,7 @@ export function ClientesPageClient() {
       updateCliente(updatedData);
       toast({ title: "Cliente actualizado", description: "Los datos del cliente han sido actualizados." });
       if (selectedClienteId === updatedData.id) {
+        // Force re-render of detail view
         setSelectedClienteId(undefined); 
         setSelectedClienteId(updatedData.id);
       }
@@ -76,7 +95,7 @@ export function ClientesPageClient() {
   
   const openEditDialog = (cliente: Cliente) => {
     setEditingCliente(cliente);
-    setDetailOpen(false);
+    setSelectedClienteId(undefined);
     setFormOpen(true);
   }
 
@@ -88,13 +107,15 @@ export function ClientesPageClient() {
   const openDetailDialog = (cliente: Cliente) => {
     setSelectedClienteId(cliente.id);
     setFormOpen(false);
-    setDetailOpen(true);
   }
 
   const sortedClientes = [...clientes].sort((a, b) => parseISO(b.fechaInicio).getTime() - parseISO(a.fechaInicio).getTime());
 
   const filteredClientes = sortedClientes.filter(cliente => {
     const search = searchTerm.toLowerCase();
+    
+    if (!cliente.fechaInicio) return false;
+
     const monthName = format(parseISO(cliente.fechaInicio), 'MMMM', { locale: es });
 
     return (
@@ -177,7 +198,7 @@ export function ClientesPageClient() {
         />
       </Dialog>
 
-      <Dialog open={isDetailOpen} onOpenChange={setDetailOpen}>
+      <Dialog open={!!selectedClienteId} onOpenChange={(isOpen) => !isOpen && setSelectedClienteId(undefined)}>
         {selectedCliente && <ClienteDetail cliente={selectedCliente} clientes={clientes} onEditRequest={() => openEditDialog(selectedCliente)} onUpdateCliente={updateCliente} />}
       </Dialog>
     </>

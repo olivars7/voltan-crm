@@ -29,7 +29,8 @@ interface ClienteDetailProps {
 export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateCliente }: ClienteDetailProps) {
   const { pagos, getPagosByClienteId, updatePago } = usePagos();
   const { toast } = useToast();
-
+  
+  const [now, setNow] = React.useState<Date | null>(null);
   const [isPagoDetailOpen, setPagoDetailOpen] = React.useState(false);
   const [selectedPago, setSelectedPago] = React.useState<Pago | undefined>(undefined);
   const [allPagos, setAllPagos] = React.useState<Pago[]>([]);
@@ -37,15 +38,17 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
   const [editingPago, setEditingPago] = React.useState<Pago | undefined>(undefined);
   
   React.useEffect(() => {
+    setNow(new Date());
+
     const clientPagos = getPagosByClienteId(cliente.id);
     let combinedPagos = [...clientPagos];
-    const now = new Date();
+    const today = new Date();
 
-    if (cliente.diaDePago && cliente.montoRecurrente > 0) {
+    if (cliente.estado === 'activo' && cliente.diaDePago && cliente.cuotaMensual && cliente.cuotaMensual > 0) {
         const paymentDay = cliente.diaDePago;
-        let nextPaymentDate = new Date(now.getFullYear(), now.getMonth(), paymentDay);
+        let nextPaymentDate = new Date(today.getFullYear(), today.getMonth(), paymentDay);
         
-        if (isBefore(nextPaymentDate, now)) {
+        if (isBefore(nextPaymentDate, today)) {
             nextPaymentDate = addMonths(nextPaymentDate, 1);
         }
 
@@ -59,7 +62,7 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
             const syntheticPago: Pago = {
                 id: `recurring-${cliente.id}-${nextPaymentDate.toISOString()}`,
                 clienteId: cliente.id,
-                monto: cliente.montoRecurrente,
+                monto: cliente.cuotaMensual,
                 concepto: 'Mensualidad',
                 fechaLimite: nextPaymentDate.toISOString(),
                 estado: 'pendiente',
@@ -94,8 +97,14 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
   }
   
   const handleToggleStatusFromDetail = (pago: Pago) => {
-    updatePago({ ...pago, estado: pago.estado === 'pendiente' ? 'pagado' : 'pendiente', fechaPago: new Date().toISOString() });
-    toast({ title: "Pago actualizado", description: `El pago ha sido marcado como ${pago.estado === 'pendiente' ? 'pagado' : 'pendiente'}.` });
+    if (pago.estado === 'pendiente') {
+      updatePago({ ...pago, estado: 'pagado', fechaPago: new Date().toISOString() });
+      toast({ title: "Pago actualizado", description: `El pago ha sido marcado como pagado.` });
+    } else {
+       const { fechaPago, ...rest } = pago;
+       updatePago({ ...rest, estado: 'pendiente' });
+       toast({ title: "Pago actualizado", description: `El pago ha sido marcado como pendiente.` });
+    }
     setPagoDetailOpen(false);
   }
 
@@ -121,21 +130,33 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
   };
 
   const handleProjectStatusChange = (newStatus: ProyectoEstado) => {
-    onUpdateCliente({ ...cliente, proyecto: { ...cliente.proyecto, estado: newStatus } });
-    toast({ title: "Proyecto actualizado", description: `El estado del proyecto es ahora: ${newStatus}.` });
+    if (cliente.proyecto) {
+        onUpdateCliente({ ...cliente, proyecto: { ...cliente.proyecto, estado: newStatus } });
+        toast({ title: "Proyecto actualizado", description: `El estado del proyecto es ahora: ${newStatus}.` });
+    }
   };
 
   const handleConfirmDelivery = () => {
-    onUpdateCliente({
-        ...cliente,
-        proyecto: {
-            ...cliente.proyecto,
-            estado: 'completado',
-            fechaEntrega: new Date().toISOString(),
-        }
-    });
-    toast({ title: "¡Entrega Confirmada!", description: "El proyecto ha sido marcado como completado." });
+    if (cliente.proyecto) {
+        onUpdateCliente({
+            ...cliente,
+            proyecto: {
+                ...cliente.proyecto,
+                estado: 'completado',
+                fechaEntrega: new Date().toISOString(),
+            }
+        });
+        toast({ title: "¡Entrega Confirmada!", description: "El proyecto ha sido marcado como completado." });
+    }
   };
+
+  const getPagoStatus = (pago: Pago): 'pagado' | 'pendiente' | 'vencido' => {
+    if (pago.estado === 'pagado') return 'pagado';
+    if (now && isBefore(parseISO(pago.fechaLimite), now)) {
+      return 'vencido';
+    }
+    return 'pendiente';
+  }
 
   return (
     <>
@@ -194,7 +215,7 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
             </div>
             
             {/* Recurring Payment Details */}
-            {(cliente.diaDePago || cliente.montoRecurrente) && (
+            {(cliente.diaDePago || cliente.cuotaMensual) && (
                 <Card className="bg-muted/50">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-base">
@@ -209,10 +230,10 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                                 <p className="text-sm text-muted-foreground">El día {cliente.diaDePago} de cada mes</p>
                             </div>
                         )}
-                        {cliente.montoRecurrente > 0 && (
+                        {cliente.cuotaMensual && cliente.cuotaMensual > 0 && (
                             <div className="space-y-1">
-                                <p className="font-semibold">Monto Recurrente</p>
-                                <p className="text-sm text-muted-foreground">{formatCurrency(cliente.montoRecurrente)}</p>
+                                <p className="font-semibold">Cuota Mensual</p>
+                                <p className="text-sm text-muted-foreground">{formatCurrency(cliente.cuotaMensual)}</p>
                             </div>
                         )}
                     </CardContent>
@@ -220,46 +241,48 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
             )}
 
             {/* Project Details */}
-            <Card className="bg-muted/50">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-base">
-                        <ClipboardCheck className="w-5 h-5" />
-                        Detalles del Proyecto
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="grid gap-4 md:grid-cols-3">
-                    <div className="space-y-1 md:col-span-3">
-                        <p className="font-semibold">{cliente.proyecto.nombre}</p>
-                        <p className="text-sm text-muted-foreground">{cliente.proyecto.descripcion}</p>
-                    </div>
-                    <div className="space-y-1">
-                        <p className="font-semibold">Fecha de Entrega</p>
-                        <p className="text-sm text-muted-foreground">{formatDate(cliente.proyecto.fechaEntrega)}</p>
-                    </div>
-                    <div className="space-y-1">
-                        <p className="font-semibold">Estado</p>
-                         <Select onValueChange={(value: ProyectoEstado) => handleProjectStatusChange(value)} value={cliente.proyecto.estado}>
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Estado del proyecto" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="en-progreso">En Progreso</SelectItem>
-                                <SelectItem value="completado">Completado</SelectItem>
-                                <SelectItem value="pausado">Pausado</SelectItem>
-                                <SelectItem value="cancelado">Cancelado</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </CardContent>
-                {cliente.proyecto.estado !== 'completado' && (
-                    <CardFooter>
-                        <Button onClick={handleConfirmDelivery}>
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Confirmar Entrega
-                        </Button>
-                    </CardFooter>
-                )}
-            </Card>
+            {cliente.proyecto && (
+              <Card className="bg-muted/50">
+                  <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-base">
+                          <ClipboardCheck className="w-5 h-5" />
+                          Detalles del Proyecto
+                      </CardTitle>
+                  </CardHeader>
+                  <CardContent className="grid gap-4 md:grid-cols-3">
+                      <div className="space-y-1 md:col-span-3">
+                          <p className="font-semibold">{cliente.proyecto.nombre}</p>
+                          <p className="text-sm text-muted-foreground">{cliente.proyecto.descripcion}</p>
+                      </div>
+                      <div className="space-y-1">
+                          <p className="font-semibold">Fecha de Entrega</p>
+                          <p className="text-sm text-muted-foreground">{formatDate(cliente.proyecto.fechaEntrega)}</p>
+                      </div>
+                      <div className="space-y-1">
+                          <p className="font-semibold">Estado</p>
+                           <Select onValueChange={(value: ProyectoEstado) => handleProjectStatusChange(value)} value={cliente.proyecto.estado}>
+                              <SelectTrigger className="w-[180px]">
+                                  <SelectValue placeholder="Estado del proyecto" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                  <SelectItem value="en-progreso">En Progreso</SelectItem>
+                                  <SelectItem value="completado">Completado</SelectItem>
+                                  <SelectItem value="pausado">Pausado</SelectItem>
+                                  <SelectItem value="cancelado">Cancelado</SelectItem>
+                              </SelectContent>
+                          </Select>
+                      </div>
+                  </CardContent>
+                  {cliente.proyecto.estado !== 'completado' && (
+                      <CardFooter>
+                          <Button onClick={handleConfirmDelivery}>
+                              <CheckCircle className="mr-2 h-4 w-4" />
+                              Confirmar Entrega
+                          </Button>
+                      </CardFooter>
+                  )}
+              </Card>
+            )}
 
             {/* History Section */}
             <div className="grid md:grid-cols-1 gap-6">
@@ -292,7 +315,7 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                             <TableCell className="font-medium">{pago.concepto}</TableCell>
                             <TableCell>{formatCurrency(pago.monto)}</TableCell>
                             <TableCell>{formatDate(pago.estado === 'pagado' && pago.fechaPago ? pago.fechaPago : pago.fechaLimite)}</TableCell>
-                            <TableCell><StatusBadge status={pago.estado} /></TableCell>
+                            <TableCell><StatusBadge status={getPagoStatus(pago)} /></TableCell>
                           </TableRow>
                         ))}
                       </TableBody>

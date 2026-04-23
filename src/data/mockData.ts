@@ -21,7 +21,7 @@ export const mockClientes: Cliente[] = Array.from({ length: 20 }, (_, i) => {
         fechaInicio: formatISO(fechaInicio),
         estado: (i % 4 === 0 && i > 0) ? 'inactivo' : 'activo', // some inactive clients
         diaDePago: Math.floor(Math.random() * 28) + 1,
-        montoRecurrente: (Math.floor(Math.random() * 20) + 1) * 500, // 500 to 10000
+        cuotaMensual: (Math.floor(Math.random() * 20) + 1) * 500, // 500 to 10000
         proyecto: {
             nombre: `Proyecto ${companies[i].split(' ')[0]}`,
             descripcion: `Descripción detallada del proyecto para ${companies[i]}.`,
@@ -38,7 +38,7 @@ export const mockPagos: Pago[] = [];
 
 mockClientes.forEach(cliente => {
     const fechaInicioDate = parseISO(cliente.fechaInicio);
-    const montoApertura = cliente.montoRecurrente * (Math.random() * 2 + 1); // 1x to 3x recurring
+    const montoApertura = (cliente.cuotaMensual || 0) * (Math.random() * 2 + 1); // 1x to 3x recurring
 
     // 1. Add Opening Payment for each client
     mockPagos.push({
@@ -53,7 +53,7 @@ mockClientes.forEach(cliente => {
     });
 
     // 2. Add historical recurring payments if client is active
-    if (cliente.estado === 'activo') {
+    if (cliente.estado === 'activo' && cliente.diaDePago && cliente.cuotaMensual) {
       const now = new Date(2025, 10, 15); // November 15, 2025
       let cursorDate = parseISO(cliente.fechaInicio);
 
@@ -67,7 +67,7 @@ mockClientes.forEach(cliente => {
              mockPagos.push({
                   id: `pa-hist-${cliente.id}-${formatISO(paymentDueDate)}`,
                   clienteId: cliente.id,
-                  monto: cliente.montoRecurrente,
+                  monto: cliente.cuotaMensual,
                   concepto: 'Mensualidad',
                   fechaPago: isOverdue ? undefined : formatISO(paymentDueDate),
                   fechaLimite: formatISO(paymentDueDate),
@@ -82,7 +82,7 @@ mockClientes.forEach(cliente => {
         mockPagos.push({ 
             id: `pa-proj-${cliente.id}`, 
             clienteId: cliente.id, 
-            monto: cliente.montoRecurrente * 2, 
+            monto: (cliente.cuotaMensual || 500) * 2, 
             concepto: 'Adelanto Proyecto',
             fechaLimite: formatISO(addDays(parseISO(cliente.proyecto.fechaEntrega), -30)), 
             estado: 'pendiente', 

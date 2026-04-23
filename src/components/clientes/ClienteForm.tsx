@@ -38,15 +38,32 @@ const formSchema = z.object({
   empresa: z.string().optional(),
   email: z.string().email({ message: 'Email inválido.' }),
   telefono: z.string().min(10, { message: 'Teléfono inválido.' }),
-  montoApertura: z.coerce.number().min(0, { message: 'El monto no puede ser negativo.' }).optional(),
-  diaDePago: z.preprocess((val) => Number(val), z.number().int().min(1, {message: "El día de pago es requerido."}).max(31)),
-  montoRecurrente: z.coerce.number().min(0, { message: 'El monto recurrente no puede ser negativo.' }),
+  
+  // For creation only
+  montoAdelanto: z.coerce.number().min(0, "Debe ser 0 o mayor.").optional(),
+  fechaAdelanto: z.string().optional(),
+  montoApertura: z.coerce.number().min(0, "Debe ser 0 o mayor.").optional(),
+  fechaApertura: z.string().optional(),
+
+  // On Cliente model
+  cuotaMensual: z.coerce.number().min(0, "Debe ser 0 o mayor.").optional(),
+  diaDePago: z.preprocess((val) => Number(val) || undefined, z.number().int().min(1).max(28).optional()),
+
   proyecto: z.object({
     nombre: z.string().min(1, { message: 'El nombre del proyecto es requerido.' }),
     descripcion: z.string().optional(),
     fechaEntrega: z.string().min(1, { message: 'La fecha de entrega es requerida.' }),
     estado: z.enum(['en-progreso', 'completado', 'pausado', 'cancelado']),
   }),
+}).refine(data => !(data.montoAdelanto && data.montoAdelanto > 0) || !!data.fechaAdelanto, {
+    message: "La fecha es requerida si hay un monto.",
+    path: ["fechaAdelanto"],
+}).refine(data => !(data.montoApertura && data.montoApertura > 0) || !!data.fechaApertura, {
+    message: "La fecha es requerida si hay un monto.",
+    path: ["fechaApertura"],
+}).refine(data => !(data.cuotaMensual && data.cuotaMensual > 0) || !!data.diaDePago, {
+    message: "El día de pago es requerido si hay una cuota.",
+    path: ["diaDePago"],
 });
 
 
@@ -64,9 +81,12 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
         empresa: '',
         email: '',
         telefono: '',
-        montoApertura: 0,
+        montoAdelanto: undefined,
+        fechaAdelanto: '',
+        montoApertura: undefined,
+        fechaApertura: '',
         diaDePago: 1,
-        montoRecurrente: 0,
+        cuotaMensual: undefined,
         proyecto: {
             nombre: '',
             descripcion: '',
@@ -80,7 +100,12 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
     if (cliente) {
         const defaultValues = {
             ...cliente,
-            montoApertura: 0, // Not edited
+            cuotaMensual: cliente.cuotaMensual || undefined,
+            diaDePago: cliente.diaDePago || 1,
+            montoApertura: undefined,
+            montoAdelanto: undefined,
+            fechaAdelanto: undefined,
+            fechaApertura: undefined,
             proyecto: {
                 ...cliente.proyecto,
                 fechaEntrega: cliente.proyecto.fechaEntrega.split('T')[0]
@@ -89,13 +114,16 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
         form.reset(defaultValues);
     } else {
         form.reset({
-             nombre: '',
+            nombre: '',
             empresa: '',
             email: '',
             telefono: '',
-            montoApertura: 0,
+            montoAdelanto: undefined,
+            fechaAdelanto: '',
+            montoApertura: undefined,
+            fechaApertura: '',
             diaDePago: 1,
-            montoRecurrente: 0,
+            cuotaMensual: undefined,
             proyecto: {
                 nombre: '',
                 descripcion: '',
@@ -115,6 +143,12 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
             : `${values.proyecto.fechaEntrega}T00:00:00`;
         submissionValues.proyecto.fechaEntrega = new Date(dateValue).toISOString();
     }
+    if (values.fechaAdelanto) {
+        submissionValues.fechaAdelanto = `${values.fechaAdelanto}T00:00:00`;
+    }
+    if (values.fechaApertura) {
+        submissionValues.fechaApertura = `${values.fechaApertura}T00:00:00`;
+    }
     onSubmit(submissionValues);
     setOpen(false);
   };
@@ -127,7 +161,6 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8 py-4 flex-grow overflow-y-auto pr-4 custom-scrollbar">
             
-            {/* Contact Info Section */}
             <div className="space-y-4">
                 <h3 className="text-lg font-medium flex items-center gap-2"><User className="h-5 w-5"/> Información de Contacto</h3>
                 <Separator />
@@ -139,43 +172,69 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
                 </div>
             </div>
 
-            {/* Recurring Payments Section */}
-            <div className="space-y-4">
-                <h3 className="text-lg font-medium flex items-center gap-2"><CalendarDays className="h-5 w-5"/> Pagos Recurrentes</h3>
-                <Separator />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {!cliente && (
+            {!cliente && (
+                <div className="space-y-4">
+                    <h3 className="text-lg font-medium flex items-center gap-2"><DollarSign className="h-5 w-5"/> Pagos Iniciales</h3>
+                    <Separator />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                         <FormField control={form.control} name="montoApertura" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Monto de Apertura (MXN)</FormLabel>
-                                <FormControl><Input type="number" step="0.01" placeholder="2500.00" {...field} /></FormControl>
+                                <FormControl><Input type="number" step="0.01" placeholder="2500.00" {...field} value={field.value ?? ''} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
-                    )}
-                     <FormField control={form.control} name="diaDePago" render={({ field }) => (
+                        <FormField control={form.control} name="fechaApertura" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Fecha Límite de Apertura</FormLabel>
+                                <FormControl><Input type="date" {...field} value={field.value ?? ''} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField control={form.control} name="montoAdelanto" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Monto de Adelanto (MXN)</FormLabel>
+                                <FormControl><Input type="number" step="0.01" placeholder="1000.00" {...field} value={field.value ?? ''} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField control={form.control} name="fechaAdelanto" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Fecha Límite de Adelanto</FormLabel>
+                                <FormControl><Input type="date" {...field} value={field.value ?? ''} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    </div>
+                </div>
+            )}
+            
+            <div className="space-y-4">
+                <h3 className="text-lg font-medium flex items-center gap-2"><CalendarDays className="h-5 w-5"/> Pagos Recurrentes</h3>
+                <Separator />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <FormField control={form.control} name="cuotaMensual" render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Día de Pago Mensual</FormLabel>
-                            <Select onValueChange={field.onChange} value={String(field.value)}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Selecciona un día" /></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (<SelectItem key={day} value={String(day)}>{day}</SelectItem>))}
-                                </SelectContent>
-                            </Select>
+                            <FormLabel>Cuota Mensual (MXN)</FormLabel>
+                            <FormControl><Input type="number" step="0.01" placeholder="5000.00" {...field} value={field.value ?? ''} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
-                    <FormField control={form.control} name="montoRecurrente" render={({ field }) => (
+                     <FormField control={form.control} name="diaDePago" render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Monto Recurrente (MXN)</FormLabel>
-                            <FormControl><Input type="number" step="0.01" placeholder="5000.00" {...field} /></FormControl>
+                            <FormLabel>Día de Pago Mensual</FormLabel>
+                            <Select onValueChange={field.onChange} value={String(field.value ?? '')}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Selecciona un día" /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    {Array.from({ length: 28 }, (_, i) => i + 1).map(day => (<SelectItem key={day} value={String(day)}>{day}</SelectItem>))}
+                                </SelectContent>
+                            </Select>
                             <FormMessage />
                         </FormItem>
                     )} />
                 </div>
             </div>
 
-            {/* Project Details Section */}
             <div className="space-y-4">
                  <h3 className="text-lg font-medium flex items-center gap-2"><ClipboardCheck className="h-5 w-5"/> Detalles del Proyecto</h3>
                  <Separator />

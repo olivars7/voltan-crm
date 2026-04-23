@@ -6,8 +6,8 @@ export type Cliente = {
   email: string;
   fechaInicio: string;
   estado: 'activo' | 'inactivo';
-  diaDePago: number;
-  montoRecurrente: number;
+  diaDePago?: number;
+  cuotaMensual?: number;
   proyecto: Proyecto;
 };
 

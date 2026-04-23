@@ -36,7 +36,6 @@ export default function DashboardPage() {
   
   // State for dialogs
   const [isPagoDetailOpen, setPagoDetailOpen] = useState(false);
-  const [isClienteDetailOpen, setClienteDetailOpen] = useState(false);
   const [isClienteFormOpen, setClienteFormOpen] = useState(false);
   const [isPagoFormOpen, setPagoFormOpen] = useState(false);
 
@@ -69,7 +68,7 @@ export default function DashboardPage() {
 
   const handleOpenClienteDetail = (clienteId: string) => {
     setSelectedClienteId(clienteId);
-    setClienteDetailOpen(true);
+    setPagoDetailOpen(false);
   }
 
   const handleToggleStatusFromDetail = (pago: Pago) => {
@@ -91,12 +90,11 @@ export default function DashboardPage() {
   const handleOpenClienteFromPago = (clienteId: string) => {
     setSelectedClienteId(clienteId);
     setPagoDetailOpen(false);
-    setClienteDetailOpen(true);
   }
 
   const handleOpenEditCliente = (cliente: Cliente) => {
     setEditingCliente(cliente);
-    setClienteDetailOpen(false);
+    setSelectedClienteId(undefined);
     setClienteFormOpen(true);
   }
 
@@ -153,34 +151,41 @@ export default function DashboardPage() {
   // General Console Data
   const timelineItems: TimelineItem[] = [];
   if (now) {
-    // Add all overdue payments
-    pendingPayments.forEach(p => {
-      timelineItems.push({
-        date: parseISO(p.fechaLimite),
-        type: 'pago',
-        subType: 'overdue',
-        data: p,
-        cliente: getClienteById(p.clienteId)
-      });
+    pagos.forEach(p => {
+        const cliente = getClienteById(p.clienteId);
+        if (cliente && cliente.estado === 'activo' && p.estado === 'pendiente') {
+            const dueDate = parseISO(p.fechaLimite);
+            if(isBefore(dueDate, now)) {
+                timelineItems.push({
+                    date: dueDate,
+                    type: 'pago',
+                    subType: 'overdue',
+                    data: p,
+                    cliente: cliente
+                });
+            }
+        }
     });
   
     // Project deliveries
     clientes.forEach(cl => {
       if (cl.estado === 'activo' && cl.proyecto && cl.proyecto.estado === 'en-progreso') {
         const entregaDate = parseISO(cl.proyecto.fechaEntrega);
-        timelineItems.push({
-          date: entregaDate,
-          type: 'entrega',
-          subType: isBefore(entregaDate, now) ? 'overdue' : 'upcoming',
-          data: cl.proyecto,
-          cliente: cl
-        });
+        if(isBefore(entregaDate, now)) {
+            timelineItems.push({
+              date: entregaDate,
+              type: 'entrega',
+              subType: 'overdue',
+              data: cl.proyecto,
+              cliente: cl
+            });
+        }
       }
     });
 
     // Upcoming recurring payments
     clientes.forEach(cl => {
-        if (cl.estado === 'activo' && cl.diaDePago && cl.montoRecurrente) {
+        if (cl.estado === 'activo' && cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
             const paymentDay = cl.diaDePago;
             let nextPaymentDate = new Date(now.getFullYear(), now.getMonth(), paymentDay);
             if (isBefore(nextPaymentDate, now)) {
@@ -188,7 +193,6 @@ export default function DashboardPage() {
             }
 
             if (isWithinInterval(nextPaymentDate, { start: now, end: addWeeks(now, 2) })) {
-                // Check if a real payment for this recurring period already exists
                 const existingRecurringPayment = pagos.find(p => 
                     p.clienteId === cl.id &&
                     p.concepto === 'Mensualidad' &&
@@ -201,7 +205,7 @@ export default function DashboardPage() {
                 const syntheticPago: Pago = {
                   id: `recurring-${cl.id}-${nextPaymentDate.toISOString()}`,
                   clienteId: cl.id,
-                  monto: cl.montoRecurrente,
+                  monto: cl.cuotaMensual,
                   concepto: 'Mensualidad',
                   fechaLimite: nextPaymentDate.toISOString(),
                   estado: 'pendiente',
@@ -249,7 +253,7 @@ export default function DashboardPage() {
     const monthEnd = endOfMonth(monthDate);
     
     const newClients = clientes
-      .filter(c => isWithinInterval(parseISO(c.fechaInicio), { start: monthStart, end: monthEnd }))
+      .filter(c => c.fechaInicio && isWithinInterval(parseISO(c.fechaInicio), { start: monthStart, end: monthEnd }))
       .length;
       
     return {
@@ -402,7 +406,7 @@ export default function DashboardPage() {
             />}
       </Dialog>
       
-      <Dialog open={isClienteDetailOpen} onOpenChange={setClienteDetailOpen}>
+      <Dialog open={!!selectedClienteId} onOpenChange={(isOpen) => !isOpen && setSelectedClienteId(undefined)}>
         {selectedCliente && <ClienteDetail cliente={selectedCliente} clientes={clientes} onEditRequest={() => handleOpenEditCliente(selectedCliente)} onUpdateCliente={updateCliente} />}
       </Dialog>
 

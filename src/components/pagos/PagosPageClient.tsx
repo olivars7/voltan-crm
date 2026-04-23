@@ -41,7 +41,6 @@ export function PagosPageClient() {
   const { clientes, getClienteById, updateCliente: updateClienteData } = useClientes();
   const [isPagoFormOpen, setPagoFormOpen] = React.useState(false);
   const [isPagoDetailOpen, setPagoDetailOpen] = React.useState(false);
-  const [isClienteDetailOpen, setClienteDetailOpen] = React.useState(false);
   const [isClienteFormOpen, setClienteFormOpen] = React.useState(false);
 
   const [selectedPago, setSelectedPago] = React.useState<Pago | undefined>(undefined);
@@ -123,12 +122,11 @@ export function PagosPageClient() {
   const handleOpenCliente = (clienteId: string) => {
     setSelectedClienteId(clienteId);
     setPagoDetailOpen(false);
-    setClienteDetailOpen(true);
   }
 
   const handleOpenEditCliente = (cliente: Cliente) => {
     setEditingCliente(cliente);
-    setClienteDetailOpen(false);
+    setSelectedClienteId(undefined);
     setClienteFormOpen(true);
   }
 
@@ -140,7 +138,7 @@ export function PagosPageClient() {
   const pagosProximos = React.useMemo(() => {
     if (!now) return [];
     
-    const proximos: Pago[] = [];
+    let proximos: Pago[] = [];
 
     pagos.forEach(p => {
         const cliente = getClienteById(p.clienteId);
@@ -150,7 +148,7 @@ export function PagosPageClient() {
     });
 
     clientes.forEach(cl => {
-        if (cl.estado === 'activo' && cl.diaDePago && cl.montoRecurrente > 0) {
+        if (cl.estado === 'activo' && cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
             const paymentDay = cl.diaDePago;
             let nextPaymentDate = new Date(now.getFullYear(), now.getMonth(), paymentDay);
 
@@ -165,18 +163,20 @@ export function PagosPageClient() {
                 parseISO(p.fechaLimite).getMonth() === nextPaymentDate.getMonth()
             );
 
-            if (existingRecurringPayment) return;
-            
-            const syntheticPago: Pago = {
-                id: `recurring-${cl.id}-${nextPaymentDate.toISOString()}`,
-                clienteId: cl.id,
-                monto: cl.montoRecurrente,
-                concepto: 'Mensualidad',
-                fechaLimite: nextPaymentDate.toISOString(),
-                estado: 'pendiente',
-                notas: 'Pago recurrente autogenerado.',
-            };
-            proximos.push(syntheticPago);
+            if (!existingRecurringPayment) {
+              const syntheticPago: Pago = {
+                  id: `recurring-${cl.id}-${nextPaymentDate.toISOString()}`,
+                  clienteId: cl.id,
+                  monto: cl.cuotaMensual,
+                  concepto: 'Mensualidad',
+                  fechaLimite: nextPaymentDate.toISOString(),
+                  estado: 'pendiente',
+                  notas: 'Pago recurrente autogenerado.',
+              };
+              if (!isBefore(nextPaymentDate, now)) {
+                  proximos.push(syntheticPago);
+              }
+            }
         }
     });
 
@@ -184,10 +184,45 @@ export function PagosPageClient() {
   }, [pagos, clientes, now, getClienteById]);
 
 
-  const pagosVencidos = now ? pagos.filter(p => {
-    const cliente = getClienteById(p.clienteId);
-    return cliente && cliente.estado === 'activo' && p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), now);
-  }).sort((a,b) => parseISO(b.fechaLimite).getTime() - parseISO(a.fechaLimite).getTime()) : [];
+  const pagosVencidos = React.useMemo(() => {
+    if (!now) return [];
+    
+    let vencidos: Pago[] = [];
+
+    pagos.forEach(p => {
+      const cliente = getClienteById(p.clienteId);
+      if (cliente && cliente.estado === 'activo' && p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), now)) {
+          vencidos.push(p);
+      }
+    });
+
+    clientes.forEach(cl => {
+        if (cl.estado === 'activo' && cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
+            const paymentDay = cl.diaDePago;
+            // Check for overdue payments from previous months that might not have a real record
+            let checkDate = new Date(now.getFullYear(), now.getMonth(), paymentDay);
+            if (isBefore(checkDate, now)) {
+              // This month's payment is already in the past
+              const existing = pagos.some(p => p.clienteId === cl.id && p.concepto === 'Mensualidad' && parseISO(p.fechaLimite).getFullYear() === checkDate.getFullYear() && parseISO(p.fechaLimite).getMonth() === checkDate.getMonth());
+              if (!existing) {
+                const syntheticPago: Pago = {
+                  id: `recurring-${cl.id}-${checkDate.toISOString()}`,
+                  clienteId: cl.id,
+                  monto: cl.cuotaMensual,
+                  concepto: 'Mensualidad',
+                  fechaLimite: checkDate.toISOString(),
+                  estado: 'pendiente',
+                  notas: 'Pago recurrente autogenerado.',
+                };
+                vencidos.push(syntheticPago);
+              }
+            }
+        }
+    });
+
+    return [...new Map(vencidos.map(item => [item.id, item])).values()]
+           .sort((a,b) => parseISO(a.fechaLimite).getTime() - parseISO(b.fechaLimite).getTime());
+  }, [pagos, clientes, now, getClienteById]);
 
   const historialPagos = pagos.filter(p => p.estado === 'pagado').sort((a,b) => {
     const dateA = a.fechaPago ? parseISO(a.fechaPago) : new Date(0);
@@ -197,34 +232,37 @@ export function PagosPageClient() {
   
   const selectedCliente = selectedClienteId ? clientes.find(c => c.id === selectedClienteId) : undefined;
   
-  const PagosTable = ({ data, isPending = false }: { data: Pago[], isPending?: boolean }) => (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Cliente</TableHead>
-          <TableHead className="hidden sm:table-cell">Concepto</TableHead>
-          <TableHead>Monto</TableHead>
-          <TableHead>{isPending ? 'Fecha Límite' : 'Fecha de Pago'}</TableHead>
-          <TableHead>Estado</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {data.map((pago) => (
-            <TableRow key={pago.id} onClick={() => handleOpenPagoDetail(pago)} className="cursor-pointer">
-                <TableCell>{getClienteById(pago.clienteId)?.nombre}</TableCell>
-                <TableCell className="hidden sm:table-cell">{pago.concepto}</TableCell>
-                <TableCell>{formatCurrency(pago.monto)}</TableCell>
-                <TableCell>
-                  <span className={isPending && now && isBefore(parseISO(pago.fechaLimite), now) ? 'text-status-danger font-medium' : ''}>
-                    {formatDate(isPending ? pago.fechaLimite : pago.fechaPago!)}
-                  </span>
-                </TableCell>
-                <TableCell><StatusBadge status={pago.estado} /></TableCell>
-              </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
+  const PagosTable = ({ data, tableType }: { data: Pago[], tableType: 'proximos' | 'vencidos' | 'historial' }) => {
+    const isPending = tableType === 'proximos' || tableType === 'vencidos';
+    return (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Cliente</TableHead>
+              <TableHead className="hidden sm:table-cell">Concepto</TableHead>
+              <TableHead>Monto</TableHead>
+              <TableHead>{isPending ? 'Fecha Límite' : 'Fecha de Pago'}</TableHead>
+              <TableHead>Estado</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.map((pago) => (
+                <TableRow key={pago.id} onClick={() => handleOpenPagoDetail(pago)} className="cursor-pointer">
+                    <TableCell>{getClienteById(pago.clienteId)?.nombre}</TableCell>
+                    <TableCell className="hidden sm:table-cell">{pago.concepto}</TableCell>
+                    <TableCell>{formatCurrency(pago.monto)}</TableCell>
+                    <TableCell>
+                      <span className={tableType === 'vencidos' ? 'text-status-danger font-medium' : ''}>
+                        {formatDate(isPending ? pago.fechaLimite : pago.fechaPago!)}
+                      </span>
+                    </TableCell>
+                    <TableCell><StatusBadge status={tableType === 'vencidos' ? 'vencido' : pago.estado} /></TableCell>
+                  </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+    );
+  };
 
   return (
     <>
@@ -251,7 +289,7 @@ export function PagosPageClient() {
                     <CardDescription>Pagos programados y recurrentes que aún no han vencido.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <PagosTable data={pagosProximos} isPending />
+                    <PagosTable data={pagosProximos} tableType="proximos" />
                 </CardContent>
             </Card>
         </TabsContent>
@@ -262,7 +300,7 @@ export function PagosPageClient() {
                     <CardDescription>Pagos que no se han cubierto y su fecha límite ya pasó.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <PagosTable data={pagosVencidos} isPending />
+                    <PagosTable data={pagosVencidos} tableType="vencidos" />
                 </CardContent>
             </Card>
         </TabsContent>
@@ -273,7 +311,7 @@ export function PagosPageClient() {
                     <CardDescription>Un registro de todos los pagos realizados.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <PagosTable data={historialPagos} />
+                    <PagosTable data={historialPagos} tableType="historial" />
                 </CardContent>
             </Card>
         </TabsContent>
@@ -297,7 +335,7 @@ export function PagosPageClient() {
             />}
       </Dialog>
       
-      <Dialog open={isClienteDetailOpen} onOpenChange={setClienteDetailOpen}>
+      <Dialog open={!!selectedClienteId} onOpenChange={(isOpen) => !isOpen && setSelectedClienteId(undefined)}>
         {selectedCliente && <ClienteDetail cliente={selectedCliente} clientes={clientes} onEditRequest={() => handleOpenEditCliente(selectedCliente)} onUpdateCliente={updateClienteData} />}
       </Dialog>
 
