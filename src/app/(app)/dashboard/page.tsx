@@ -151,75 +151,67 @@ export default function DashboardPage() {
   // General Console Data
   const timelineItems: TimelineItem[] = [];
   if (now) {
+    // Process real payments
     pagos.forEach(p => {
-        const cliente = getClienteById(p.clienteId);
-        if (cliente && cliente.estado === 'activo' && p.estado === 'pendiente') {
-            const dueDate = parseISO(p.fechaLimite);
-            if(isBefore(dueDate, now)) {
-                timelineItems.push({
-                    date: dueDate,
-                    type: 'pago',
-                    subType: 'overdue',
-                    data: p,
-                    cliente: cliente
-                });
-            }
-        }
-    });
-  
-    // Project deliveries
-    clientes.forEach(cl => {
-      if (cl.estado === 'activo' && cl.proyecto && cl.proyecto.estado === 'en-progreso') {
-        const entregaDate = parseISO(cl.proyecto.fechaEntrega);
-        if(isBefore(entregaDate, now)) {
-            timelineItems.push({
-              date: entregaDate,
-              type: 'entrega',
-              subType: 'overdue',
-              data: cl.proyecto,
-              cliente: cl
-            });
-        }
+      const cliente = getClienteById(p.clienteId);
+      if (cliente && cliente.estado === 'activo' && p.estado === 'pendiente') {
+        const dueDate = parseISO(p.fechaLimite);
+        timelineItems.push({
+          date: dueDate,
+          type: 'pago',
+          subType: isBefore(dueDate, now) ? 'overdue' : 'upcoming',
+          data: p,
+          cliente: cliente,
+        });
       }
     });
 
-    // Upcoming recurring payments
+    // Process projects and synthetic recurring payments
     clientes.forEach(cl => {
-        if (cl.estado === 'activo' && cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
-            const paymentDay = cl.diaDePago;
-            let nextPaymentDate = new Date(now.getFullYear(), now.getMonth(), paymentDay);
-            if (isBefore(nextPaymentDate, now)) {
-                nextPaymentDate = addMonths(nextPaymentDate, 1);
-            }
+      if (cl.estado === 'activo' && cl.proyecto && cl.proyecto.estado === 'en-progreso') {
+        timelineItems.push({
+          date: parseISO(cl.proyecto.fechaEntrega),
+          type: 'entrega',
+          subType: isBefore(parseISO(cl.proyecto.fechaEntrega), now) ? 'overdue' : 'upcoming',
+          data: cl.proyecto,
+          cliente: cl,
+        });
+      }
 
-            if (isWithinInterval(nextPaymentDate, { start: now, end: addWeeks(now, 2) })) {
-                const existingRecurringPayment = pagos.find(p => 
-                    p.clienteId === cl.id &&
-                    p.concepto === 'Mensualidad' &&
-                    parseISO(p.fechaLimite).getFullYear() === nextPaymentDate.getFullYear() &&
-                    parseISO(p.fechaLimite).getMonth() === nextPaymentDate.getMonth()
-                );
-
-                if (existingRecurringPayment) return;
-
-                const syntheticPago: Pago = {
-                  id: `recurring-${cl.id}-${nextPaymentDate.toISOString()}`,
-                  clienteId: cl.id,
-                  monto: cl.cuotaMensual,
-                  concepto: 'Mensualidad',
-                  fechaLimite: nextPaymentDate.toISOString(),
-                  estado: 'pendiente',
-                  notas: 'Pago recurrente autogenerado.',
-                };
-                timelineItems.push({
-                    date: nextPaymentDate,
-                    type: 'pago',
-                    subType: 'upcoming',
-                    data: syntheticPago,
-                    cliente: cl,
-                });
-            }
+      if (cl.estado === 'activo' && cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
+        const paymentDay = cl.diaDePago;
+        let nextPaymentDate = new Date(now.getFullYear(), now.getMonth(), paymentDay);
+        if (isBefore(nextPaymentDate, now)) {
+          nextPaymentDate = addMonths(nextPaymentDate, 1);
         }
+
+        const existingRecurringPayment = pagos.find(
+          p =>
+            p.clienteId === cl.id &&
+            p.concepto === 'Mensualidad' &&
+            parseISO(p.fechaLimite).getFullYear() === nextPaymentDate.getFullYear() &&
+            parseISO(p.fechaLimite).getMonth() === nextPaymentDate.getMonth()
+        );
+
+        if (!existingRecurringPayment) {
+          const syntheticPago: Pago = {
+            id: `recurring-${cl.id}-${nextPaymentDate.toISOString()}`,
+            clienteId: cl.id,
+            monto: cl.cuotaMensual,
+            concepto: 'Mensualidad',
+            fechaLimite: nextPaymentDate.toISOString(),
+            estado: 'pendiente',
+            notas: 'Pago recurrente autogenerado.',
+          };
+          timelineItems.push({
+            date: nextPaymentDate,
+            type: 'pago',
+            subType: isBefore(nextPaymentDate, now) ? 'overdue' : 'upcoming',
+            data: syntheticPago,
+            cliente: cl,
+          });
+        }
+      }
     });
   }
   
