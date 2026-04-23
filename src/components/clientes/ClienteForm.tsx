@@ -30,7 +30,6 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import type { Cliente } from '@/lib/types';
 import { CalendarDays, ClipboardCheck, DollarSign, User } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
 import { useEffect } from 'react';
 
 const formSchema = z.object({
@@ -159,11 +158,10 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
         <DialogTitle>{cliente ? 'Editar Cliente' : 'Añadir Cliente'}</DialogTitle>
       </DialogHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8 py-4 flex-grow overflow-y-auto pr-4 custom-scrollbar">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 py-4 flex-grow overflow-y-auto pr-4 custom-scrollbar">
             
-            <div className="space-y-4">
-                <h3 className="text-lg font-medium flex items-center gap-2"><User className="h-5 w-5"/> Información de Contacto</h3>
-                <Separator />
+            <div className="p-6 rounded-lg bg-muted/50 space-y-4">
+                <h3 className="text-lg font-medium flex items-center gap-2 text-foreground"><User className="h-5 w-5"/> Información de Contacto</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField control={form.control} name="nombre" render={({ field }) => (<FormItem><FormLabel>Nombre</FormLabel><FormControl><Input placeholder="John Doe" {...field} /></FormControl><FormMessage /></FormItem>)} />
                     <FormField control={form.control} name="empresa" render={({ field }) => (<FormItem><FormLabel>Empresa (Opcional)</FormLabel><FormControl><Input placeholder="ACME Inc." {...field} /></FormControl><FormMessage /></FormItem>)} />
@@ -173,9 +171,8 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
             </div>
 
             {!cliente && (
-                <div className="space-y-4">
-                    <h3 className="text-lg font-medium flex items-center gap-2"><DollarSign className="h-5 w-5"/> Pagos Iniciales</h3>
-                    <Separator />
+                <div className="p-6 rounded-lg bg-muted/50 space-y-4">
+                    <h3 className="text-lg font-medium flex items-center gap-2 text-foreground"><DollarSign className="h-5 w-5"/> Pagos Iniciales</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                         <FormField control={form.control} name="montoApertura" render={({ field }) => (
                             <FormItem>
@@ -209,9 +206,8 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
                 </div>
             )}
             
-            <div className="space-y-4">
-                <h3 className="text-lg font-medium flex items-center gap-2"><CalendarDays className="h-5 w-5"/> Pagos Recurrentes</h3>
-                <Separator />
+            <div className="p-6 rounded-lg bg-muted/50 space-y-4">
+                <h3 className="text-lg font-medium flex items-center gap-2 text-foreground"><CalendarDays className="h-5 w-5"/> Pagos Recurrentes</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      <FormField control={form.control} name="cuotaMensual" render={({ field }) => (
                         <FormItem>
@@ -235,9 +231,8 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
                 </div>
             </div>
 
-            <div className="space-y-4">
-                 <h3 className="text-lg font-medium flex items-center gap-2"><ClipboardCheck className="h-5 w-5"/> Detalles del Proyecto</h3>
-                 <Separator />
+            <div className="p-6 rounded-lg bg-muted/50 space-y-4">
+                 <h3 className="text-lg font-medium flex items-center gap-2 text-foreground"><ClipboardCheck className="h-5 w-5"/> Detalles del Proyecto</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      <FormField control={form.control} name="proyecto.nombre" render={({ field }) => (<FormItem><FormLabel>Nombre del Proyecto</FormLabel><FormControl><Input placeholder="Ej. Sitio Web Corporativo" {...field} /></FormControl><FormMessage /></FormItem>)} />
                      <FormField control={form.control} name="proyecto.estado" render={({ field }) => (
