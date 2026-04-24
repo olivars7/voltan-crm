@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DollarSign, ClipboardCheck, CheckCircle } from 'lucide-react';
 import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { isBefore, parseISO, addMonths, isWithinInterval, startOfToday } from 'date-fns';
+import { isBefore, parseISO, addMonths, isWithinInterval, startOfToday, startOfMonth } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { type Cliente, type Pago } from '@/lib/types';
 import { Dialog } from '@/components/ui/dialog';
@@ -175,36 +175,48 @@ export default function ConsolePage() {
       }
 
       if (cl.estado === 'activo' && cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
-          const paymentDay = cl.diaDePago;
-          let nextPaymentDate = new Date(now.getFullYear(), now.getMonth(), paymentDay);
-          if (isBefore(nextPaymentDate, now)) {
-              nextPaymentDate = addMonths(nextPaymentDate, 1);
-          }
+        const paymentDay = cl.diaDePago;
+        let cursorDate = startOfMonth(parseISO(cl.fechaInicio));
 
-          const existingRecurringPayment = pagos.find(p => 
-              p.clienteId === cl.id &&
-              p.concepto === 'Mensualidad' &&
-              parseISO(p.fechaLimite).getFullYear() === nextPaymentDate.getFullYear() &&
-              parseISO(p.fechaLimite).getMonth() === nextPaymentDate.getMonth()
+        // Loop through each month from client start until today to generate historic overdue and upcoming payments
+        while (isBefore(cursorDate, addMonths(startOfMonth(now), 1))) {
+          const paymentDueDate = new Date(
+            cursorDate.getFullYear(),
+            cursorDate.getMonth(),
+            paymentDay
           );
-          if (!existingRecurringPayment) {
+
+          // Only consider due dates up to the next payment cycle
+          if (isBefore(paymentDueDate, addMonths(now, 1))) {
+            const existingPayment = pagos.find(
+              (p) =>
+                p.clienteId === cl.id &&
+                p.concepto === 'Mensualidad' &&
+                parseISO(p.fechaLimite).getFullYear() === paymentDueDate.getFullYear() &&
+                parseISO(p.fechaLimite).getMonth() === paymentDueDate.getMonth()
+            );
+
+            if (!existingPayment) {
               const syntheticPago: Pago = {
-                id: `recurring-${cl.id}-${nextPaymentDate.toISOString()}`,
+                id: `recurring-${cl.id}-${paymentDueDate.toISOString()}`,
                 clienteId: cl.id,
                 monto: cl.cuotaMensual,
                 concepto: 'Mensualidad',
-                fechaLimite: nextPaymentDate.toISOString(),
+                fechaLimite: paymentDueDate.toISOString(),
                 estado: 'pendiente',
                 notas: 'Pago recurrente autogenerado.',
               };
               upcomingItems.push({
-                  date: nextPaymentDate,
-                  type: 'pago',
-                  subType: isBefore(nextPaymentDate, now) ? 'overdue' : 'upcoming',
-                  data: syntheticPago,
-                  cliente: cl,
+                date: paymentDueDate,
+                type: 'pago',
+                subType: isBefore(paymentDueDate, now) ? 'overdue' : 'upcoming',
+                data: syntheticPago,
+                cliente: cl,
               });
+            }
           }
+          cursorDate = addMonths(cursorDate, 1);
+        }
       }
     });
   }
@@ -227,6 +239,12 @@ export default function ConsolePage() {
       case 'entrega': return <ClipboardCheck className="h-4 w-4 text-muted-foreground" />;
       default: return null;
     }
+  }
+  
+  const getPagoStatus = (pago: Pago, itemSubType: TimelineItem['subType']): 'pagado' | 'pendiente' | 'vencido' => {
+    if (pago.estado === 'pagado') return 'pagado';
+    if (itemSubType === 'overdue') return 'vencido';
+    return 'pendiente';
   }
   
   const renderTimelineItem = (item: TimelineItem, index: number) => (

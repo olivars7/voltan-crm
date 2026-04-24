@@ -180,36 +180,46 @@ export default function DashboardPage() {
 
       if (cl.estado === 'activo' && cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
         const paymentDay = cl.diaDePago;
-        let nextPaymentDate = new Date(now.getFullYear(), now.getMonth(), paymentDay);
-        if (isBefore(nextPaymentDate, now)) {
-          nextPaymentDate = addMonths(nextPaymentDate, 1);
-        }
+        let cursorDate = startOfMonth(parseISO(cl.fechaInicio));
 
-        const existingRecurringPayment = pagos.find(
-          p =>
-            p.clienteId === cl.id &&
-            p.concepto === 'Mensualidad' &&
-            parseISO(p.fechaLimite).getFullYear() === nextPaymentDate.getFullYear() &&
-            parseISO(p.fechaLimite).getMonth() === nextPaymentDate.getMonth()
-        );
+        // Loop through each month from client start until today to generate historic overdue and upcoming payments
+        while (isBefore(cursorDate, addMonths(startOfMonth(now), 1))) {
+          const paymentDueDate = new Date(
+            cursorDate.getFullYear(),
+            cursorDate.getMonth(),
+            paymentDay
+          );
 
-        if (!existingRecurringPayment) {
-          const syntheticPago: Pago = {
-            id: `recurring-${cl.id}-${nextPaymentDate.toISOString()}`,
-            clienteId: cl.id,
-            monto: cl.cuotaMensual,
-            concepto: 'Mensualidad',
-            fechaLimite: nextPaymentDate.toISOString(),
-            estado: 'pendiente',
-            notas: 'Pago recurrente autogenerado.',
-          };
-          timelineItems.push({
-            date: nextPaymentDate,
-            type: 'pago',
-            subType: isBefore(nextPaymentDate, now) ? 'overdue' : 'upcoming',
-            data: syntheticPago,
-            cliente: cl,
-          });
+          // Only consider due dates up to the next payment cycle
+          if (isBefore(paymentDueDate, addMonths(now, 1))) {
+            const existingPayment = pagos.find(
+              (p) =>
+                p.clienteId === cl.id &&
+                p.concepto === 'Mensualidad' &&
+                parseISO(p.fechaLimite).getFullYear() === paymentDueDate.getFullYear() &&
+                parseISO(p.fechaLimite).getMonth() === paymentDueDate.getMonth()
+            );
+
+            if (!existingPayment) {
+              const syntheticPago: Pago = {
+                id: `recurring-${cl.id}-${paymentDueDate.toISOString()}`,
+                clienteId: cl.id,
+                monto: cl.cuotaMensual,
+                concepto: 'Mensualidad',
+                fechaLimite: paymentDueDate.toISOString(),
+                estado: 'pendiente',
+                notas: 'Pago recurrente autogenerado.',
+              };
+              timelineItems.push({
+                date: paymentDueDate,
+                type: 'pago',
+                subType: isBefore(paymentDueDate, now) ? 'overdue' : 'upcoming',
+                data: syntheticPago,
+                cliente: cl,
+              });
+            }
+          }
+          cursorDate = addMonths(cursorDate, 1);
         }
       }
     });
@@ -274,6 +284,13 @@ export default function DashboardPage() {
       default: return null;
     }
   }
+  
+  const getPagoStatus = (pago: Pago, itemSubType: TimelineItem['subType']): 'pagado' | 'pendiente' | 'vencido' => {
+    if (pago.estado === 'pagado') return 'pagado';
+    if (itemSubType === 'overdue') return 'vencido';
+    return 'pendiente';
+  }
+
 
   return (
     <>
@@ -330,7 +347,7 @@ export default function DashboardPage() {
                                         {item.type === 'pago' && `${item.data.concepto}: ${formatCurrency(item.data.monto)}`}
                                         {item.type === 'entrega' && `Entrega: ${item.data.nombre}`}
                                     </p>
-                                    {item.subType === 'overdue' && <StatusBadge status="vencido" />}
+                                    {item.subType === 'overdue' && <StatusBadge status={getPagoStatus(item.data, item.subType)} />}
                                   </div>
                                   <p className="text-sm text-muted-foreground">
                                       <span className={item.subType === 'overdue' ? 'text-status-danger font-medium' : ''}>
