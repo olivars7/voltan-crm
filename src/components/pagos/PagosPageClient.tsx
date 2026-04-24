@@ -28,14 +28,6 @@ import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { isBefore, parseISO, addMonths } from 'date-fns';
 
-const formSchema = z.object({
-  clienteId: z.string().min(1),
-  monto: z.coerce.number().positive(),
-  concepto: z.string().min(1),
-  fechaLimite: z.string().min(1),
-  notas: z.string().optional(),
-});
-
 export function PagosPageClient() {
   const { pagos, addPago, updatePago } = usePagos();
   const { clientes, getClienteById, updateCliente: updateClienteData } = useClientes();
@@ -55,17 +47,20 @@ export function PagosPageClient() {
     setNow(new Date());
   }, []);
 
-  const handleAddSubmit = (values: z.infer<typeof formSchema>) => {
+  const handleAddSubmit = (values: any) => {
     addPago({ ...values, estado: 'pendiente' });
     toast({ title: "Pago registrado", description: "El nuevo pago ha sido guardado." });
     setPagoFormOpen(false);
   };
 
-  const handleEditSubmit = (values: z.infer<typeof formSchema>) => {
+  const handleEditSubmit = (values: any) => {
     if (editingPago) {
         const updatedData = { ...editingPago, ...values };
         updatePago(updatedData);
         toast({ title: "Pago actualizado", description: "Los datos del pago han sido actualizados." });
+        if (selectedPago?.id === updatedData.id) {
+          setSelectedPago(updatedData);
+        }
         setPagoFormOpen(false);
         setEditingPago(undefined);
     }

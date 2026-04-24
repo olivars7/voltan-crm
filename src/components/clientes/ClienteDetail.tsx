@@ -84,7 +84,7 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
 
 
   const totalAdeudo = allPagos
-    .filter(p => p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), new Date()))
+    .filter(p => p.estado === 'pendiente' && now && isBefore(parseISO(p.fechaLimite), now))
     .reduce((sum, p) => sum + p.monto, 0);
 
   const getInitials = (name: string) => {
@@ -314,7 +314,11 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                           <TableRow key={pago.id} onClick={() => handlePagoClick(pago)} className="cursor-pointer">
                             <TableCell className="font-medium">{pago.concepto}</TableCell>
                             <TableCell>{formatCurrency(pago.monto)}</TableCell>
-                            <TableCell>{formatDate(pago.estado === 'pagado' && pago.fechaPago ? pago.fechaPago : pago.fechaLimite)}</TableCell>
+                            <TableCell>
+                                <span className={getPagoStatus(pago) === 'vencido' ? 'text-status-danger' : ''}>
+                                    {formatDate(pago.estado === 'pagado' && pago.fechaPago ? pago.fechaPago : pago.fechaLimite)}
+                                </span>
+                            </TableCell>
                             <TableCell><StatusBadge status={getPagoStatus(pago)} /></TableCell>
                           </TableRow>
                         ))}

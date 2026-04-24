@@ -69,7 +69,6 @@ export default function DashboardPage() {
 
   const handleOpenClienteDetail = (clienteId: string) => {
     setSelectedClienteId(clienteId);
-    setPagoDetailOpen(false);
   }
 
   const handleToggleStatusFromDetail = (pago: Pago) => {
@@ -316,7 +315,7 @@ export default function DashboardPage() {
               <CardDescription>Eventos importantes ordenados cronológicamente.</CardDescription>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-96">
+              <ScrollArea className="h-96 custom-scrollbar">
                   <div className="space-y-2 pr-4">
                       {now && sortedTimeline.map((item, index) => (
                           <div 

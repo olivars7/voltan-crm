@@ -36,13 +36,14 @@ const formSchema = z.object({
   monto: z.coerce.number().positive({ message: 'El monto debe ser positivo.' }),
   concepto: z.string().min(1, { message: 'El concepto es requerido.' }),
   fechaLimite: z.string().min(1, { message: 'La fecha límite es requerida.' }),
+  fechaPago: z.string().optional(),
   notas: z.string().optional(),
 });
 
 type PagoFormProps = {
   pago?: Pago;
   clientes: Cliente[];
-  onSubmit: (values: z.infer<typeof formSchema>) => void;
+  onSubmit: (values: any) => void;
   setOpen: (open: boolean) => void;
 };
 
@@ -54,6 +55,7 @@ export function PagoForm({ pago, clientes, onSubmit, setOpen }: PagoFormProps) {
       monto: 0,
       concepto: '',
       fechaLimite: '',
+      fechaPago: '',
       notas: '',
     },
   });
@@ -61,19 +63,30 @@ export function PagoForm({ pago, clientes, onSubmit, setOpen }: PagoFormProps) {
   useEffect(() => {
     form.reset(
       pago
-        ? { ...pago, fechaLimite: pago.fechaLimite.split('T')[0] }
+        ? { 
+            ...pago, 
+            fechaLimite: pago.fechaLimite.split('T')[0],
+            fechaPago: pago.fechaPago ? pago.fechaPago.split('T')[0] : ''
+          }
         : {
             clienteId: '',
             monto: 0,
             concepto: '',
             fechaLimite: '',
+            fechaPago: '',
             notas: '',
           }
     );
   }, [pago, form]);
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    onSubmit({ ...values, fechaLimite: new Date(values.fechaLimite).toISOString() });
+    const submissionValues = {
+        ...values,
+        fechaLimite: new Date(values.fechaLimite.includes('T') ? values.fechaLimite : `${values.fechaLimite}T00:00:00`).toISOString(),
+        fechaPago: values.fechaPago ? new Date(values.fechaPago.includes('T') ? values.fechaPago : `${values.fechaPago}T00:00:00`).toISOString() : undefined,
+        estado: values.fechaPago ? 'pagado' : 'pendiente'
+    } as const;
+    onSubmit(submissionValues);
     setOpen(false);
   };
 
@@ -140,6 +153,19 @@ export function PagoForm({ pago, clientes, onSubmit, setOpen }: PagoFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Fecha Límite</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="fechaPago"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Fecha de Pago (dejar vacío si está pendiente)</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>

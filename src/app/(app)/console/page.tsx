@@ -200,7 +200,7 @@ export default function ConsolePage() {
               upcomingItems.push({
                   date: nextPaymentDate,
                   type: 'pago',
-                  subType: 'upcoming',
+                  subType: isBefore(nextPaymentDate, now) ? 'overdue' : 'upcoming',
                   data: syntheticPago,
                   cliente: cl,
               });

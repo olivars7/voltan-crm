@@ -57,7 +57,13 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest 
   };
   
   const wasPaidLate = pago.fechaPago && isAfter(parseISO(pago.fechaPago), parseISO(pago.fechaLimite));
-
+  const getPagoStatus = (pago: Pago): 'pagado' | 'pendiente' | 'vencido' => {
+    if (pago.estado === 'pagado') return 'pagado';
+    if (isPast(parseISO(pago.fechaLimite)) && !isToday(parseISO(pago.fechaLimite))) {
+      return 'vencido';
+    }
+    return 'pendiente';
+  }
 
   return (
     <DialogContent className="sm:max-w-md">
@@ -84,7 +90,7 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest 
             </div>
             <div className="flex items-center justify-between">
                 <span className="text-muted-foreground flex items-center gap-2"><Calendar className="w-4 h-4" /> Fecha Límite</span>
-                <span className="font-medium">{formatDate(pago.fechaLimite)}</span>
+                <span className={`font-medium ${getPagoStatus(pago) === 'vencido' ? 'text-status-danger' : ''}`}>{formatDate(pago.fechaLimite)}</span>
             </div>
             {pago.estado === 'pagado' && pago.fechaPago && (
                 <div className="flex items-center justify-between">
@@ -94,7 +100,7 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest 
             )}
             <div className="flex items-center justify-between">
                 <span className="text-muted-foreground flex items-center gap-2"><Info className="w-4 h-4" /> Estado</span>
-                <StatusBadge status={pago.estado} />
+                <StatusBadge status={getPagoStatus(pago)} />
             </div>
         </div>
         
