@@ -18,6 +18,7 @@ import { ClienteDetail } from '@/components/clientes/ClienteDetail';
 import { ClienteForm } from '@/components/clientes/ClienteForm';
 import { Button } from '@/components/ui/button';
 import { PagoForm } from '@/components/pagos/PagoForm';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 
 type TimelineItem = {
   date: Date;
@@ -325,10 +326,13 @@ export default function DashboardPage() {
                           >
                               <TimelineIcon type={item.type} />
                               <div className="flex-1 space-y-1">
-                                  <p className="text-sm font-medium leading-none">
-                                      {item.type === 'pago' && `${item.data.concepto}: ${formatCurrency(item.data.monto)}`}
-                                      {item.type === 'entrega' && `Entrega: ${item.data.nombre}`}
-                                  </p>
+                                  <div className="flex items-center justify-between">
+                                    <p className="text-sm font-medium leading-none">
+                                        {item.type === 'pago' && `${item.data.concepto}: ${formatCurrency(item.data.monto)}`}
+                                        {item.type === 'entrega' && `Entrega: ${item.data.nombre}`}
+                                    </p>
+                                    {item.subType === 'overdue' && <StatusBadge status="vencido" />}
+                                  </div>
                                   <p className="text-sm text-muted-foreground">
                                       <span className={item.subType === 'overdue' ? 'text-status-danger font-medium' : ''}>
                                         {formatDate(item.date, "d MMM, yyyy")}

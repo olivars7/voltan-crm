@@ -6,7 +6,7 @@ import { useClientes } from '@/hooks/useClientes';
 import { useToast } from '@/hooks/use-toast';
 import { Pago } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { differenceInDays, formatDistanceStrict, isPast, isToday, parseISO } from 'date-fns';
+import { differenceInDays, formatDistanceStrict, isAfter, isPast, isToday, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Calendar, User, Info, Notebook, ExternalLink, Copy, Pencil, CheckCircle } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
@@ -55,6 +55,8 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest 
         });
     });
   };
+  
+  const wasPaidLate = pago.fechaPago && isAfter(parseISO(pago.fechaPago), parseISO(pago.fechaLimite));
 
 
   return (
@@ -87,7 +89,7 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest 
             {pago.estado === 'pagado' && pago.fechaPago && (
                 <div className="flex items-center justify-between">
                     <span className="text-muted-foreground flex items-center gap-2"><CheckCircle className="w-4 h-4" /> Fecha de Pago</span>
-                    <span className="font-medium">{formatDate(pago.fechaPago)}</span>
+                    <span className={`font-medium ${wasPaidLate ? 'text-status-danger' : 'text-status-success'}`}>{formatDate(pago.fechaPago)}</span>
                 </div>
             )}
             <div className="flex items-center justify-between">
