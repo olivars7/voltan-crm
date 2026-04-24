@@ -1,7 +1,7 @@
 'use client';
 import { useClientes } from '@/hooks/useClientes';
 import { usePagos } from '@/hooks/usePagos';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Users, DollarSign, AlertTriangle, ClipboardCheck, RotateCw } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -44,6 +44,7 @@ export default function DashboardPage() {
   const [selectedClienteId, setSelectedClienteId] = useState<string | undefined>(undefined);
   const [editingCliente, setEditingCliente] = useState<Cliente | undefined>(undefined);
   const [editingPago, setEditingPago] = useState<Pago | undefined>(undefined);
+  const [visibleTimeline, setVisibleTimeline] = useState(40);
 
   useEffect(() => {
     // This runs only on the client, after hydration
@@ -375,7 +376,7 @@ export default function DashboardPage() {
             <CardContent>
               <ScrollArea className="h-96 custom-scrollbar">
                   <div className="space-y-2 pr-4">
-                      {now && sortedTimeline.map((item, index) => (
+                      {now && sortedTimeline.slice(0, visibleTimeline).map((item, index) => (
                           <div 
                             key={index}
                             onClick={() => handleItemClick(item)} 
@@ -408,6 +409,11 @@ export default function DashboardPage() {
                   </div>
               </ScrollArea>
             </CardContent>
+            {visibleTimeline < sortedTimeline.length && (
+              <CardFooter className="justify-center pt-4">
+                <Button onClick={() => setVisibleTimeline(v => v + 40)}>Cargar más</Button>
+              </CardFooter>
+            )}
           </Card>
           <Card className="xl:col-span-2">
               <CardHeader>

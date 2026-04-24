@@ -1,7 +1,7 @@
 'use client';
 import { useClientes } from '@/hooks/useClientes';
 import { usePagos } from '@/hooks/usePagos';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { DollarSign, ClipboardCheck, CheckCircle } from 'lucide-react';
 import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -16,6 +16,7 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { ClienteForm } from '@/components/clientes/ClienteForm';
 import { PagoForm } from '@/components/pagos/PagoForm';
 import { StatusBadge } from '@/components/shared/StatusBadge';
+import { Button } from '@/components/ui/button';
 
 type TimelineItem = {
   date: Date;
@@ -41,6 +42,10 @@ export default function ConsolePage() {
   const [selectedClienteId, setSelectedClienteId] = useState<string | undefined>(undefined);
   const [editingCliente, setEditingCliente] = useState<Cliente | undefined>(undefined);
   const [editingPago, setEditingPago] = useState<Pago | undefined>(undefined);
+  
+  // Pagination state
+  const [visibleUpcoming, setVisibleUpcoming] = useState(40);
+  const [visibleCompleted, setVisibleCompleted] = useState(40);
 
   useEffect(() => {
     setNow(startOfToday());
@@ -290,7 +295,7 @@ export default function ConsolePage() {
             <CardContent>
               <ScrollArea className="h-[60vh] custom-scrollbar">
                   <div className="space-y-2 pr-4">
-                      {now && sortedUpcoming.map(renderTimelineItem)}
+                      {now && sortedUpcoming.slice(0, visibleUpcoming).map(renderTimelineItem)}
                       {(!now || (now && sortedUpcoming.length === 0)) && (
                           <p className="text-sm text-muted-foreground text-center py-10">
                             {now ? 'No hay eventos próximos.' : 'Cargando eventos...'}
@@ -299,6 +304,11 @@ export default function ConsolePage() {
                   </div>
               </ScrollArea>
             </CardContent>
+            {visibleUpcoming < sortedUpcoming.length && (
+              <CardFooter className="justify-center pt-4">
+                <Button onClick={() => setVisibleUpcoming(v => v + 40)}>Cargar más</Button>
+              </CardFooter>
+            )}
         </Card>
         <Card>
             <CardHeader>
@@ -307,7 +317,7 @@ export default function ConsolePage() {
             <CardContent>
               <ScrollArea className="h-[60vh] custom-scrollbar">
                   <div className="space-y-2 pr-4">
-                      {now && sortedCompleted.map(renderTimelineItem)}
+                      {now && sortedCompleted.slice(0, visibleCompleted).map(renderTimelineItem)}
                       {(!now || (now && sortedCompleted.length === 0)) && (
                           <p className="text-sm text-muted-foreground text-center py-10">
                             {now ? 'No hay eventos completados.' : 'Cargando eventos...'}
@@ -316,6 +326,11 @@ export default function ConsolePage() {
                   </div>
               </ScrollArea>
             </CardContent>
+            {visibleCompleted < sortedCompleted.length && (
+              <CardFooter className="justify-center pt-4">
+                <Button onClick={() => setVisibleCompleted(v => v + 40)}>Cargar más</Button>
+              </CardFooter>
+            )}
         </Card>
       </div>
 

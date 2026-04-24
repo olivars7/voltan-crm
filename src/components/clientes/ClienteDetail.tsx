@@ -36,6 +36,7 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
   const [allPagos, setAllPagos] = React.useState<Pago[]>([]);
   const [isPagoFormOpen, setPagoFormOpen] = React.useState(false);
   const [editingPago, setEditingPago] = React.useState<Pago | undefined>(undefined);
+  const [visiblePagos, setVisiblePagos] = React.useState(40);
   
   React.useEffect(() => {
     const today = new Date();
@@ -321,7 +322,7 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {allPagos.map(pago => (
+                        {allPagos.slice(0, visiblePagos).map(pago => (
                           <TableRow key={pago.id} onClick={() => handlePagoClick(pago)} className="cursor-pointer">
                             <TableCell className="font-medium">{pago.concepto}</TableCell>
                             <TableCell>{formatCurrency(pago.monto)}</TableCell>
@@ -339,6 +340,11 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                     <p className="text-sm text-muted-foreground text-center py-4">No hay pagos registrados.</p>
                   )}
                 </CardContent>
+                {visiblePagos < allPagos.length && (
+                  <CardFooter className="justify-center">
+                    <Button onClick={() => setVisiblePagos(v => v + 40)}>Cargar más</Button>
+                  </CardFooter>
+                )}
               </Card>
             </div>
           </div>

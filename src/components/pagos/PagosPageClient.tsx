@@ -6,7 +6,7 @@ import { usePagos } from '@/hooks/usePagos';
 import { useClientes } from '@/hooks/useClientes';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardDescription, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardDescription, CardTitle, CardFooter } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -42,6 +42,10 @@ export function PagosPageClient() {
   
   const { toast } = useToast();
   const [now, setNow] = React.useState<Date | null>(null);
+  
+  const [visibleProximos, setVisibleProximos] = React.useState(40);
+  const [visibleVencidos, setVisibleVencidos] = React.useState(40);
+  const [visibleHistorial, setVisibleHistorial] = React.useState(40);
 
   React.useEffect(() => {
     setNow(new Date());
@@ -300,8 +304,13 @@ export function PagosPageClient() {
                     <CardDescription>Pagos programados y recurrentes que aún no han vencido.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <PagosTable data={pagosProximos} tableType="proximos" />
+                    <PagosTable data={pagosProximos.slice(0, visibleProximos)} tableType="proximos" />
                 </CardContent>
+                {visibleProximos < pagosProximos.length && (
+                  <CardFooter className="justify-center pt-4">
+                    <Button onClick={() => setVisibleProximos(v => v + 40)}>Cargar más</Button>
+                  </CardFooter>
+                )}
             </Card>
         </TabsContent>
         <TabsContent value="pendientes">
@@ -311,8 +320,13 @@ export function PagosPageClient() {
                     <CardDescription>Pagos que no se han cubierto y su fecha límite ya pasó.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <PagosTable data={pagosVencidos} tableType="vencidos" />
+                    <PagosTable data={pagosVencidos.slice(0, visibleVencidos)} tableType="vencidos" />
                 </CardContent>
+                 {visibleVencidos < pagosVencidos.length && (
+                  <CardFooter className="justify-center pt-4">
+                    <Button onClick={() => setVisibleVencidos(v => v + 40)}>Cargar más</Button>
+                  </CardFooter>
+                )}
             </Card>
         </TabsContent>
         <TabsContent value="historial">
@@ -322,8 +336,13 @@ export function PagosPageClient() {
                     <CardDescription>Un registro de todos los pagos realizados.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <PagosTable data={historialPagos} tableType="historial" />
+                    <PagosTable data={historialPagos.slice(0, visibleHistorial)} tableType="historial" />
                 </CardContent>
+                {visibleHistorial < historialPagos.length && (
+                  <CardFooter className="justify-center pt-4">
+                    <Button onClick={() => setVisibleHistorial(v => v + 40)}>Cargar más</Button>
+                  </CardFooter>
+                )}
             </Card>
         </TabsContent>
       </Tabs>

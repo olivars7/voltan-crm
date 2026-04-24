@@ -6,7 +6,7 @@ import { useClientes } from '@/hooks/useClientes';
 import { usePagos } from '@/hooks/usePagos';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
   Table,
@@ -38,6 +38,7 @@ export function ClientesPageClient() {
   const { toast } = useToast();
   
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [visibleCount, setVisibleCount] = React.useState(40);
 
   const handleAddSubmit = (values: any) => {
     const { montoAdelanto, fechaAdelanto, montoApertura, fechaApertura, ...clienteData } = values;
@@ -170,7 +171,7 @@ export function ClientesPageClient() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredClientes.map((cliente) => (
+              {filteredClientes.slice(0, visibleCount).map((cliente) => (
                 <TableRow key={cliente.id} onClick={() => openDetailDialog(cliente)} className="cursor-pointer">
                   <TableCell className="font-medium">
                     {cliente.nombre}
@@ -188,6 +189,11 @@ export function ClientesPageClient() {
             </TableBody>
           </Table>
         </CardContent>
+        {visibleCount < filteredClientes.length && (
+          <CardFooter className="justify-center">
+            <Button onClick={() => setVisibleCount(v => v + 40)}>Cargar más</Button>
+          </CardFooter>
+        )}
       </Card>
       
       <Dialog open={isFormOpen} onOpenChange={setFormOpen}>
