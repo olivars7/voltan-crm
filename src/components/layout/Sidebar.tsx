@@ -8,6 +8,7 @@ import {
   DollarSign,
   Package,
   History,
+  CalendarDays,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -22,6 +23,7 @@ const navItems = [
   { href: '/clientes', icon: Users, label: 'Clientes' },
   { href: '/pagos', icon: DollarSign, label: 'Pagos' },
   { href: '/console', icon: History, label: 'Consola' },
+  { href: '/agenda', icon: CalendarDays, label: 'Agenda' },
 ];
 
 export function Sidebar() {

@@ -31,3 +31,16 @@ export type Pago = {
   metodo?: 'transferencia' | 'tarjeta' | 'efectivo';
   notas?: string;
 };
+
+export type LlamadaEstado = 'pronto' | 'cancelada' | 'realizada' | 'cierre-exitoso';
+export type LlamadaMedio = 'llamada' | 'google-meet' | 'zoom';
+
+export type LlamadaAgendada = {
+  id: string;
+  nombre: string;
+  telefono: string;
+  medio: LlamadaMedio;
+  fecha: string; // ISO date string
+  estado: LlamadaEstado;
+  notas?: string;
+};
