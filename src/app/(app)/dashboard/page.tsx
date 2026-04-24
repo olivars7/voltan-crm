@@ -2,7 +2,7 @@
 import { useClientes } from '@/hooks/useClientes';
 import { usePagos } from '@/hooks/usePagos';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Users, DollarSign, AlertTriangle, ClipboardCheck, RotateCw } from 'lucide-react';
+import { Users, DollarSign, AlertTriangle, ClipboardCheck, RotateCw, Trash2 } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis } from "recharts"
@@ -58,6 +58,17 @@ export default function DashboardPage() {
     if (isConfirmed) {
       window.localStorage.removeItem('clientes');
       window.localStorage.removeItem('pagos');
+      window.location.reload();
+    }
+  };
+
+  const handleDeleteAllData = () => {
+    const isConfirmed = window.confirm(
+      '¿Estás seguro de que quieres eliminar TODOS los datos de la aplicación? Esta acción es irreversible y dejará la aplicación vacía.'
+    );
+    if (isConfirmed) {
+      window.localStorage.setItem('clientes', '[]');
+      window.localStorage.setItem('pagos', '[]');
       window.location.reload();
     }
   };
@@ -232,7 +243,7 @@ export default function DashboardPage() {
             paymentDay
           );
 
-          // Only consider due dates up to the next payment cycle
+            // Only consider due dates up to the next payment cycle
           if (isBefore(paymentDueDate, addMonths(now, 1))) {
             const existingPayment = pagos.find(
               (p) =>
@@ -494,15 +505,30 @@ export default function DashboardPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button variant="destructive" onClick={handleResetData}>
-            <RotateCw className="mr-2 h-4 w-4" />
-            Reiniciar Datos de Prueba
-          </Button>
-          <p className="text-sm text-muted-foreground mt-2">
-            Esto eliminará todos los clientes y pagos guardados y los restaurará a los datos de prueba iniciales.
-          </p>
+          <div className="flex flex-wrap items-start gap-8">
+            <div>
+              <Button variant="destructive" onClick={handleResetData}>
+                <RotateCw className="mr-2 h-4 w-4" />
+                Reiniciar Datos de Prueba
+              </Button>
+              <p className="text-sm text-muted-foreground mt-2 max-w-xs">
+                Esto eliminará todos los clientes y pagos guardados y los restaurará a los datos de prueba iniciales.
+              </p>
+            </div>
+            <div>
+              <Button variant="destructive" onClick={handleDeleteAllData}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Eliminar Todos los Datos
+              </Button>
+              <p className="text-sm text-muted-foreground mt-2 max-w-xs">
+                Esto eliminará permanentemente todos los clientes y pagos, dejando la aplicación vacía.
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </>
   );
 }
+
+    
