@@ -26,7 +26,7 @@ import { formatCurrency, formatDate } from '@/lib/utils';
 import type { Pago, Cliente } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
-import { isBefore, parseISO, addMonths } from 'date-fns';
+import { isBefore, parseISO, addMonths, startOfMonth } from 'date-fns';
 
 export function PagosPageClient() {
   const { pagos, addPago, updatePago } = usePagos();
@@ -182,8 +182,9 @@ export function PagosPageClient() {
   const pagosVencidos = React.useMemo(() => {
     if (!now) return [];
     
-    let vencidos: Pago[] = [];
+    const vencidos: Pago[] = [];
 
+    // 1. Get real overdue payments
     pagos.forEach(p => {
       const cliente = getClienteById(p.clienteId);
       if (cliente && cliente.estado === 'activo' && p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), now)) {
@@ -191,28 +192,43 @@ export function PagosPageClient() {
       }
     });
 
+    // 2. Get synthetic overdue recurring payments
     clientes.forEach(cl => {
-        if (cl.estado === 'activo' && cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
-            const paymentDay = cl.diaDePago;
-            // Check for overdue payments from previous months that might not have a real record
-            let checkDate = new Date(now.getFullYear(), now.getMonth(), paymentDay);
-            if (isBefore(checkDate, now)) {
-              // This month's payment is already in the past
-              const existing = pagos.some(p => p.clienteId === cl.id && p.concepto === 'Mensualidad' && parseISO(p.fechaLimite).getFullYear() === checkDate.getFullYear() && parseISO(p.fechaLimite).getMonth() === checkDate.getMonth());
-              if (!existing) {
-                const syntheticPago: Pago = {
-                  id: `recurring-${cl.id}-${checkDate.toISOString()}`,
-                  clienteId: cl.id,
-                  monto: cl.cuotaMensual,
-                  concepto: 'Mensualidad',
-                  fechaLimite: checkDate.toISOString(),
-                  estado: 'pendiente',
-                  notas: 'Pago recurrente autogenerado.',
-                };
-                vencidos.push(syntheticPago);
-              }
+      if (cl.estado === 'activo' && cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
+        const paymentDay = cl.diaDePago;
+        let cursorDate = startOfMonth(parseISO(cl.fechaInicio));
+
+        while (isBefore(cursorDate, now)) {
+          const paymentDueDate = new Date(
+            cursorDate.getFullYear(),
+            cursorDate.getMonth(),
+            paymentDay
+          );
+
+          if (isBefore(paymentDueDate, now)) {
+            // Check if a payment (paid or pending) already exists for this month in the original `pagos` array.
+            const paymentForMonthExists = pagos.some(p =>
+                p.clienteId === cl.id &&
+                p.concepto === 'Mensualidad' &&
+                parseISO(p.fechaLimite).getFullYear() === paymentDueDate.getFullYear() &&
+                parseISO(p.fechaLimite).getMonth() === paymentDueDate.getMonth()
+            );
+
+            if (!paymentForMonthExists) {
+              vencidos.push({
+                id: `recurring-${cl.id}-${paymentDueDate.toISOString()}`,
+                clienteId: cl.id,
+                monto: cl.cuotaMensual,
+                concepto: 'Mensualidad',
+                fechaLimite: paymentDueDate.toISOString(),
+                estado: 'pendiente',
+                notas: 'Pago recurrente autogenerado.',
+              });
             }
+          }
+          cursorDate = addMonths(cursorDate, 1);
         }
+      }
     });
 
     return [...new Map(vencidos.map(item => [item.id, item])).values()]

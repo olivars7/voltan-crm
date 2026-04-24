@@ -141,11 +141,52 @@ export default function DashboardPage() {
 
   const activeClients = clientes.filter((c) => c.estado === 'activo').length;
   
-  const pendingPayments = now ? pagos.filter((p) => {
-    const cliente = getClienteById(p.clienteId);
-    return cliente?.estado === 'activo' && p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), now);
-  }) : [];
+  const overduePayments: Pago[] = [];
+  if (now) {
+    // 1. Get real overdue payments
+    pagos.forEach(p => {
+      const cliente = getClienteById(p.clienteId);
+      if (cliente && cliente.estado === 'activo' && p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), now)) {
+        overduePayments.push(p);
+      }
+    });
 
+    // 2. Get synthetic overdue recurring payments
+    clientes.forEach(cl => {
+      if (cl.estado === 'activo' && cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
+        const paymentDay = cl.diaDePago;
+        let cursorDate = startOfMonth(parseISO(cl.fechaInicio));
+
+        while (isBefore(cursorDate, now)) {
+          const paymentDueDate = new Date(cursorDate.getFullYear(), cursorDate.getMonth(), paymentDay);
+
+          if (isBefore(paymentDueDate, now)) {
+            const paymentForMonthExists = pagos.some(p =>
+              p.clienteId === cl.id &&
+              p.concepto === 'Mensualidad' &&
+              parseISO(p.fechaLimite).getFullYear() === paymentDueDate.getFullYear() &&
+              parseISO(p.fechaLimite).getMonth() === paymentDueDate.getMonth()
+            );
+
+            if (!paymentForMonthExists) {
+              overduePayments.push({
+                id: `recurring-${cl.id}-${paymentDueDate.toISOString()}`,
+                clienteId: cl.id,
+                monto: cl.cuotaMensual,
+                concepto: 'Mensualidad',
+                fechaLimite: paymentDueDate.toISOString(),
+                estado: 'pendiente',
+                notas: 'Pago recurrente autogenerado.',
+              });
+            }
+          }
+          cursorDate = addMonths(cursorDate, 1);
+        }
+      }
+    });
+  }
+  
+  const pendingPayments = [...new Map(overduePayments.map(item => [item.id, item])).values()];
   const totalPendingAmount = pendingPayments.reduce((sum, p) => sum + p.monto, 0);
 
   // General Console Data

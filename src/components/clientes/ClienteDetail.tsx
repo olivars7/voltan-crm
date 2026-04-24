@@ -86,7 +86,7 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
     const sorted = combinedPagos.sort((a, b) => {
         const dateA = parseISO(a.fechaLimite);
         const dateB = parseISO(b.fechaLimite);
-        return dateA.getTime() - dateB.getTime();
+        return dateB.getTime() - dateA.getTime();
     });
     
     setAllPagos(sorted);
