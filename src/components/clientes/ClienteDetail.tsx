@@ -11,7 +11,7 @@ import { Briefcase, Mail, Phone, DollarSign, ClipboardCheck, CalendarDays, Penci
 import { StatusBadge } from '../shared/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Button } from '@/components/ui/button';
-import { isBefore, parseISO, addMonths } from 'date-fns';
+import { isBefore, parseISO, addMonths, startOfMonth } from 'date-fns';
 import { PagoDetail } from '../pagos/PagoDetail';
 import { useToast } from '@/hooks/use-toast';
 import { PagoForm } from '../pagos/PagoForm';
@@ -38,44 +38,55 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
   const [editingPago, setEditingPago] = React.useState<Pago | undefined>(undefined);
   
   React.useEffect(() => {
-    setNow(new Date());
+    const today = new Date();
+    setNow(today);
 
     const clientPagos = getPagosByClienteId(cliente.id);
-    let combinedPagos = [...clientPagos];
-    const today = new Date();
+    let combinedPagos: Pago[] = [...clientPagos];
 
     if (cliente.estado === 'activo' && cliente.diaDePago && cliente.cuotaMensual && cliente.cuotaMensual > 0) {
         const paymentDay = cliente.diaDePago;
-        let nextPaymentDate = new Date(today.getFullYear(), today.getMonth(), paymentDay);
-        
-        if (isBefore(nextPaymentDate, today)) {
-            nextPaymentDate = addMonths(nextPaymentDate, 1);
-        }
+        let cursorDate = startOfMonth(parseISO(cliente.fechaInicio));
 
-        const existingRecurringPayment = clientPagos.find(p => 
-            p.concepto === 'Mensualidad' &&
-            parseISO(p.fechaLimite).getFullYear() === nextPaymentDate.getFullYear() &&
-            parseISO(p.fechaLimite).getMonth() === nextPaymentDate.getMonth()
-        );
+        // Loop through each month from client start until today to generate historic overdue and upcoming payments
+        while (isBefore(cursorDate, addMonths(startOfMonth(today), 1))) {
+          const paymentDueDate = new Date(
+            cursorDate.getFullYear(),
+            cursorDate.getMonth(),
+            paymentDay
+          );
 
-        if (!existingRecurringPayment) {
-            const syntheticPago: Pago = {
-                id: `recurring-${cliente.id}-${nextPaymentDate.toISOString()}`,
+          // Only consider due dates up to the next payment cycle
+          if (isBefore(paymentDueDate, addMonths(today, 1))) {
+            const existingPayment = pagos.find(
+              (p) =>
+                p.clienteId === cliente.id &&
+                p.concepto === 'Mensualidad' &&
+                parseISO(p.fechaLimite).getFullYear() === paymentDueDate.getFullYear() &&
+                parseISO(p.fechaLimite).getMonth() === paymentDueDate.getMonth()
+            );
+
+            if (!existingPayment) {
+              const syntheticPago: Pago = {
+                id: `recurring-${cliente.id}-${paymentDueDate.toISOString()}`,
                 clienteId: cliente.id,
                 monto: cliente.cuotaMensual,
                 concepto: 'Mensualidad',
-                fechaLimite: nextPaymentDate.toISOString(),
+                fechaLimite: paymentDueDate.toISOString(),
                 estado: 'pendiente',
                 notas: 'Pago recurrente autogenerado.',
-            };
-            combinedPagos.push(syntheticPago);
+              };
+              combinedPagos.push(syntheticPago);
+            }
+          }
+          cursorDate = addMonths(cursorDate, 1);
         }
     }
 
     const sorted = combinedPagos.sort((a, b) => {
-        const dateA = parseISO(a.estado === 'pagado' && a.fechaPago ? a.fechaPago : a.fechaLimite);
-        const dateB = parseISO(b.estado === 'pagado' && b.fechaPago ? b.fechaPago : b.fechaLimite);
-        return dateB.getTime() - dateA.getTime();
+        const dateA = parseISO(a.fechaLimite);
+        const dateB = parseISO(b.fechaLimite);
+        return dateA.getTime() - dateB.getTime();
     });
     
     setAllPagos(sorted);
