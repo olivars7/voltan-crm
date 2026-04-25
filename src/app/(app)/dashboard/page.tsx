@@ -55,6 +55,9 @@ export default function DashboardPage() {
     // This runs only on the client, after hydration
     setNow(new Date());
   }, []);
+
+  const monthName = now ? format(now, 'MMMM', { locale: es }) : '';
+  const capitalizedMonthName = monthName.charAt(0).toUpperCase() + monthName.slice(1);
   
   const handleResetData = () => {
     const isConfirmed = window.confirm(
@@ -438,8 +441,8 @@ export default function DashboardPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Clientes Activos</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Clientes activos</CardTitle>
+              <Users className="h-4 w-4 text-status-active" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{now ? kpiData.activeClients : '...'}</div>
@@ -448,8 +451,8 @@ export default function DashboardPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Ingresos Proyectados (Mes)</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Ingresos de {now ? capitalizedMonthName : '...'}</CardTitle>
+              <DollarSign className="h-4 w-4 text-status-success" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{now ? formatCurrency(kpiData.projectedRevenue) : '...'}</div>
@@ -458,8 +461,8 @@ export default function DashboardPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Cierres (Mes)</CardTitle>
-              <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Cierres de {now ? capitalizedMonthName : '...'}</CardTitle>
+              <ClipboardCheck className="h-4 w-4 text-status-warning" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{now ? kpiData.newClientsThisMonth : '...'}</div>
