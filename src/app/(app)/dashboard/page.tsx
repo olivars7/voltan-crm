@@ -3,14 +3,14 @@ import { useClientes } from '@/hooks/useClientes';
 import { usePagos } from '@/hooks/usePagos';
 import { useAgenda } from '@/hooks/useAgenda';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Users, DollarSign, AlertTriangle, ClipboardCheck, RotateCw, Trash2, CalendarDays } from 'lucide-react';
+import { Users, DollarSign, ClipboardCheck, RotateCw, Trash2, CalendarDays } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis } from "recharts"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { isBefore, parseISO, subMonths, startOfMonth, endOfMonth, format, isWithinInterval, addMonths, isToday, isPast } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { type Cliente, type Pago, type LlamadaAgendada, type LlamadaEstado } from '@/lib/types';
 import { Dialog } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -171,56 +171,80 @@ export default function DashboardPage() {
     }
   };
 
+  // --- KPI Calculations ---
+  const kpiData = React.useMemo(() => {
+    if (!now) {
+      return {
+        activeClients: 0,
+        activeClientsComparisonText: '',
+        projectedRevenue: 0,
+        newClientsThisMonth: 0,
+        newClientsComparisonText: ''
+      };
+    }
 
-  const activeClients = clientes.filter((c) => c.estado === 'activo').length;
-  
-  const overduePayments: Pago[] = [];
-  if (now) {
-    // 1. Get real overdue payments
+    const thisMonthStart = startOfMonth(now);
+    const thisMonthEnd = endOfMonth(now);
+    const lastMonthStart = startOfMonth(subMonths(now, 1));
+    const lastMonthEnd = endOfMonth(lastMonthStart);
+
+    // KPI 1: Active Clients
+    const activeClients = clientes.filter((c) => c.estado === 'activo').length;
+    const newClientsThisMonth = clientes.filter(c => isWithinInterval(parseISO(c.fechaInicio), { start: thisMonthStart, end: thisMonthEnd })).length;
+    const activeClientsComparisonText = `+${newClientsThisMonth} este mes`;
+
+    // KPI 2: Projected Revenue
+    // 2a. Paid this month
+    const revenueThisMonth = pagos
+      .filter(p => p.estado === 'pagado' && p.fechaPago && isWithinInterval(parseISO(p.fechaPago), { start: thisMonthStart, end: thisMonthEnd }))
+      .reduce((sum, p) => sum + p.monto, 0);
+
+    // 2b. Pending for this month (real and synthetic)
+    let pendingPaymentsThisMonth: Pago[] = [];
+    // Real pending
     pagos.forEach(p => {
-      const cliente = getClienteById(p.clienteId);
-      if (cliente && cliente.estado === 'activo' && p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), now)) {
-        overduePayments.push(p);
-      }
-    });
-
-    // 2. Get synthetic overdue recurring payments
-    clientes.forEach(cl => {
-      if (cl.estado === 'activo' && cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
-        const paymentDay = cl.diaDePago;
-        let cursorDate = startOfMonth(parseISO(cl.fechaInicio));
-
-        while (isBefore(cursorDate, now)) {
-          const paymentDueDate = new Date(cursorDate.getFullYear(), cursorDate.getMonth(), paymentDay);
-
-          if (isBefore(paymentDueDate, now)) {
-            const paymentForMonthExists = pagos.some(p =>
-              p.clienteId === cl.id &&
-              p.concepto === 'Mensualidad' &&
-              parseISO(p.fechaLimite).getFullYear() === paymentDueDate.getFullYear() &&
-              parseISO(p.fechaLimite).getMonth() === paymentDueDate.getMonth()
-            );
-
-            if (!paymentForMonthExists) {
-              overduePayments.push({
-                id: `recurring-${cl.id}-${paymentDueDate.toISOString()}`,
-                clienteId: cl.id,
-                monto: cl.cuotaMensual,
-                concepto: 'Mensualidad',
-                fechaLimite: paymentDueDate.toISOString(),
-                estado: 'pendiente',
-                notas: 'Pago recurrente autogenerado.',
-              });
-            }
-          }
-          cursorDate = addMonths(cursorDate, 1);
+        if (p.estado === 'pendiente' && isWithinInterval(parseISO(p.fechaLimite), { start: thisMonthStart, end: thisMonthEnd })) {
+            pendingPaymentsThisMonth.push(p);
         }
-      }
     });
-  }
-  
-  const pendingPayments = [...new Map(overduePayments.map(item => [item.id, item])).values()];
-  const totalPendingAmount = pendingPayments.reduce((sum, p) => sum + p.monto, 0);
+    // Synthetic pending
+    clientes.forEach(cl => {
+        if (cl.estado === 'activo' && cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
+            const paymentDay = cl.diaDePago;
+            const paymentDueDateThisMonth = new Date(now.getFullYear(), now.getMonth(), paymentDay);
+
+            if (isWithinInterval(paymentDueDateThisMonth, { start: thisMonthStart, end: thisMonthEnd })) {
+                const paymentForMonthExists = pagos.some(p =>
+                    p.clienteId === cl.id &&
+                    p.concepto === 'Mensualidad' &&
+                    parseISO(p.fechaLimite).getFullYear() === paymentDueDateThisMonth.getFullYear() &&
+                    parseISO(p.fechaLimite).getMonth() === paymentDueDateThisMonth.getMonth()
+                );
+                if (!paymentForMonthExists) {
+                    pendingPaymentsThisMonth.push({
+                        id: `recurring-${cl.id}-${paymentDueDateThisMonth.toISOString()}`,
+                        clienteId: cl.id,
+                        monto: cl.cuotaMensual,
+                        concepto: 'Mensualidad',
+                        fechaLimite: paymentDueDateThisMonth.toISOString(),
+                        estado: 'pendiente',
+                        notas: 'Pago recurrente autogenerado.',
+                    });
+                }
+            }
+        }
+    });
+    const pendingAmountThisMonth = [...new Map(pendingPaymentsThisMonth.map(item => [item.id, item])).values()].reduce((sum, p) => sum + p.monto, 0);
+    const projectedRevenue = revenueThisMonth + pendingAmountThisMonth;
+
+    // KPI 3: Closings this month
+    const newClientsLastMonth = clientes.filter(c => isWithinInterval(parseISO(c.fechaInicio), { start: lastMonthStart, end: lastMonthEnd })).length;
+    const diff = newClientsThisMonth - newClientsLastMonth;
+    const newClientsComparisonText = `${diff >= 0 ? '+' : ''}${diff} vs mes pasado`;
+
+    return { activeClients, activeClientsComparisonText, projectedRevenue, newClientsThisMonth, newClientsComparisonText };
+  }, [now, clientes, pagos]);
+
 
   // General Console Data
   const timelineItems: TimelineItem[] = [];
@@ -398,6 +422,16 @@ export default function DashboardPage() {
   }
 
 
+  const getEffectiveStatus = (llamada: LlamadaAgendada): LlamadaEstado => {
+      if (!now) return llamada.estado;
+      const callDate = parseISO(llamada.fecha);
+      if (llamada.estado === 'pronto' && (isToday(callDate) || isPast(callDate))) {
+        return 'pendiente';
+      }
+      return llamada.estado;
+    };
+
+
   return (
     <>
       <div className="space-y-6">
@@ -408,25 +442,28 @@ export default function DashboardPage() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{now ? activeClients : '...'}</div>
+              <div className="text-2xl font-bold">{now ? kpiData.activeClients : '...'}</div>
+              {now && <p className="text-xs text-muted-foreground">{kpiData.activeClientsComparisonText}</p>}
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pagos Vencidos</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-status-warning" />
+              <CardTitle className="text-sm font-medium">Ingresos Proyectados (Mes)</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{now ? pendingPayments.length : '...'}</div>
+              <div className="text-2xl font-bold">{now ? formatCurrency(kpiData.projectedRevenue) : '...'}</div>
+              <p className="text-xs text-muted-foreground">Suma de pagos y pendientes del mes.</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Deuda Vencida</CardTitle>
-              <DollarSign className="h-4 w-4 text-status-danger" />
+              <CardTitle className="text-sm font-medium">Cierres (Mes)</CardTitle>
+              <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{now ? formatCurrency(totalPendingAmount) : '...'}</div>
+              <div className="text-2xl font-bold">{now ? kpiData.newClientsThisMonth : '...'}</div>
+              {now && <p className="text-xs text-muted-foreground">{kpiData.newClientsComparisonText}</p>}
             </CardContent>
           </Card>
         </div>

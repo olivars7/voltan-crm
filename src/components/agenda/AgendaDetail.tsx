@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import type { LlamadaAgendada } from '@/lib/types';
 import { formatDate } from '@/lib/utils';
-import { Calendar, Phone, Video, Info, Notebook, Pencil, CalendarPlus, Check, X } from 'lucide-react';
+import { Calendar, Phone, Video, Info, Notebook, Pencil, CalendarPlus } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
 import React from 'react';
 
@@ -66,12 +66,10 @@ export function AgendaDetail({ llamada, onSetStatus, onEdit, onReschedule }: Age
        {llamada.estado !== 'realizada' && llamada.estado !== 'cancelada' && (
         <div className="grid grid-cols-2 gap-2 pt-4">
           <Button variant="destructive" onClick={() => onSetStatus('cancelada')}>
-            <X className="mr-2 h-4 w-4" />
-            Marcar como Cancelada
+            Cancelar
           </Button>
           <Button className="bg-status-success hover:bg-status-success/90" onClick={() => onSetStatus('realizada')}>
-            <Check className="mr-2 h-4 w-4" />
-            Marcar como Realizada
+            Confirmar
           </Button>
         </div>
       )}
