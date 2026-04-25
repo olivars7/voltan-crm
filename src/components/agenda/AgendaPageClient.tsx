@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { PlusCircle, Search } from 'lucide-react';
+import { PlusCircle, Search, Loader2 } from 'lucide-react';
 import { useAgenda } from '@/hooks/useAgenda';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,7 @@ import { parseISO, isToday, isPast } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function AgendaPageClient() {
-  const { llamadas, addLlamada, updateLlamada } = useAgenda();
+  const { llamadas, addLlamada, updateLlamada, loading } = useAgenda();
   const [isFormOpen, setFormOpen] = React.useState(false);
   const [isDetailOpen, setDetailOpen] = React.useState(false);
   const [isRescheduling, setIsRescheduling] = React.useState(false);
@@ -31,16 +31,16 @@ export function AgendaPageClient() {
   const [visibleUpcoming, setVisibleUpcoming] = React.useState(40);
   const [visiblePast, setVisiblePast] = React.useState(40);
   
-  const handleAddSubmit = (values: any) => {
-    addLlamada(values);
+  const handleAddSubmit = async (values: any) => {
+    await addLlamada(values);
     toast({ title: "Llamada agendada", description: "La nueva llamada ha sido guardada." });
     setFormOpen(false);
   }
 
-  const handleEditSubmit = (values: any) => {
+  const handleEditSubmit = async (values: any) => {
     if(selectedLlamada) {
         const updatedLlamada = { ...selectedLlamada, ...values };
-        updateLlamada(updatedLlamada);
+        await updateLlamada(updatedLlamada);
         toast({ title: "Llamada actualizada", description: "La llamada ha sido actualizada." });
         setFormOpen(false);
         setSelectedLlamada(undefined);
@@ -51,9 +51,9 @@ export function AgendaPageClient() {
     }
   }
 
-  const handleSetStatus = (llamada: LlamadaAgendada, status: 'realizada' | 'cancelada') => {
+  const handleSetStatus = async (llamada: LlamadaAgendada, status: 'realizada' | 'cancelada') => {
     const updatedLlamada = { ...llamada, estado: status };
-    updateLlamada(updatedLlamada);
+    await updateLlamada(updatedLlamada);
     toast({ title: `Llamada ${status}`, description: "El estado de la llamada ha sido actualizado." });
     setDetailOpen(false);
   }
@@ -108,29 +108,35 @@ export function AgendaPageClient() {
     .filter(searchFilter)
     .sort((a, b) => parseISO(b.fecha).getTime() - parseISO(a.fecha).getTime());
 
-  const CallsTable = ({ calls, visibleCount }: { calls: LlamadaAgendada[], visibleCount: number }) => (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Cliente/Interesado</TableHead>
-          <TableHead className="hidden md:table-cell">Número</TableHead>
-          <TableHead>Fecha y Hora</TableHead>
-          <TableHead className="hidden sm:table-cell">Medio</TableHead>
-          <TableHead>Estado</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {calls.slice(0, visibleCount).map((llamada) => (
-          <TableRow key={llamada.id} onClick={() => openDetailDialog(llamada)} className="cursor-pointer">
-            <TableCell className="font-medium">{llamada.nombre}</TableCell>
-            <TableCell className="hidden md:table-cell">{llamada.telefono}</TableCell>
-            <TableCell>{formatDate(llamada.fecha, "d MMM, yyyy h:mm a")}</TableCell>
-            <TableCell className="hidden sm:table-cell capitalize">{llamada.medio.replace('-', ' ')}</TableCell>
-            <TableCell><StatusBadge status={getEffectiveStatus(llamada)} /></TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+  const CallsTable = ({ calls, visibleCount, type }: { calls: LlamadaAgendada[], visibleCount: number, type: 'proximas' | 'pasadas' }) => (
+    <>
+      {calls.length === 0 && !loading ? (
+        <p className="text-center text-muted-foreground py-8">No hay llamadas {type}.</p>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Cliente/Interesado</TableHead>
+              <TableHead className="hidden md:table-cell">Número</TableHead>
+              <TableHead>Fecha y Hora</TableHead>
+              <TableHead className="hidden sm:table-cell">Medio</TableHead>
+              <TableHead>Estado</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {calls.slice(0, visibleCount).map((llamada) => (
+              <TableRow key={llamada.id} onClick={() => openDetailDialog(llamada)} className="cursor-pointer">
+                <TableCell className="font-medium">{llamada.nombre}</TableCell>
+                <TableCell className="hidden md:table-cell">{llamada.telefono}</TableCell>
+                <TableCell>{formatDate(llamada.fecha, "d MMM, yyyy h:mm a")}</TableCell>
+                <TableCell className="hidden sm:table-cell capitalize">{llamada.medio.replace('-', ' ')}</TableCell>
+                <TableCell><StatusBadge status={getEffectiveStatus(llamada)} /></TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </>
   );
 
   return (
@@ -158,6 +164,11 @@ export function AgendaPageClient() {
         </div>
       </div>
       
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : (
       <Tabs defaultValue="proximas">
         <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="proximas">Próximas</TabsTrigger>
@@ -169,10 +180,7 @@ export function AgendaPageClient() {
                   <CardTitle>Llamadas Próximas</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <CallsTable calls={llamadasProximas} visibleCount={visibleUpcoming} />
-                    {llamadasProximas.length === 0 && (
-                      <p className="text-center text-muted-foreground py-8">No hay llamadas próximas.</p>
-                    )}
+                    <CallsTable calls={llamadasProximas} visibleCount={visibleUpcoming} type="proximas" />
                 </CardContent>
                 {visibleUpcoming < llamadasProximas.length && (
                     <CardFooter className="justify-center">
@@ -187,10 +195,7 @@ export function AgendaPageClient() {
                   <CardTitle>Llamadas Pasadas</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <CallsTable calls={llamadasPasadas} visibleCount={visiblePast} />
-                     {llamadasPasadas.length === 0 && (
-                      <p className="text-center text-muted-foreground py-8">No hay llamadas pasadas.</p>
-                     )}
+                    <CallsTable calls={llamadasPasadas} visibleCount={visiblePast} type="pasadas" />
                 </CardContent>
                  {visiblePast < llamadasPasadas.length && (
                     <CardFooter className="justify-center">
@@ -200,6 +205,7 @@ export function AgendaPageClient() {
             </Card>
         </TabsContent>
       </Tabs>
+      )}
       
       <Dialog open={isFormOpen} onOpenChange={(isOpen) => { if(!isOpen) {setSelectedLlamada(undefined); setIsRescheduling(false);} setFormOpen(isOpen);}}>
         <AgendaForm 

@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Briefcase, Mail, Phone, DollarSign, ClipboardCheck, CalendarDays, Pencil, CheckCircle } from 'lucide-react';
+import { Briefcase, Mail, Phone, DollarSign, ClipboardCheck, CalendarDays, Pencil, CheckCircle, Loader2 } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Button } from '@/components/ui/button';
@@ -27,7 +27,7 @@ interface ClienteDetailProps {
 }
 
 export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateCliente }: ClienteDetailProps) {
-  const { pagos, getPagosByClienteId, updatePago } = usePagos();
+  const { pagos, getPagosByClienteId, updatePago, loading: pagosLoading } = usePagos();
   const { toast } = useToast();
   
   const [now, setNow] = React.useState<Date | null>(null);
@@ -49,7 +49,6 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
         const paymentDay = cliente.diaDePago;
         let cursorDate = startOfMonth(parseISO(cliente.fechaInicio));
 
-        // Loop through each month from client start until today to generate historic overdue and upcoming payments
         while (isBefore(cursorDate, addMonths(startOfMonth(today), 1))) {
           const paymentDueDate = new Date(
             cursorDate.getFullYear(),
@@ -57,7 +56,6 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
             paymentDay
           );
 
-          // Only consider due dates up to the next payment cycle
           if (isBefore(paymentDueDate, addMonths(today, 1))) {
             const existingPayment = pagos.find(
               (p) =>
@@ -108,13 +106,13 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
     setPagoDetailOpen(true);
   }
   
-  const handleToggleStatusFromDetail = (pago: Pago) => {
+  const handleToggleStatusFromDetail = async (pago: Pago) => {
     if (pago.estado === 'pendiente') {
-      updatePago({ ...pago, estado: 'pagado', fechaPago: new Date().toISOString() });
+      await updatePago({ ...pago, estado: 'pagado', fechaPago: new Date().toISOString() });
       toast({ title: "Pago actualizado", description: `El pago ha sido marcado como pagado.` });
     } else {
        const { fechaPago, ...rest } = pago;
-       updatePago({ ...rest, estado: 'pendiente' });
+       await updatePago({ ...rest, estado: 'pendiente' });
        toast({ title: "Pago actualizado", description: `El pago ha sido marcado como pendiente.` });
     }
     setPagoDetailOpen(false);
@@ -126,9 +124,9 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
     setPagoFormOpen(true);
   }
 
-  const handleEditPagoSubmit = (values: any) => {
+  const handleEditPagoSubmit = async (values: any) => {
     if (editingPago) {
-      updatePago({ ...editingPago, ...values });
+      await updatePago({ ...editingPago, ...values });
       toast({ title: "Pago actualizado", description: "Los datos del pago han sido actualizados." });
       setPagoFormOpen(false);
       setEditingPago(undefined);
@@ -311,7 +309,11 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                   )}
                 </CardHeader>
                 <CardContent>
-                  {allPagos.length > 0 ? (
+                  {pagosLoading ? (
+                     <div className="flex items-center justify-center h-40">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                  ) : allPagos.length > 0 ? (
                     <Table>
                       <TableHeader>
                         <TableRow>

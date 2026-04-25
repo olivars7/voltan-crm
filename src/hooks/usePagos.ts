@@ -1,42 +1,59 @@
 'use client';
 
-import useLocalStorage from './useLocalStorage';
+import { useState, useEffect, useCallback } from 'react';
+import { db } from '@/lib/firebase';
+import { collection, onSnapshot, addDoc, doc, updateDoc, writeBatch, getDocs, query, limit } from 'firebase/firestore';
 import type { Pago } from '@/lib/types';
 import { mockPagos } from '@/data/mockData';
-import { useCallback } from 'react';
 
 export const usePagos = () => {
-  const [pagos, setPagos] = useLocalStorage<Pago[]>('pagos', mockPagos);
+  const [pagos, setPagos] = useState<Pago[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const addPago = useCallback(
-    (pago: Omit<Pago, 'id'>) => {
-      const newPago: Pago = {
-        ...pago,
-        id: `pa-${Date.now()}`,
-      };
-      setPagos((prev) => [...prev, newPago]);
-    },
-    [setPagos]
-  );
+  useEffect(() => {
+    const pagosCollection = collection(db, 'pagos');
+    const unsubscribe = onSnapshot(pagosCollection, (snapshot) => {
+        const pagosData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Pago));
+        setPagos(pagosData);
+        if (loading) setLoading(false);
+    }, (error) => {
+      console.error("Error fetching pagos: ", error);
+      setLoading(false);
+    });
 
-  const updatePago = useCallback(
-    (updatedPago: Pago) => {
-      const isSynthetic = updatedPago.id.startsWith('recurring-');
-      if (isSynthetic) {
-        // When a synthetic payment is acted upon (paid or edited),
-        // we create a new "real" payment record instead of trying to update it.
-        const realPago: Pago = {
-          ...updatedPago,
-          id: `pa-${Date.now()}`, // Assign a new, permanent ID
-        };
-        setPagos((prev) => [...prev, realPago]);
-        return;
-      }
-      
-      setPagos((prev) => prev.map((p) => (p.id === updatedPago.id ? updatedPago : p)));
-    },
-    [setPagos]
-  );
+    getDocs(query(pagosCollection, limit(1))).then(snapshot => {
+        if (snapshot.empty) {
+            console.log("Pagos collection is empty, seeding data...");
+            const batch = writeBatch(db);
+            mockPagos.forEach((pago) => {
+                const {id, ...pagoData} = pago;
+                const docRef = doc(collection(db, 'pagos'));
+                batch.set(docRef, pagoData);
+            });
+            batch.commit();
+        }
+    });
+
+    return () => unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const addPago = useCallback(async (pago: Omit<Pago, 'id'>) => {
+    const docRef = await addDoc(collection(db, 'pagos'), pago);
+    return { ...pago, id: docRef.id };
+  }, []);
+
+  const updatePago = useCallback(async (updatedPago: Pago) => {
+    const { id, ...pagoData } = updatedPago;
+    const isSynthetic = id.startsWith('recurring-');
+    if (isSynthetic) {
+      // Create a real payment from the synthetic one
+      await addDoc(collection(db, 'pagos'), pagoData);
+      return;
+    }
+    const pagoDoc = doc(db, 'pagos', id);
+    await updateDoc(pagoDoc, pagoData as any);
+  }, []);
 
   const getPagosByClienteId = useCallback(
     (clienteId: string) => {
@@ -44,6 +61,27 @@ export const usePagos = () => {
     },
     [pagos]
   );
+  
+  const deleteAllPagos = useCallback(async () => {
+      const querySnapshot = await getDocs(collection(db, 'pagos'));
+      const batch = writeBatch(db);
+      querySnapshot.forEach((doc) => {
+          batch.delete(doc.ref);
+      });
+      await batch.commit();
+  }, []);
 
-  return { pagos, addPago, updatePago, getPagosByClienteId };
+  const resetPagos = useCallback(async () => {
+      await deleteAllPagos();
+      const batch = writeBatch(db);
+      mockPagos.forEach((pago) => {
+        const {id, ...pagoData} = pago;
+        const docRef = doc(collection(db, 'pagos'));
+        batch.set(docRef, pagoData);
+      });
+      await batch.commit();
+  }, [deleteAllPagos]);
+
+
+  return { pagos, loading, addPago, updatePago, getPagosByClienteId, deleteAllPagos, resetPagos };
 };

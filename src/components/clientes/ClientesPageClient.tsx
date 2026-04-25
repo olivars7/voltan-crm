@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { PlusCircle, Search } from 'lucide-react';
+import { PlusCircle, Search, Loader2 } from 'lucide-react';
 import { useClientes } from '@/hooks/useClientes';
 import { usePagos } from '@/hooks/usePagos';
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -29,8 +29,8 @@ import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export function ClientesPageClient() {
-  const { clientes, addCliente, updateCliente } = useClientes();
-  const { addPago } = usePagos();
+  const { clientes, addCliente, updateCliente, loading: clientesLoading } = useClientes();
+  const { addPago, loading: pagosLoading } = usePagos();
   const [isFormOpen, setFormOpen] = React.useState(false);
   
   const [selectedClienteId, setSelectedClienteId] = React.useState<string | undefined>(undefined);
@@ -40,7 +40,7 @@ export function ClientesPageClient() {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [visibleCount, setVisibleCount] = React.useState(40);
 
-  const handleAddSubmit = (values: any) => {
+  const handleAddSubmit = async (values: any) => {
     const { montoAdelanto, fechaAdelanto, montoApertura, fechaApertura, ...clienteData } = values;
 
     const finalClienteData = {
@@ -49,11 +49,11 @@ export function ClientesPageClient() {
         diaDePago: values.diaDePago ? Number(values.diaDePago) : undefined,
     };
 
-    const newClient = addCliente(finalClienteData);
+    const newClient = await addCliente(finalClienteData);
     toast({ title: "Cliente añadido", description: "El nuevo cliente ha sido guardado." });
     
     if (montoAdelanto && montoAdelanto > 0 && fechaAdelanto) {
-      addPago({
+      await addPago({
         clienteId: newClient.id,
         monto: montoAdelanto,
         fechaLimite: fechaAdelanto,
@@ -65,7 +65,7 @@ export function ClientesPageClient() {
     }
 
     if (montoApertura && montoApertura > 0 && fechaApertura) {
-      addPago({
+      await addPago({
         clienteId: newClient.id,
         monto: montoApertura,
         fechaLimite: fechaApertura,
@@ -79,13 +79,12 @@ export function ClientesPageClient() {
     setFormOpen(false);
   };
 
-  const handleEditSubmit = (values: any) => {
+  const handleEditSubmit = async (values: any) => {
     if (editingCliente) {
       const updatedData = { ...editingCliente, ...values };
-      updateCliente(updatedData);
+      await updateCliente(updatedData);
       toast({ title: "Cliente actualizado", description: "Los datos del cliente han sido actualizados." });
       if (selectedClienteId === updatedData.id) {
-        // Force re-render of detail view
         setSelectedClienteId(undefined); 
         setSelectedClienteId(updatedData.id);
       }
@@ -130,6 +129,7 @@ export function ClientesPageClient() {
 
   const selectedCliente = selectedClienteId ? clientes.find(c => c.id === selectedClienteId) : undefined;
 
+  const isLoading = clientesLoading || pagosLoading;
 
   return (
     <>
@@ -160,6 +160,11 @@ export function ClientesPageClient() {
                 />
             </div>
           </div>
+          {isLoading ? (
+            <div className="flex items-center justify-center h-64">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : (
           <Table>
             <TableHeader>
               <TableRow>
@@ -171,23 +176,32 @@ export function ClientesPageClient() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredClientes.slice(0, visibleCount).map((cliente) => (
-                <TableRow key={cliente.id} onClick={() => openDetailDialog(cliente)} className="cursor-pointer">
-                  <TableCell className="font-medium">
-                    {cliente.nombre}
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">{cliente.empresa}</TableCell>
-                  <TableCell>
-                    {cliente.telefono}
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell">{formatDate(cliente.fechaInicio)}</TableCell>
-                  <TableCell>
-                    <StatusBadge status={cliente.estado} />
-                  </TableCell>
+              {filteredClientes.length === 0 && !isLoading ? (
+                <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center">
+                        No se encontraron clientes.
+                    </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                filteredClientes.slice(0, visibleCount).map((cliente) => (
+                  <TableRow key={cliente.id} onClick={() => openDetailDialog(cliente)} className="cursor-pointer">
+                    <TableCell className="font-medium">
+                      {cliente.nombre}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">{cliente.empresa}</TableCell>
+                    <TableCell>
+                      {cliente.telefono}
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">{formatDate(cliente.fechaInicio)}</TableCell>
+                    <TableCell>
+                      <StatusBadge status={cliente.estado} />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
+          )}
         </CardContent>
         {visibleCount < filteredClientes.length && (
           <CardFooter className="justify-center">

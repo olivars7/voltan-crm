@@ -3,7 +3,7 @@ import { useClientes } from '@/hooks/useClientes';
 import { usePagos } from '@/hooks/usePagos';
 import { useAgenda } from '@/hooks/useAgenda';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Users, DollarSign, ClipboardCheck, RotateCw, Trash2, CalendarDays } from 'lucide-react';
+import { Users, DollarSign, ClipboardCheck, RotateCw, Trash2, CalendarDays, Loader2 } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis } from "recharts"
@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { PagoForm } from '@/components/pagos/PagoForm';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { AgendaDetail } from '@/components/agenda/AgendaDetail';
+import { PageHeader } from '@/components/shared/PageHeader';
 
 type TimelineItem = {
   date: Date;
@@ -31,14 +32,15 @@ type TimelineItem = {
 }
 
 export default function DashboardPage() {
-  const { clientes, getClienteById, updateCliente } = useClientes();
-  const { pagos, updatePago } = usePagos();
-  const { llamadas, updateLlamada } = useAgenda();
+  const { clientes, getClienteById, updateCliente, loading: clientesLoading, deleteAllClientes, resetClientes } = useClientes();
+  const { pagos, updatePago, loading: pagosLoading, deleteAllPagos, resetPagos } = usePagos();
+  const { llamadas, updateLlamada, loading: llamadasLoading, deleteAllLlamadas } = useAgenda();
+
   const [now, setNow] = useState<Date | null>(null);
+  const [devZoneLoading, setDevZoneLoading] = useState<string | null>(null);
   
   const { toast } = useToast();
   
-  // State for dialogs
   const [isPagoDetailOpen, setPagoDetailOpen] = useState(false);
   const [isClienteFormOpen, setClienteFormOpen] = useState(false);
   const [isPagoFormOpen, setPagoFormOpen] = useState(false);
@@ -52,38 +54,40 @@ export default function DashboardPage() {
   const [visibleTimeline, setVisibleTimeline] = useState(40);
 
   useEffect(() => {
-    // This runs only on the client, after hydration
     setNow(new Date());
   }, []);
 
   const monthName = now ? format(now, 'MMMM', { locale: es }) : '';
   const capitalizedMonthName = monthName.charAt(0).toUpperCase() + monthName.slice(1);
   
-  const handleResetData = () => {
+  const handleResetData = async () => {
     const isConfirmed = window.confirm(
       '¿Estás seguro de que quieres reiniciar todos los datos a su estado inicial? Esta acción eliminará todos los cambios que hayas hecho.'
     );
     if (isConfirmed) {
-      window.localStorage.removeItem('clientes');
-      window.localStorage.removeItem('pagos');
-      window.localStorage.removeItem('agenda');
-      window.location.reload();
+      setDevZoneLoading('Reiniciando datos...');
+      await resetClientes();
+      await resetPagos();
+      await deleteAllLlamadas();
+      setDevZoneLoading(null);
+      toast({ title: 'Datos reiniciados', description: 'Los datos de prueba han sido cargados.' });
     }
   };
 
-  const handleDeleteAllData = () => {
+  const handleDeleteAllData = async () => {
     const isConfirmed = window.confirm(
       '¿Estás seguro de que quieres eliminar TODOS los datos de la aplicación? Esta acción es irreversible y dejará la aplicación vacía.'
     );
     if (isConfirmed) {
-      window.localStorage.setItem('clientes', '[]');
-      window.localStorage.setItem('pagos', '[]');
-      window.localStorage.setItem('agenda', '[]');
-      window.location.reload();
+      setDevZoneLoading('Eliminando todos los datos...');
+      await deleteAllClientes();
+      await deleteAllPagos();
+      await deleteAllLlamadas();
+      setDevZoneLoading(null);
+      toast({ title: 'Datos eliminados', description: 'La aplicación está vacía.' });
     }
   };
 
-  // Handlers for dialogs
   const handleOpenPagoDetail = (pago: Pago) => {
     setSelectedPago(pago);
     setPagoDetailOpen(true);
@@ -98,25 +102,25 @@ export default function DashboardPage() {
     setSelectedClienteId(clienteId);
   }
 
-  const handleToggleStatusFromDetail = (pago: Pago) => {
+  const handleToggleStatusFromDetail = async (pago: Pago) => {
      if (pago.estado === 'pendiente') {
       const updatedPago = { ...pago, estado: 'pagado' as const, fechaPago: new Date().toISOString() };
-      updatePago(updatedPago);
+      await updatePago(updatedPago);
       toast({ title: "Pago actualizado", description: "El pago ha sido marcado como pagado." });
       setSelectedPago(updatedPago);
     } else {
       const { fechaPago, ...rest } = pago;
       const updatedPago = { ...rest, estado: 'pendiente' as const };
-      updatePago(updatedPago);
+      await updatePago(updatedPago);
       toast({ title: "Pago actualizado", description: "El pago ha sido marcado como pendiente." });
       setSelectedPago(updatedPago);
     }
     setPagoDetailOpen(false);
   }
 
-  const handleSetLlamadaStatus = (llamada: LlamadaAgendada, status: 'realizada' | 'cancelada') => {
+  const handleSetLlamadaStatus = async (llamada: LlamadaAgendada, status: 'realizada' | 'cancelada') => {
     const updatedLlamada = { ...llamada, estado: status };
-    updateLlamada(updatedLlamada);
+    await updateLlamada(updatedLlamada);
     toast({ title: `Llamada ${status}`, description: "El estado de la llamada ha sido actualizado." });
     setAgendaDetailOpen(false);
   };
@@ -132,10 +136,10 @@ export default function DashboardPage() {
     setClienteFormOpen(true);
   }
 
-  const handleEditClienteSubmit = (values: any) => {
+  const handleEditClienteSubmit = async (values: any) => {
     if (editingCliente) {
       const updatedData = { ...editingCliente, ...values };
-      updateCliente(updatedData);
+      await updateCliente(updatedData);
       toast({ title: "Cliente actualizado", description: "Los datos del cliente han sido actualizados." });
       setClienteFormOpen(false);
       setEditingCliente(undefined);
@@ -148,10 +152,10 @@ export default function DashboardPage() {
     setPagoFormOpen(true);
   };
 
-  const handleEditPagoSubmit = (values: any) => {
+  const handleEditPagoSubmit = async (values: any) => {
     if (editingPago) {
       const updatedData = { ...editingPago, ...values };
-      updatePago(updatedData);
+      await updatePago(updatedData);
       toast({ title: "Pago actualizado", description: "Los datos del pago han sido actualizados." });
       if (selectedPago?.id === updatedData.id) {
           setSelectedPago(updatedData);
@@ -174,7 +178,6 @@ export default function DashboardPage() {
     }
   };
 
-  // --- KPI Calculations ---
   const kpiData = React.useMemo(() => {
     if (!now) {
       return {
@@ -191,26 +194,20 @@ export default function DashboardPage() {
     const lastMonthStart = startOfMonth(subMonths(now, 1));
     const lastMonthEnd = endOfMonth(lastMonthStart);
 
-    // KPI 1: Active Clients
     const activeClients = clientes.filter((c) => c.estado === 'activo').length;
     const newClientsThisMonth = clientes.filter(c => isWithinInterval(parseISO(c.fechaInicio), { start: thisMonthStart, end: thisMonthEnd })).length;
     const activeClientsComparisonText = `+${newClientsThisMonth} este mes`;
 
-    // KPI 2: Projected Revenue
-    // 2a. Paid this month
     const revenueThisMonth = pagos
       .filter(p => p.estado === 'pagado' && p.fechaPago && isWithinInterval(parseISO(p.fechaPago), { start: thisMonthStart, end: thisMonthEnd }))
       .reduce((sum, p) => sum + p.monto, 0);
 
-    // 2b. Pending for this month (real and synthetic)
     let pendingPaymentsThisMonth: Pago[] = [];
-    // Real pending
     pagos.forEach(p => {
         if (p.estado === 'pendiente' && isWithinInterval(parseISO(p.fechaLimite), { start: thisMonthStart, end: thisMonthEnd })) {
             pendingPaymentsThisMonth.push(p);
         }
     });
-    // Synthetic pending
     clientes.forEach(cl => {
         if (cl.estado === 'activo' && cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
             const paymentDay = cl.diaDePago;
@@ -240,7 +237,6 @@ export default function DashboardPage() {
     const pendingAmountThisMonth = [...new Map(pendingPaymentsThisMonth.map(item => [item.id, item])).values()].reduce((sum, p) => sum + p.monto, 0);
     const projectedRevenue = revenueThisMonth + pendingAmountThisMonth;
 
-    // KPI 3: Closings this month
     const newClientsLastMonth = clientes.filter(c => isWithinInterval(parseISO(c.fechaInicio), { start: lastMonthStart, end: lastMonthEnd })).length;
     const diff = newClientsThisMonth - newClientsLastMonth;
     const newClientsComparisonText = `${diff >= 0 ? '+' : ''}${diff} vs mes pasado`;
@@ -249,7 +245,6 @@ export default function DashboardPage() {
   }, [now, clientes, pagos]);
 
 
-  // General Console Data
   const timelineItems: TimelineItem[] = [];
   if (now) {
     const getEffectiveStatus = (llamada: LlamadaAgendada): LlamadaEstado => {
@@ -260,7 +255,6 @@ export default function DashboardPage() {
       return llamada.estado;
     };
 
-    // Process calls
     llamadas.forEach(l => {
         const effectiveStatus = getEffectiveStatus(l);
         const callDate = parseISO(l.fecha);
@@ -270,12 +264,11 @@ export default function DashboardPage() {
                 type: 'llamada',
                 subType: isBefore(callDate, now) ? 'overdue' : 'upcoming',
                 data: l,
-                cliente: { nombre: l.nombre } // Mock client-like object for display
+                cliente: { nombre: l.nombre }
             });
         }
     });
 
-    // Process real payments
     pagos.forEach(p => {
       const cliente = getClienteById(p.clienteId);
       if (cliente && cliente.estado === 'activo' && p.estado === 'pendiente') {
@@ -290,7 +283,6 @@ export default function DashboardPage() {
       }
     });
 
-    // Process projects and synthetic recurring payments
     clientes.forEach(cl => {
       if (cl.estado === 'activo' && cl.proyecto && cl.proyecto.estado === 'en-progreso') {
         timelineItems.push({
@@ -306,7 +298,6 @@ export default function DashboardPage() {
         const paymentDay = cl.diaDePago;
         let cursorDate = startOfMonth(parseISO(cl.fechaInicio));
 
-        // Loop through each month from client start until today to generate historic overdue and upcoming payments
         while (isBefore(cursorDate, addMonths(startOfMonth(now), 1))) {
           const paymentDueDate = new Date(
             cursorDate.getFullYear(),
@@ -314,7 +305,6 @@ export default function DashboardPage() {
             paymentDay
           );
 
-            // Only consider due dates up to the next payment cycle
           if (isBefore(paymentDueDate, addMonths(now, 1))) {
             const existingPayment = pagos.find(
               (p) =>
@@ -357,7 +347,6 @@ export default function DashboardPage() {
     return a.date.getTime() - b.date.getTime();
   });
 
-  // Statistics Data
   const last4Months = now ? Array.from({ length: 4 }).map((_, i) => subMonths(now, 3 - i)) : [];
   
   const monthlyRevenue = last4Months.map(monthDate => {
@@ -419,9 +408,9 @@ export default function DashboardPage() {
     if (item.type === 'llamada') {
         const effectiveStatus = getEffectiveStatus(item.data);
         if (effectiveStatus === 'pendiente' && item.subType === 'overdue') return 'vencido';
-        return effectiveStatus as any; // Cast because it will be one of the call statuses
+        return effectiveStatus as any;
     }
-    return 'pendiente'; // Default for entrega
+    return 'pendiente';
   }
 
 
@@ -434,9 +423,20 @@ export default function DashboardPage() {
       return llamada.estado;
     };
 
+  if (clientesLoading || pagosLoading || llamadasLoading) {
+    return (
+        <div className="flex items-center justify-center h-screen">
+            <div className="flex flex-col items-center gap-4">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <p className="text-muted-foreground">Cargando datos...</p>
+            </div>
+        </div>
+    )
+  }
 
   return (
     <>
+      <PageHeader title="Dashboard" />
       <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Card>
@@ -605,24 +605,32 @@ export default function DashboardPage() {
             Acciones para ayudar durante el desarrollo.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="relative">
+          {devZoneLoading && (
+            <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-10">
+                <div className="flex items-center gap-2">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span className="text-muted-foreground">{devZoneLoading}</span>
+                </div>
+            </div>
+          )}
           <div className="flex flex-wrap items-start gap-8">
             <div>
-              <Button variant="destructive" onClick={handleResetData}>
+              <Button variant="destructive" onClick={handleResetData} disabled={!!devZoneLoading}>
                 <RotateCw className="mr-2 h-4 w-4" />
                 Reiniciar Datos de Prueba
               </Button>
               <p className="text-sm text-muted-foreground mt-2 max-w-xs">
-                Esto eliminará todos los clientes y pagos guardados y los restaurará a los datos de prueba iniciales.
+                Esto eliminará todos los datos y los restaurará a los datos de prueba iniciales.
               </p>
             </div>
             <div>
-              <Button variant="destructive" onClick={handleDeleteAllData}>
+              <Button variant="destructive" onClick={handleDeleteAllData} disabled={!!devZoneLoading}>
                 <Trash2 className="mr-2 h-4 w-4" />
                 Eliminar Todos los Datos
               </Button>
               <p className="text-sm text-muted-foreground mt-2 max-w-xs">
-                Esto eliminará permanentemente todos los clientes y pagos, dejando la aplicación vacía.
+                Esto eliminará permanentemente todos los datos, dejando la aplicación vacía.
               </p>
             </div>
           </div>

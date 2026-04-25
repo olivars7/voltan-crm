@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Loader2 } from 'lucide-react';
 import { usePagos } from '@/hooks/usePagos';
 import { useClientes } from '@/hooks/useClientes';
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -25,12 +25,11 @@ import { ClienteForm } from '../clientes/ClienteForm';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import type { Pago, Cliente } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { z } from 'zod';
 import { isBefore, parseISO, addMonths, startOfMonth } from 'date-fns';
 
 export function PagosPageClient() {
-  const { pagos, addPago, updatePago } = usePagos();
-  const { clientes, getClienteById, updateCliente: updateClienteData } = useClientes();
+  const { pagos, addPago, updatePago, loading: pagosLoading } = usePagos();
+  const { clientes, getClienteById, updateCliente: updateClienteData, loading: clientesLoading } = useClientes();
   const [isPagoFormOpen, setPagoFormOpen] = React.useState(false);
   const [isPagoDetailOpen, setPagoDetailOpen] = React.useState(false);
   const [isClienteFormOpen, setClienteFormOpen] = React.useState(false);
@@ -51,16 +50,16 @@ export function PagosPageClient() {
     setNow(new Date());
   }, []);
 
-  const handleAddSubmit = (values: any) => {
-    addPago({ ...values, estado: 'pendiente' });
+  const handleAddSubmit = async (values: any) => {
+    await addPago({ ...values, estado: 'pendiente' });
     toast({ title: "Pago registrado", description: "El nuevo pago ha sido guardado." });
     setPagoFormOpen(false);
   };
 
-  const handleEditSubmit = (values: any) => {
+  const handleEditSubmit = async (values: any) => {
     if (editingPago) {
         const updatedData = { ...editingPago, ...values };
-        updatePago(updatedData);
+        await updatePago(updatedData);
         toast({ title: "Pago actualizado", description: "Los datos del pago han sido actualizados." });
         if (selectedPago?.id === updatedData.id) {
           setSelectedPago(updatedData);
@@ -70,27 +69,29 @@ export function PagosPageClient() {
     }
   };
   
-  const handleEditClienteSubmit = (values: any) => {
+  const handleEditClienteSubmit = async (values: any) => {
     if (editingCliente) {
       const updatedData = { ...editingCliente, ...values };
-      updateClienteData(updatedData);
+      await updateClienteData(updatedData);
       toast({ title: "Cliente actualizado", description: "Los datos del cliente han sido actualizados." });
       setClienteFormOpen(false);
       setEditingCliente(undefined);
     }
   };
 
-  const markAsPaid = (pago: Pago) => {
-    updatePago({ ...pago, estado: 'pagado', fechaPago: new Date().toISOString() });
+  const markAsPaid = async (pago: Pago) => {
+    const updated = { ...pago, estado: 'pagado' as const, fechaPago: new Date().toISOString() };
+    await updatePago(updated);
     toast({ title: "Pago actualizado", description: "El pago ha sido marcado como pagado." });
     if(selectedPago?.id === pago.id) {
-      setSelectedPago({ ...pago, estado: 'pagado', fechaPago: new Date().toISOString() });
+      setSelectedPago(updated);
     }
   }
 
-  const markAsPending = (pago: Pago) => {
+  const markAsPending = async (pago: Pago) => {
     const { fechaPago, ...rest } = pago;
-    updatePago({ ...rest, estado: 'pendiente' });
+    const updated = { ...rest, estado: 'pendiente' as const };
+    await updatePago(updated);
     toast({ title: "Pago actualizado", description: "El pago ha sido marcado como pendiente." });
      if(selectedPago?.id === pago.id) {
       const { fechaPago, ...restSelected } = selectedPago;
@@ -188,7 +189,6 @@ export function PagosPageClient() {
     
     const vencidos: Pago[] = [];
 
-    // 1. Get real overdue payments
     pagos.forEach(p => {
       const cliente = getClienteById(p.clienteId);
       if (cliente && cliente.estado === 'activo' && p.estado === 'pendiente' && isBefore(parseISO(p.fechaLimite), now)) {
@@ -196,7 +196,6 @@ export function PagosPageClient() {
       }
     });
 
-    // 2. Get synthetic overdue recurring payments
     clientes.forEach(cl => {
       if (cl.estado === 'activo' && cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
         const paymentDay = cl.diaDePago;
@@ -210,7 +209,6 @@ export function PagosPageClient() {
           );
 
           if (isBefore(paymentDueDate, now)) {
-            // Check if a payment (paid or pending) already exists for this month in the original `pagos` array.
             const paymentForMonthExists = pagos.some(p =>
                 p.clienteId === cl.id &&
                 p.concepto === 'Mensualidad' &&
@@ -247,35 +245,45 @@ export function PagosPageClient() {
   
   const selectedCliente = selectedClienteId ? clientes.find(c => c.id === selectedClienteId) : undefined;
   
-  const PagosTable = ({ data, tableType }: { data: Pago[], tableType: 'proximos' | 'vencidos' | 'historial' }) => {
+  const isLoading = pagosLoading || clientesLoading;
+
+  const PagosTable = ({ data, tableType, visibleCount }: { data: Pago[], tableType: 'proximos' | 'vencidos' | 'historial', visibleCount: number }) => {
     const isPending = tableType === 'proximos' || tableType === 'vencidos';
     return (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Cliente</TableHead>
-              <TableHead className="hidden sm:table-cell">Concepto</TableHead>
-              <TableHead>Monto</TableHead>
-              <TableHead>{isPending ? 'Fecha Límite' : 'Fecha de Pago'}</TableHead>
-              <TableHead>Estado</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((pago) => (
-                <TableRow key={pago.id} onClick={() => handleOpenPagoDetail(pago)} className="cursor-pointer">
-                    <TableCell>{getClienteById(pago.clienteId)?.nombre}</TableCell>
-                    <TableCell className="hidden sm:table-cell">{pago.concepto}</TableCell>
-                    <TableCell>{formatCurrency(pago.monto)}</TableCell>
-                    <TableCell>
-                      <span className={tableType === 'vencidos' ? 'text-status-danger font-medium' : ''}>
-                        {formatDate(isPending ? pago.fechaLimite : pago.fechaPago!)}
-                      </span>
-                    </TableCell>
-                    <TableCell><StatusBadge status={tableType === 'vencidos' ? 'vencido' : pago.estado} /></TableCell>
-                  </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <>
+        {data.length === 0 && !isLoading ? (
+            <p className="text-center text-muted-foreground py-8">
+                No hay pagos en esta categoría.
+            </p>
+        ) : (
+            <Table>
+            <TableHeader>
+                <TableRow>
+                <TableHead>Cliente</TableHead>
+                <TableHead className="hidden sm:table-cell">Concepto</TableHead>
+                <TableHead>Monto</TableHead>
+                <TableHead>{isPending ? 'Fecha Límite' : 'Fecha de Pago'}</TableHead>
+                <TableHead>Estado</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {data.slice(0, visibleCount).map((pago) => (
+                    <TableRow key={pago.id} onClick={() => handleOpenPagoDetail(pago)} className="cursor-pointer">
+                        <TableCell>{getClienteById(pago.clienteId)?.nombre}</TableCell>
+                        <TableCell className="hidden sm:table-cell">{pago.concepto}</TableCell>
+                        <TableCell>{formatCurrency(pago.monto)}</TableCell>
+                        <TableCell>
+                        <span className={tableType === 'vencidos' ? 'text-status-danger font-medium' : ''}>
+                            {formatDate(isPending ? pago.fechaLimite : pago.fechaPago!)}
+                        </span>
+                        </TableCell>
+                        <TableCell><StatusBadge status={tableType === 'vencidos' ? 'vencido' : pago.estado} /></TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+            </Table>
+        )}
+      </>
     );
   };
 
@@ -291,6 +299,11 @@ export function PagosPageClient() {
         </Button>
       </PageHeader>
       
+      {isLoading ? (
+            <div className="flex items-center justify-center h-64">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        ) : (
       <Tabs defaultValue="proximos">
         <TabsList>
           <TabsTrigger value="proximos">Próximos ({pagosProximos.length})</TabsTrigger>
@@ -304,7 +317,7 @@ export function PagosPageClient() {
                     <CardDescription>Pagos programados y recurrentes que aún no han vencido.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <PagosTable data={pagosProximos.slice(0, visibleProximos)} tableType="proximos" />
+                    <PagosTable data={pagosProximos} tableType="proximos" visibleCount={visibleProximos} />
                 </CardContent>
                 {visibleProximos < pagosProximos.length && (
                   <CardFooter className="justify-center pt-4">
@@ -320,7 +333,7 @@ export function PagosPageClient() {
                     <CardDescription>Pagos que no se han cubierto y su fecha límite ya pasó.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <PagosTable data={pagosVencidos.slice(0, visibleVencidos)} tableType="vencidos" />
+                    <PagosTable data={pagosVencidos} tableType="vencidos" visibleCount={visibleVencidos} />
                 </CardContent>
                  {visibleVencidos < pagosVencidos.length && (
                   <CardFooter className="justify-center pt-4">
@@ -336,7 +349,7 @@ export function PagosPageClient() {
                     <CardDescription>Un registro de todos los pagos realizados.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <PagosTable data={historialPagos.slice(0, visibleHistorial)} tableType="historial" />
+                    <PagosTable data={historialPagos} tableType="historial" visibleCount={visibleHistorial} />
                 </CardContent>
                 {visibleHistorial < historialPagos.length && (
                   <CardFooter className="justify-center pt-4">
@@ -346,6 +359,7 @@ export function PagosPageClient() {
             </Card>
         </TabsContent>
       </Tabs>
+      )}
 
       <Dialog open={isPagoFormOpen} onOpenChange={setPagoFormOpen}>
         <PagoForm 

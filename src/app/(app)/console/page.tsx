@@ -3,7 +3,7 @@ import { useClientes } from '@/hooks/useClientes';
 import { usePagos } from '@/hooks/usePagos';
 import { useAgenda } from '@/hooks/useAgenda';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { DollarSign, ClipboardCheck, CheckCircle, CalendarDays } from 'lucide-react';
+import { DollarSign, ClipboardCheck, CheckCircle, CalendarDays, Loader2 } from 'lucide-react';
 import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { isBefore, parseISO, addMonths, startOfToday, isToday, isPast, startOfMonth } from 'date-fns';
@@ -29,9 +29,9 @@ type TimelineItem = {
 }
 
 export default function ConsolePage() {
-  const { clientes, getClienteById, updateCliente } = useClientes();
-  const { pagos, updatePago } = usePagos();
-  const { llamadas, updateLlamada } = useAgenda();
+  const { clientes, getClienteById, updateCliente, loading: clientesLoading } = useClientes();
+  const { pagos, updatePago, loading: pagosLoading } = usePagos();
+  const { llamadas, updateLlamada, loading: llamadasLoading } = useAgenda();
   const [now, setNow] = useState<Date | null>(null);
   
   const { toast } = useToast();
@@ -71,25 +71,25 @@ export default function ConsolePage() {
     setSelectedClienteId(clienteId);
   }
 
-  const handleToggleStatusFromDetail = (pago: Pago) => {
+  const handleToggleStatusFromDetail = async (pago: Pago) => {
     if (pago.estado === 'pendiente') {
       const updatedPago = { ...pago, estado: 'pagado' as const, fechaPago: new Date().toISOString() };
-      updatePago(updatedPago);
+      await updatePago(updatedPago);
       toast({ title: "Pago actualizado", description: "El pago ha sido marcado como pagado." });
       setSelectedPago(updatedPago);
     } else {
       const { fechaPago, ...rest } = pago;
       const updatedPago = { ...rest, estado: 'pendiente' as const };
-      updatePago(updatedPago);
+      await updatePago(updatedPago);
       toast({ title: "Pago actualizado", description: "El pago ha sido marcado como pendiente." });
       setSelectedPago(updatedPago);
     }
     setPagoDetailOpen(false);
   }
 
-  const handleSetLlamadaStatus = (llamada: LlamadaAgendada, status: 'realizada' | 'cancelada') => {
+  const handleSetLlamadaStatus = async (llamada: LlamadaAgendada, status: 'realizada' | 'cancelada') => {
     const updatedLlamada = { ...llamada, estado: status };
-    updateLlamada(updatedLlamada);
+    await updateLlamada(updatedLlamada);
     toast({ title: `Llamada ${status}`, description: "El estado de la llamada ha sido actualizado." });
     setAgendaDetailOpen(false);
   };
@@ -105,10 +105,10 @@ export default function ConsolePage() {
     setClienteFormOpen(true);
   }
 
-  const handleEditClienteSubmit = (values: any) => {
+  const handleEditClienteSubmit = async (values: any) => {
     if (editingCliente) {
       const updatedData = { ...editingCliente, ...values };
-      updateCliente(updatedData);
+      await updateCliente(updatedData);
       toast({ title: "Cliente actualizado", description: "Los datos del cliente han sido actualizados." });
       setClienteFormOpen(false);
       setEditingCliente(undefined);
@@ -121,10 +121,10 @@ export default function ConsolePage() {
     setPagoFormOpen(true);
   };
 
-  const handleEditPagoSubmit = (values: any) => {
+  const handleEditPagoSubmit = async (values: any) => {
     if (editingPago) {
       const updatedData = { ...editingPago, ...values };
-      updatePago(updatedData);
+      await updatePago(updatedData);
       toast({ title: "Pago actualizado", description: "Los datos del pago han sido actualizados." });
       if (selectedPago?.id === updatedData.id) {
           setSelectedPago(updatedData);
@@ -325,12 +325,22 @@ export default function ConsolePage() {
       </div>
   );
 
+  const isLoading = clientesLoading || pagosLoading || llamadasLoading;
+
   return (
     <>
       <PageHeader
         title="Consola"
         description="Un registro cronológico de todos los eventos importantes."
       />
+       {isLoading ? (
+            <div className="flex items-center justify-center h-[70vh]">
+                <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                    <p className="text-muted-foreground">Cargando eventos...</p>
+                </div>
+            </div>
+        ) : (
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
             <CardHeader>
@@ -377,6 +387,7 @@ export default function ConsolePage() {
             )}
         </Card>
       </div>
+      )}
 
       {/* Dialogs */}
       <Dialog open={isPagoDetailOpen} onOpenChange={setPagoDetailOpen}>
