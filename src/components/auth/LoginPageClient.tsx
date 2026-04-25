@@ -36,7 +36,7 @@ export function LoginPageClient({ loginAction }: LoginPageClientProps) {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <LockKeyhole className="h-8 w-8" />
             </div>
-          <CardTitle className="text-2xl">ClientFlow</CardTitle>
+          <CardTitle className="text-2xl">Sistema Voltan</CardTitle>
           <CardDescription>Ingresa tu clave de acceso para continuar.</CardDescription>
         </CardHeader>
         <CardContent>

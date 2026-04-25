@@ -39,7 +39,7 @@ export function Sidebar() {
           className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-12 md:w-12"
         >
           <Package className="h-5 w-5 transition-all group-hover:scale-110 md:h-6 md:w-6" />
-          <span className="sr-only">ClientFlow</span>
+          <span className="sr-only">Sistema Voltan</span>
         </Link>
         <TooltipProvider>
           {navItems.map((item) => (

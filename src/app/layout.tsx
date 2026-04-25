@@ -4,7 +4,7 @@ import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 
 export const metadata: Metadata = {
-  title: 'ClientFlow CRM',
+  title: 'Sistema Voltan',
   description: 'Un CRM simple para gestionar clientes, citas y pagos.',
 };
 
