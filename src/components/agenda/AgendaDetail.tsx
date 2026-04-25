@@ -4,17 +4,18 @@ import { Button } from '@/components/ui/button';
 import { DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import type { LlamadaAgendada } from '@/lib/types';
 import { formatDate } from '@/lib/utils';
-import { Calendar, Phone, Video, Info, Notebook, Pencil, CalendarPlus } from 'lucide-react';
+import { Calendar, Phone, Video, Info, Notebook, Pencil, CalendarPlus, Check, X } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
 import React from 'react';
 
 interface AgendaDetailProps {
   llamada: LlamadaAgendada;
-  onEdit: () => void;
-  onReschedule: () => void;
+  onSetStatus: (status: 'realizada' | 'cancelada') => void;
+  onEdit?: () => void;
+  onReschedule?: () => void;
 }
 
-export function AgendaDetail({ llamada, onEdit, onReschedule }: AgendaDetailProps) {
+export function AgendaDetail({ llamada, onSetStatus, onEdit, onReschedule }: AgendaDetailProps) {
   
   const MedioIcon = ({ medio }: { medio: LlamadaAgendada['medio'] }) => {
     switch (medio) {
@@ -62,16 +63,31 @@ export function AgendaDetail({ llamada, onEdit, onReschedule }: AgendaDetailProp
         )}
       </div>
 
-      <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end pt-4">
-          <Button variant="outline" onClick={onReschedule} >
-              <CalendarPlus className="mr-2 h-4 w-4" />
-              Reagendar
+       {llamada.estado !== 'realizada' && llamada.estado !== 'cancelada' && (
+        <div className="grid grid-cols-2 gap-2 pt-4">
+          <Button variant="destructive" onClick={() => onSetStatus('cancelada')}>
+            <X className="mr-2 h-4 w-4" />
+            Marcar como Cancelada
           </Button>
-          <Button onClick={onEdit}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Editar
+          <Button className="bg-status-success hover:bg-status-success/90" onClick={() => onSetStatus('realizada')}>
+            <Check className="mr-2 h-4 w-4" />
+            Marcar como Realizada
           </Button>
-      </DialogFooter>
+        </div>
+      )}
+
+      {onReschedule && onEdit && (
+        <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end pt-4 border-t mt-4">
+            <Button variant="outline" onClick={onReschedule} >
+                <CalendarPlus className="mr-2 h-4 w-4" />
+                Reagendar
+            </Button>
+            <Button onClick={onEdit}>
+                <Pencil className="mr-2 h-4 w-4" />
+                Editar
+            </Button>
+        </DialogFooter>
+       )}
     </DialogContent>
   )
 }

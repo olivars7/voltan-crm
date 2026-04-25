@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
-type Status = 'pendiente' | 'pagado' | 'vencido' | 'completada' | 'activo' | 'inactivo' | 'en-progreso' | 'completado' | 'pausado' | 'cancelado' | 'pronto' | 'realizada' | 'cierre-exitoso';
+type Status = 'pendiente' | 'pagado' | 'vencido' | 'completada' | 'activo' | 'inactivo' | 'en-progreso' | 'completado' | 'pausado' | 'cancelado' | 'pronto' | 'realizada';
 
 type StatusBadgeProps = {
   status: Status;
@@ -18,9 +18,8 @@ const statusStyles: Record<Status, string> = {
   completado: "bg-status-success/30 text-status-success border-status-success/40",
   pausado: "bg-status-inactive/30 text-status-inactive border-status-inactive/40",
   cancelado: "bg-status-danger/30 text-status-danger border-status-danger/40",
-  pronto: "bg-status-warning/30 text-status-warning border-status-warning/40",
-  realizada: "bg-status-inactive/30 text-status-inactive border-status-inactive/40",
-  "cierre-exitoso": "bg-status-success/30 text-status-success border-status-success/40",
+  pronto: "bg-status-active/30 text-status-active border-status-active/40",
+  realizada: "bg-status-success/30 text-status-success border-status-success/40",
 };
 
 export function StatusBadge({ status }: StatusBadgeProps) {

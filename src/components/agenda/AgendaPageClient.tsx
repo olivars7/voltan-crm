@@ -13,9 +13,10 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { AgendaForm } from './AgendaForm';
 import { AgendaDetail } from './AgendaDetail';
 import { formatDate } from '@/lib/utils';
-import type { LlamadaAgendada } from '@/lib/types';
+import type { LlamadaAgendada, LlamadaEstado } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { parseISO } from 'date-fns';
+import { parseISO, isToday, isPast } from 'date-fns';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function AgendaPageClient() {
   const { llamadas, addLlamada, updateLlamada } = useAgenda();
@@ -27,8 +28,9 @@ export function AgendaPageClient() {
   const { toast } = useToast();
   
   const [searchTerm, setSearchTerm] = React.useState('');
-  const [visibleCount, setVisibleCount] = React.useState(40);
-
+  const [visibleUpcoming, setVisibleUpcoming] = React.useState(40);
+  const [visiblePast, setVisiblePast] = React.useState(40);
+  
   const handleAddSubmit = (values: any) => {
     addLlamada(values);
     toast({ title: "Llamada agendada", description: "La nueva llamada ha sido guardada." });
@@ -47,6 +49,13 @@ export function AgendaPageClient() {
             setSelectedLlamada(updatedLlamada);
         }
     }
+  }
+
+  const handleSetStatus = (llamada: LlamadaAgendada, status: 'realizada' | 'cancelada') => {
+    const updatedLlamada = { ...llamada, estado: status };
+    updateLlamada(updatedLlamada);
+    toast({ title: `Llamada ${status}`, description: "El estado de la llamada ha sido actualizado." });
+    setDetailOpen(false);
   }
 
   const openNewDialog = () => {
@@ -72,17 +81,57 @@ export function AgendaPageClient() {
     setFormOpen(true);
   }
 
+  const getEffectiveStatus = (llamada: LlamadaAgendada): LlamadaEstado => {
+    const callDate = parseISO(llamada.fecha);
+    if (llamada.estado === 'pronto' && (isToday(callDate) || isPast(callDate))) {
+      return 'pendiente';
+    }
+    return llamada.estado;
+  };
+  
+  const searchFilter = (llamada: LlamadaAgendada) => {
+      const search = searchTerm.toLowerCase();
+      return (
+          llamada.nombre.toLowerCase().includes(search) ||
+          llamada.telefono.includes(search) ||
+          getEffectiveStatus(llamada).toLowerCase().includes(search)
+      );
+  };
+  
+  const llamadasProximas = llamadas
+    .filter(l => ['pronto', 'pendiente'].includes(getEffectiveStatus(l)))
+    .filter(searchFilter)
+    .sort((a, b) => parseISO(a.fecha).getTime() - parseISO(b.fecha).getTime());
 
-  const sortedLlamadas = [...llamadas].sort((a, b) => parseISO(a.fecha).getTime() - parseISO(b.fecha).getTime());
+  const llamadasPasadas = llamadas
+    .filter(l => ['realizada', 'cancelada'].includes(getEffectiveStatus(l)))
+    .filter(searchFilter)
+    .sort((a, b) => parseISO(b.fecha).getTime() - parseISO(a.fecha).getTime());
 
-  const filteredLlamadas = sortedLlamadas.filter(llamada => {
-    const search = searchTerm.toLowerCase();
-    return (
-        llamada.nombre.toLowerCase().includes(search) ||
-        llamada.telefono.includes(search) ||
-        llamada.estado.toLowerCase().includes(search)
-    );
-  });
+  const CallsTable = ({ calls, visibleCount }: { calls: LlamadaAgendada[], visibleCount: number }) => (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Cliente/Interesado</TableHead>
+          <TableHead className="hidden md:table-cell">Número</TableHead>
+          <TableHead>Fecha y Hora</TableHead>
+          <TableHead className="hidden sm:table-cell">Medio</TableHead>
+          <TableHead>Estado</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {calls.slice(0, visibleCount).map((llamada) => (
+          <TableRow key={llamada.id} onClick={() => openDetailDialog(llamada)} className="cursor-pointer">
+            <TableCell className="font-medium">{llamada.nombre}</TableCell>
+            <TableCell className="hidden md:table-cell">{llamada.telefono}</TableCell>
+            <TableCell>{formatDate(llamada.fecha, "d MMM, yyyy h:mm a")}</TableCell>
+            <TableCell className="hidden sm:table-cell capitalize">{llamada.medio.replace('-', ' ')}</TableCell>
+            <TableCell><StatusBadge status={getEffectiveStatus(llamada)} /></TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
 
   return (
     <>
@@ -96,59 +145,61 @@ export function AgendaPageClient() {
         </Button>
       </PageHeader>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Llamadas Agendadas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="pb-4">
-            <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                    type="search"
-                    placeholder="Buscar por nombre, número o estado..."
-                    className="w-full pl-8 md:w-1/2 lg:w-1/3"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-            </div>
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Cliente/Interesado</TableHead>
-                <TableHead className="hidden md:table-cell">Número</TableHead>
-                <TableHead>Fecha y Hora</TableHead>
-                <TableHead className="hidden sm:table-cell">Medio</TableHead>
-                <TableHead>Estado</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredLlamadas.slice(0, visibleCount).map((llamada) => (
-                <TableRow key={llamada.id} onClick={() => openDetailDialog(llamada)} className="cursor-pointer">
-                  <TableCell className="font-medium">
-                    {llamada.nombre}
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">{llamada.telefono}</TableCell>
-                  <TableCell>{formatDate(llamada.fecha, "d MMM, yyyy h:mm a")}</TableCell>
-                  <TableCell className="hidden sm:table-cell capitalize">{llamada.medio.replace('-',' ')}</TableCell>
-                  <TableCell>
-                    <StatusBadge status={llamada.estado} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-           {filteredLlamadas.length === 0 && (
-            <p className="text-center text-muted-foreground py-8">No hay llamadas agendadas.</p>
-           )}
-        </CardContent>
-        {visibleCount < filteredLlamadas.length && (
-          <CardFooter className="justify-center">
-            <Button onClick={() => setVisibleCount(v => v + 40)}>Cargar más</Button>
-          </CardFooter>
-        )}
-      </Card>
+       <div className="pb-4">
+        <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+                type="search"
+                placeholder="Buscar por nombre, número o estado..."
+                className="w-full pl-8 md:w-1/2 lg:w-1/3"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+            />
+        </div>
+      </div>
+      
+      <Tabs defaultValue="proximas">
+        <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="proximas">Próximas</TabsTrigger>
+            <TabsTrigger value="pasadas">Pasadas</TabsTrigger>
+        </TabsList>
+        <TabsContent value="proximas">
+            <Card>
+                <CardHeader>
+                  <CardTitle>Llamadas Próximas</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <CallsTable calls={llamadasProximas} visibleCount={visibleUpcoming} />
+                    {llamadasProximas.length === 0 && (
+                      <p className="text-center text-muted-foreground py-8">No hay llamadas próximas.</p>
+                    )}
+                </CardContent>
+                {visibleUpcoming < llamadasProximas.length && (
+                    <CardFooter className="justify-center">
+                        <Button onClick={() => setVisibleUpcoming(v => v + 40)}>Cargar más</Button>
+                    </CardFooter>
+                )}
+            </Card>
+        </TabsContent>
+        <TabsContent value="pasadas">
+            <Card>
+                <CardHeader>
+                  <CardTitle>Llamadas Pasadas</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <CallsTable calls={llamadasPasadas} visibleCount={visiblePast} />
+                     {llamadasPasadas.length === 0 && (
+                      <p className="text-center text-muted-foreground py-8">No hay llamadas pasadas.</p>
+                     )}
+                </CardContent>
+                 {visiblePast < llamadasPasadas.length && (
+                    <CardFooter className="justify-center">
+                        <Button onClick={() => setVisiblePast(v => v + 40)}>Cargar más</Button>
+                    </CardFooter>
+                )}
+            </Card>
+        </TabsContent>
+      </Tabs>
       
       <Dialog open={isFormOpen} onOpenChange={(isOpen) => { if(!isOpen) {setSelectedLlamada(undefined); setIsRescheduling(false);} setFormOpen(isOpen);}}>
         <AgendaForm 
@@ -160,7 +211,12 @@ export function AgendaPageClient() {
       </Dialog>
 
       <Dialog open={isDetailOpen} onOpenChange={(isOpen) => { if(!isOpen) setSelectedLlamada(undefined); setDetailOpen(isOpen); }}>
-        {selectedLlamada && <AgendaDetail llamada={selectedLlamada} onEdit={openEditDialog} onReschedule={openRescheduleDialog} />}
+        {selectedLlamada && <AgendaDetail 
+            llamada={selectedLlamada} 
+            onEdit={openEditDialog} 
+            onReschedule={openRescheduleDialog}
+            onSetStatus={(status) => handleSetStatus(selectedLlamada, status)}
+             />}
       </Dialog>
     </>
   );

@@ -1,13 +1,14 @@
 'use client';
 import { useClientes } from '@/hooks/useClientes';
 import { usePagos } from '@/hooks/usePagos';
+import { useAgenda } from '@/hooks/useAgenda';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { DollarSign, ClipboardCheck, CheckCircle } from 'lucide-react';
+import { DollarSign, ClipboardCheck, CheckCircle, CalendarDays } from 'lucide-react';
 import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { isBefore, parseISO, addMonths, isWithinInterval, startOfToday, startOfMonth } from 'date-fns';
+import { isBefore, parseISO, addMonths, startOfToday, isToday, isPast } from 'date-fns';
 import { useEffect, useState } from 'react';
-import { type Cliente, type Pago } from '@/lib/types';
+import { type Cliente, type Pago, type LlamadaAgendada, type LlamadaEstado } from '@/lib/types';
 import { Dialog } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { PagoDetail } from '@/components/pagos/PagoDetail';
@@ -15,12 +16,13 @@ import { ClienteDetail } from '@/components/clientes/ClienteDetail';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { ClienteForm } from '@/components/clientes/ClienteForm';
 import { PagoForm } from '@/components/pagos/PagoForm';
+import { AgendaDetail } from '@/components/agenda/AgendaDetail';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Button } from '@/components/ui/button';
 
 type TimelineItem = {
   date: Date;
-  type: 'pago' | 'entrega';
+  type: 'pago' | 'entrega' | 'llamada';
   subType: 'upcoming' | 'overdue' | 'completed';
   data: any;
   cliente: any;
@@ -29,6 +31,7 @@ type TimelineItem = {
 export default function ConsolePage() {
   const { clientes, getClienteById, updateCliente } = useClientes();
   const { pagos, updatePago } = usePagos();
+  const { llamadas, updateLlamada } = useAgenda();
   const [now, setNow] = useState<Date | null>(null);
   
   const { toast } = useToast();
@@ -37,11 +40,13 @@ export default function ConsolePage() {
   const [isPagoDetailOpen, setPagoDetailOpen] = useState(false);
   const [isClienteFormOpen, setClienteFormOpen] = useState(false);
   const [isPagoFormOpen, setPagoFormOpen] = useState(false);
+  const [isAgendaDetailOpen, setAgendaDetailOpen] = useState(false);
 
   const [selectedPago, setSelectedPago] = useState<Pago | undefined>(undefined);
   const [selectedClienteId, setSelectedClienteId] = useState<string | undefined>(undefined);
   const [editingCliente, setEditingCliente] = useState<Cliente | undefined>(undefined);
   const [editingPago, setEditingPago] = useState<Pago | undefined>(undefined);
+  const [selectedLlamada, setSelectedLlamada] = useState<LlamadaAgendada | undefined>(undefined);
   
   // Pagination state
   const [visibleUpcoming, setVisibleUpcoming] = useState(40);
@@ -55,6 +60,11 @@ export default function ConsolePage() {
   const handleOpenPagoDetail = (pago: Pago) => {
     setSelectedPago(pago);
     setPagoDetailOpen(true);
+  }
+  
+  const handleOpenAgendaDetail = (llamada: LlamadaAgendada) => {
+    setSelectedLlamada(llamada);
+    setAgendaDetailOpen(true);
   }
 
   const handleOpenClienteDetail = (clienteId: string) => {
@@ -76,6 +86,13 @@ export default function ConsolePage() {
     }
     setPagoDetailOpen(false);
   }
+
+  const handleSetLlamadaStatus = (llamada: LlamadaAgendada, status: 'realizada' | 'cancelada') => {
+    const updatedLlamada = { ...llamada, estado: status };
+    updateLlamada(updatedLlamada);
+    toast({ title: `Llamada ${status}`, description: "El estado de la llamada ha sido actualizado." });
+    setAgendaDetailOpen(false);
+  };
 
   const handleOpenClienteFromPago = (clienteId: string) => {
     setSelectedClienteId(clienteId);
@@ -125,6 +142,8 @@ export default function ConsolePage() {
       if (cliente) {
         handleOpenClienteDetail(cliente.id);
       }
+    } else if (item.type === 'llamada') {
+        handleOpenAgendaDetail(item.data as LlamadaAgendada);
     }
   };
 
@@ -132,6 +151,37 @@ export default function ConsolePage() {
   const completedItems: TimelineItem[] = [];
 
   if (now) {
+    const getEffectiveStatus = (llamada: LlamadaAgendada): LlamadaEstado => {
+      const callDate = parseISO(llamada.fecha);
+      if (llamada.estado === 'pronto' && (isToday(callDate) || isPast(callDate))) {
+        return 'pendiente';
+      }
+      return llamada.estado;
+    };
+
+    // Process calls
+    llamadas.forEach(l => {
+      const effectiveStatus = getEffectiveStatus(l);
+      const callDate = parseISO(l.fecha);
+      if (effectiveStatus === 'pronto' || effectiveStatus === 'pendiente') {
+          upcomingItems.push({
+              date: callDate,
+              type: 'llamada',
+              subType: isBefore(callDate, now) ? 'overdue' : 'upcoming',
+              data: l,
+              cliente: { nombre: l.nombre } // Mock client for display consistency
+          });
+      } else { // 'realizada' or 'cancelada'
+          completedItems.push({
+              date: callDate,
+              type: 'llamada',
+              subType: 'completed',
+              data: l,
+              cliente: { nombre: l.nombre }
+          });
+      }
+    });
+
     // Process real payments
     pagos.forEach(p => {
       const cliente = getClienteById(p.clienteId);
@@ -183,7 +233,6 @@ export default function ConsolePage() {
         const paymentDay = cl.diaDePago;
         let cursorDate = startOfMonth(parseISO(cl.fechaInicio));
 
-        // Loop through each month from client start until today to generate historic overdue and upcoming payments
         while (isBefore(cursorDate, addMonths(startOfMonth(now), 1))) {
           const paymentDueDate = new Date(
             cursorDate.getFullYear(),
@@ -191,7 +240,6 @@ export default function ConsolePage() {
             paymentDay
           );
 
-          // Only consider due dates up to the next payment cycle
           if (isBefore(paymentDueDate, addMonths(now, 1))) {
             const existingPayment = pagos.find(
               (p) =>
@@ -242,14 +290,9 @@ export default function ConsolePage() {
     switch (type) {
       case 'pago': return <DollarSign className="h-4 w-4 text-muted-foreground" />;
       case 'entrega': return <ClipboardCheck className="h-4 w-4 text-muted-foreground" />;
+      case 'llamada': return <CalendarDays className="h-4 w-4 text-muted-foreground" />;
       default: return null;
     }
-  }
-  
-  const getPagoStatus = (pago: Pago, itemSubType: TimelineItem['subType']): 'pagado' | 'pendiente' | 'vencido' => {
-    if (pago.estado === 'pagado') return 'pagado';
-    if (itemSubType === 'overdue') return 'vencido';
-    return 'pendiente';
   }
   
   const renderTimelineItem = (item: TimelineItem, index: number) => (
@@ -264,6 +307,7 @@ export default function ConsolePage() {
                 <p className="text-sm font-medium leading-none">
                     {item.type === 'pago' && `${item.data.concepto}: ${formatCurrency(item.data.monto)}`}
                     {item.type === 'entrega' && `Entrega: ${item.data.nombre}`}
+                    {item.type === 'llamada' && `Llamada: ${item.data.nombre}`}
                 </p>
                 {item.subType === 'overdue' && <StatusBadge status="vencido" />}
               </div>
@@ -360,6 +404,12 @@ export default function ConsolePage() {
             onSubmit={handleEditPagoSubmit} 
             setOpen={setPagoFormOpen}
         />
+      </Dialog>
+      <Dialog open={isAgendaDetailOpen} onOpenChange={setAgendaDetailOpen}>
+        {selectedLlamada && <AgendaDetail 
+          llamada={selectedLlamada}
+          onSetStatus={(status) => handleSetLlamadaStatus(selectedLlamada, status)}
+        />}
       </Dialog>
     </>
   );

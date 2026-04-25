@@ -32,7 +32,7 @@ export type Pago = {
   notas?: string;
 };
 
-export type LlamadaEstado = 'pronto' | 'cancelada' | 'realizada' | 'cierre-exitoso';
+export type LlamadaEstado = 'pronto' | 'pendiente' | 'realizada' | 'cancelada';
 export type LlamadaMedio = 'llamada' | 'google-meet' | 'zoom';
 
 export type LlamadaAgendada = {

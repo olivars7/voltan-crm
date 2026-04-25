@@ -19,7 +19,7 @@ const formSchema = z.object({
   telefono: z.string().min(10, { message: 'Número de WhatsApp inválido.' }),
   medio: z.enum(['llamada', 'google-meet', 'zoom'], { required_error: 'El medio es requerido.' }),
   fecha: z.string().min(1, { message: 'La fecha es requerida.' }),
-  estado: z.enum(['pronto', 'cancelada', 'realizada', 'cierre-exitoso'], { required_error: 'El estado es requerido.' }),
+  estado: z.enum(['pronto', 'pendiente', 'realizada', 'cancelada'], { required_error: 'El estado es requerido.' }),
   notas: z.string().optional(),
 });
 
@@ -104,9 +104,9 @@ export function AgendaForm({ llamada, isRescheduling = false, onSubmit, setOpen 
                         <FormControl><SelectTrigger><SelectValue placeholder="Selecciona un estado" /></SelectTrigger></FormControl>
                         <SelectContent>
                             <SelectItem value="pronto">Pronto</SelectItem>
-                            <SelectItem value="cancelada">Cancelada</SelectItem>
+                            <SelectItem value="pendiente">Pendiente</SelectItem>
                             <SelectItem value="realizada">Realizada</SelectItem>
-                            <SelectItem value="cierre-exitoso">Cierre Exitoso</SelectItem>
+                            <SelectItem value="cancelada">Cancelada</SelectItem>
                         </SelectContent>
                     </Select>
                     <FormMessage />

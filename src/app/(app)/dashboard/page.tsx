@@ -1,16 +1,17 @@
 'use client';
 import { useClientes } from '@/hooks/useClientes';
 import { usePagos } from '@/hooks/usePagos';
+import { useAgenda } from '@/hooks/useAgenda';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Users, DollarSign, AlertTriangle, ClipboardCheck, RotateCw, Trash2 } from 'lucide-react';
+import { Users, DollarSign, AlertTriangle, ClipboardCheck, RotateCw, Trash2, CalendarDays } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis } from "recharts"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { isBefore, parseISO, subMonths, startOfMonth, endOfMonth, format, isWithinInterval, addMonths, addWeeks } from 'date-fns';
+import { isBefore, parseISO, subMonths, startOfMonth, endOfMonth, format, isWithinInterval, addMonths, isToday, isPast } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useEffect, useState } from 'react';
-import { type Cliente, type Pago } from '@/lib/types';
+import { type Cliente, type Pago, type LlamadaAgendada, type LlamadaEstado } from '@/lib/types';
 import { Dialog } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { PagoDetail } from '@/components/pagos/PagoDetail';
@@ -19,10 +20,11 @@ import { ClienteForm } from '@/components/clientes/ClienteForm';
 import { Button } from '@/components/ui/button';
 import { PagoForm } from '@/components/pagos/PagoForm';
 import { StatusBadge } from '@/components/shared/StatusBadge';
+import { AgendaDetail } from '@/components/agenda/AgendaDetail';
 
 type TimelineItem = {
   date: Date;
-  type: 'pago' | 'entrega';
+  type: 'pago' | 'entrega' | 'llamada';
   subType: 'overdue' | 'upcoming';
   data: any;
   cliente: any;
@@ -31,6 +33,7 @@ type TimelineItem = {
 export default function DashboardPage() {
   const { clientes, getClienteById, updateCliente } = useClientes();
   const { pagos, updatePago } = usePagos();
+  const { llamadas, updateLlamada } = useAgenda();
   const [now, setNow] = useState<Date | null>(null);
   
   const { toast } = useToast();
@@ -39,11 +42,13 @@ export default function DashboardPage() {
   const [isPagoDetailOpen, setPagoDetailOpen] = useState(false);
   const [isClienteFormOpen, setClienteFormOpen] = useState(false);
   const [isPagoFormOpen, setPagoFormOpen] = useState(false);
+  const [isAgendaDetailOpen, setAgendaDetailOpen] = useState(false);
 
   const [selectedPago, setSelectedPago] = useState<Pago | undefined>(undefined);
   const [selectedClienteId, setSelectedClienteId] = useState<string | undefined>(undefined);
   const [editingCliente, setEditingCliente] = useState<Cliente | undefined>(undefined);
   const [editingPago, setEditingPago] = useState<Pago | undefined>(undefined);
+  const [selectedLlamada, setSelectedLlamada] = useState<LlamadaAgendada | undefined>(undefined);
   const [visibleTimeline, setVisibleTimeline] = useState(40);
 
   useEffect(() => {
@@ -58,6 +63,7 @@ export default function DashboardPage() {
     if (isConfirmed) {
       window.localStorage.removeItem('clientes');
       window.localStorage.removeItem('pagos');
+      window.localStorage.removeItem('agenda');
       window.location.reload();
     }
   };
@@ -69,6 +75,7 @@ export default function DashboardPage() {
     if (isConfirmed) {
       window.localStorage.setItem('clientes', '[]');
       window.localStorage.setItem('pagos', '[]');
+      window.localStorage.setItem('agenda', '[]');
       window.location.reload();
     }
   };
@@ -77,6 +84,11 @@ export default function DashboardPage() {
   const handleOpenPagoDetail = (pago: Pago) => {
     setSelectedPago(pago);
     setPagoDetailOpen(true);
+  }
+  
+  const handleOpenAgendaDetail = (llamada: LlamadaAgendada) => {
+    setSelectedLlamada(llamada);
+    setAgendaDetailOpen(true);
   }
 
   const handleOpenClienteDetail = (clienteId: string) => {
@@ -98,6 +110,13 @@ export default function DashboardPage() {
     }
     setPagoDetailOpen(false);
   }
+
+  const handleSetLlamadaStatus = (llamada: LlamadaAgendada, status: 'realizada' | 'cancelada') => {
+    const updatedLlamada = { ...llamada, estado: status };
+    updateLlamada(updatedLlamada);
+    toast({ title: `Llamada ${status}`, description: "El estado de la llamada ha sido actualizado." });
+    setAgendaDetailOpen(false);
+  };
 
   const handleOpenClienteFromPago = (clienteId: string) => {
     setSelectedClienteId(clienteId);
@@ -147,6 +166,8 @@ export default function DashboardPage() {
       if (cliente) {
         handleOpenClienteDetail(cliente.id);
       }
+    } else if (item.type === 'llamada') {
+      handleOpenAgendaDetail(item.data as LlamadaAgendada);
     }
   };
 
@@ -204,6 +225,29 @@ export default function DashboardPage() {
   // General Console Data
   const timelineItems: TimelineItem[] = [];
   if (now) {
+    const getEffectiveStatus = (llamada: LlamadaAgendada): LlamadaEstado => {
+      const callDate = parseISO(llamada.fecha);
+      if (llamada.estado === 'pronto' && (isToday(callDate) || isPast(callDate))) {
+        return 'pendiente';
+      }
+      return llamada.estado;
+    };
+
+    // Process calls
+    llamadas.forEach(l => {
+        const effectiveStatus = getEffectiveStatus(l);
+        const callDate = parseISO(l.fecha);
+        if (effectiveStatus === 'pronto' || effectiveStatus === 'pendiente') {
+            timelineItems.push({
+                date: callDate,
+                type: 'llamada',
+                subType: isBefore(callDate, now) ? 'overdue' : 'upcoming',
+                data: l,
+                cliente: { nombre: l.nombre } // Mock client-like object for display
+            });
+        }
+    });
+
     // Process real payments
     pagos.forEach(p => {
       const cliente = getClienteById(p.clienteId);
@@ -334,14 +378,23 @@ export default function DashboardPage() {
     switch (type) {
       case 'pago': return <DollarSign className="h-4 w-4 text-muted-foreground" />;
       case 'entrega': return <ClipboardCheck className="h-4 w-4 text-muted-foreground" />;
+      case 'llamada': return <CalendarDays className="h-4 w-4 text-muted-foreground" />;
       default: return null;
     }
   }
   
-  const getPagoStatus = (pago: Pago, itemSubType: TimelineItem['subType']): 'pagado' | 'pendiente' | 'vencido' => {
-    if (pago.estado === 'pagado') return 'pagado';
-    if (itemSubType === 'overdue') return 'vencido';
-    return 'pendiente';
+  const getItemStatus = (item: TimelineItem): 'pagado' | 'pendiente' | 'vencido' | 'pronto' | 'realizada' | 'cancelada' => {
+    if (item.type === 'pago') {
+      if (item.data.estado === 'pagado') return 'pagado';
+      if (item.subType === 'overdue') return 'vencido';
+      return 'pendiente';
+    }
+    if (item.type === 'llamada') {
+        const effectiveStatus = getEffectiveStatus(item.data);
+        if (effectiveStatus === 'pendiente' && item.subType === 'overdue') return 'vencido';
+        return effectiveStatus as any; // Cast because it will be one of the call statuses
+    }
+    return 'pendiente'; // Default for entrega
   }
 
 
@@ -389,7 +442,7 @@ export default function DashboardPage() {
                   <div className="space-y-2 pr-4">
                       {now && sortedTimeline.slice(0, visibleTimeline).map((item, index) => (
                           <div 
-                            key={index}
+                            key={`${item.type}-${item.data.id}-${index}`}
                             onClick={() => handleItemClick(item)} 
                             className="flex items-start gap-4 cursor-pointer hover:bg-muted/50 p-2 -m-2 rounded-lg transition-colors"
                           >
@@ -399,8 +452,9 @@ export default function DashboardPage() {
                                     <p className="text-sm font-medium leading-none">
                                         {item.type === 'pago' && `${item.data.concepto}: ${formatCurrency(item.data.monto)}`}
                                         {item.type === 'entrega' && `Entrega: ${item.data.nombre}`}
+                                        {item.type === 'llamada' && `Llamada: ${item.data.nombre}`}
                                     </p>
-                                    {item.subType === 'overdue' && <StatusBadge status={getPagoStatus(item.data, item.subType)} />}
+                                    {item.subType === 'overdue' && <StatusBadge status={getItemStatus(item)} />}
                                   </div>
                                   <p className="text-sm text-muted-foreground">
                                       <span className={item.subType === 'overdue' ? 'text-status-danger font-medium' : ''}>
@@ -496,6 +550,13 @@ export default function DashboardPage() {
             setOpen={setPagoFormOpen}
         />
       </Dialog>
+      
+      <Dialog open={isAgendaDetailOpen} onOpenChange={setAgendaDetailOpen}>
+        {selectedLlamada && <AgendaDetail 
+          llamada={selectedLlamada}
+          onSetStatus={(status) => handleSetLlamadaStatus(selectedLlamada, status)}
+        />}
+      </Dialog>
 
       <Card className="mt-8">
         <CardHeader>
@@ -530,5 +591,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
