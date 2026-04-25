@@ -32,37 +32,62 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-10 hidden w-20 flex-col border-r bg-background sm:flex">
-      <nav className="flex flex-col items-center gap-4 px-2 sm:py-5">
-        <Link
-          href="/dashboard"
-          className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-12 md:w-12"
-        >
-          <Package className="h-5 w-5 transition-all group-hover:scale-110 md:h-6 md:w-6" />
-          <span className="sr-only">Sistema Voltan</span>
-        </Link>
-        <TooltipProvider>
-          {navItems.map((item) => (
-            <Tooltip key={item.href}>
-              <TooltipTrigger asChild>
-                <Link
-                  href={item.href}
-                  className={cn(
-                    'flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-12 md:w-12',
-                    pathname.startsWith(item.href) && 'bg-accent text-accent-foreground'
-                  )}
-                >
-                  <item.icon className="h-5 w-5" />
-                  <span className="sr-only">{item.label}</span>
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="border bg-background">
-                {item.label}
-              </TooltipContent>
-            </Tooltip>
-          ))}
-        </TooltipProvider>
+    <>
+      <aside className="fixed inset-y-0 left-0 z-10 hidden w-20 flex-col border-r bg-background sm:flex">
+        <nav className="flex flex-col items-center gap-4 px-2 sm:py-5">
+          <Link
+            href="/dashboard"
+            className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-12 md:w-12"
+          >
+            <Package className="h-5 w-5 transition-all group-hover:scale-110 md:h-6 md:w-6" />
+            <span className="sr-only">Sistema Voltan</span>
+          </Link>
+          <TooltipProvider>
+            {navItems.map((item) => {
+              const isActive = item.href === '/dashboard' ? pathname === item.href : pathname.startsWith(item.href);
+              return (
+              <Tooltip key={item.href}>
+                <TooltipTrigger asChild>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      'flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-12 md:w-12',
+                      isActive && 'bg-accent text-accent-foreground'
+                    )}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span className="sr-only">{item.label}</span>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="border bg-background">
+                  {item.label}
+                </TooltipContent>
+              </Tooltip>
+            )})}
+          </TooltipProvider>
+        </nav>
+      </aside>
+      
+      {/* Mobile Bottom Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 z-10 border-t bg-background/90 p-1 backdrop-blur-sm sm:hidden">
+        <div className="grid grid-cols-6 items-center justify-around">
+          {navItems.map((item) => {
+            const isActive = item.href === '/dashboard' ? pathname === item.href : pathname.startsWith(item.href);
+            return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'flex flex-col items-center justify-center gap-1 rounded-lg p-2 text-muted-foreground transition-colors hover:text-foreground',
+                isActive && 'text-primary'
+              )}
+            >
+              <item.icon className="h-5 w-5" />
+              <span className="text-[10px] font-medium text-center">{item.label}</span>
+            </Link>
+          )})}
+        </div>
       </nav>
-    </aside>
+    </>
   );
 }

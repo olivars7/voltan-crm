@@ -4,7 +4,10 @@ import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 
 export const metadata: Metadata = {
-  title: 'Sistema Voltan',
+  title: {
+    default: 'Sistema Voltan',
+    template: '%s | Sistema Voltan',
+  },
   description: 'Un CRM simple para gestionar clientes, citas y pagos.',
 };
 
