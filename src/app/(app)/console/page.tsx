@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { DollarSign, ClipboardCheck, CheckCircle, CalendarDays } from 'lucide-react';
 import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { isBefore, parseISO, addMonths, startOfToday, isToday, isPast } from 'date-fns';
+import { isBefore, parseISO, addMonths, startOfToday, isToday, isPast, startOfMonth } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { type Cliente, type Pago, type LlamadaAgendada, type LlamadaEstado } from '@/lib/types';
 import { Dialog } from '@/components/ui/dialog';
