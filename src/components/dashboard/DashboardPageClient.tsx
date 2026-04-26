@@ -530,9 +530,9 @@ export default function DashboardPageClient() {
                       </CardHeader>
                       <CardContent>
                           <ChartContainer config={chartConfig} className="w-full h-48">
-                              <BarChart accessibilityLayer data={monthlyRevenue} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                              <BarChart accessibilityLayer data={monthlyRevenue} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                                   <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
-                                  <YAxis tickFormatter={(value) => `$${value/1000}k`} tickLine={false} axisLine={false} fontSize={12} />
+                                  <YAxis tickFormatter={(value) => `$${value/1000}k`} tickLine={false} axisLine={false} fontSize={12} width={40} />
                                   <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" className="bg-background/80 backdrop-blur-sm" />} />
                                   <Bar dataKey="ingresos" fill="var(--color-ingresos)" radius={4} />
                               </BarChart>
@@ -545,9 +545,9 @@ export default function DashboardPageClient() {
                       </CardHeader>
                       <CardContent>
                           <ChartContainer config={chartConfig} className="w-full h-48">
-                              <BarChart accessibilityLayer data={newClientsByMonth} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                              <BarChart accessibilityLayer data={newClientsByMonth} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                                   <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
-                                  <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={12} />
+                                  <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={12} width={20} />
                                   <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" className="bg-background/80 backdrop-blur-sm" />} />
                                   <Bar dataKey="clientes" fill="var(--color-clientes)" radius={4} />
                               </BarChart>

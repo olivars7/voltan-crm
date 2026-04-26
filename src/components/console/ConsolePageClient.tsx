@@ -302,8 +302,8 @@ export default function ConsolePageClient() {
         className="flex items-start gap-4 cursor-pointer hover:bg-muted/50 p-2 -m-2 rounded-lg transition-colors"
       >
           <TimelineIcon type={item.type} subType={item.subType} />
-          <div className="flex-1 space-y-1">
-              <div className="flex items-center justify-between">
+          <div className="flex-1 space-y-1 overflow-hidden">
+            <div className="flex flex-wrap items-center justify-between gap-x-2">
                 <p className="text-sm font-medium leading-none">
                     {item.type === 'pago' && `${item.data.concepto}: ${formatCurrency(item.data.monto)}`}
                     {item.type === 'entrega' && `Entrega: ${item.data.nombre}`}
