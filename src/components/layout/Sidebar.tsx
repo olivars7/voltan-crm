@@ -9,7 +9,6 @@ import {
   Package,
   History,
   CalendarDays,
-  Database,
   Lightbulb,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -27,7 +26,6 @@ const navItems = [
   { href: '/console', icon: History, label: 'Consola' },
   { href: '/agenda', icon: CalendarDays, label: 'Agenda' },
   { href: '/leads', icon: Lightbulb, label: 'Leads' },
-  { href: '/test', icon: Database, label: 'Test DB' },
 ];
 
 export function Sidebar() {

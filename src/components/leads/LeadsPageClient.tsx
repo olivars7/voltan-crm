@@ -10,9 +10,10 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { StatusBadge } from '@/components/shared/StatusBadge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LeadForm } from './LeadForm';
-import type { Lead } from '@/lib/types';
+import type { Lead, LeadEstado } from '@/lib/types';
+import { leadEstados } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { serviceDisplayNames } from './ServiciosCheckboxes';
 
@@ -41,6 +42,15 @@ export function LeadsPageClient() {
         setEditingLead(undefined);
     }
   }
+
+  const handleStatusChange = async (lead: Lead, newStatus: LeadEstado) => {
+    const updatedLead = { ...lead, estado: newStatus };
+    await updateLead(updatedLead);
+    toast({
+        title: "Estado de Lead Actualizado",
+        description: `El estado de ${lead.nombre} ha sido cambiado a "${newStatus.replace(/-/g, ' ')}".`
+    });
+  };
 
   const openNewDialog = () => {
     setEditingLead(undefined);
@@ -89,7 +99,25 @@ export function LeadsPageClient() {
                 <TableCell>
                   {lead.servicios.map(s => serviceDisplayNames[s]).join(', ')}
                 </TableCell>
-                <TableCell><StatusBadge status={lead.estado} /></TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <Select
+                    value={lead.estado}
+                    onValueChange={(newStatus: LeadEstado) => handleStatusChange(lead, newStatus)}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Seleccionar estado..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {leadEstados
+                        .filter(estado => estado !== 'no-interesado')
+                        .map(estado => (
+                          <SelectItem key={estado} value={estado}>
+                            <span className="capitalize">{estado.replace(/-/g, ' ')}</span>
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

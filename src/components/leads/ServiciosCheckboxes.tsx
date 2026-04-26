@@ -4,11 +4,11 @@ import { FormControl, FormItem, FormLabel } from "@/components/ui/form";
 import { leadServicios, LeadServicio } from "@/lib/types";
 
 export const serviceDisplayNames: Record<LeadServicio, string> = {
-    'desarrollo-web': 'Desarrollo Web',
-    'marketing-digital': 'Marketing Digital',
-    'gestion-redes': 'Gestión de Redes',
-    'consultoria-negocios': 'Consultoría de Negocios',
-    'diseno-grafico': 'Diseño Gráfico',
+    'landing-page': 'Landing Page',
+    'crm': 'CRM',
+    'menu-digital': 'Menú Digital',
+    'catalogo-digital': 'Catálogo Digital',
+    'panel-administrativo': 'Panel Administrativo',
     'otro': 'Otro'
 };
 

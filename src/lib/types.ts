@@ -46,11 +46,11 @@ export type LlamadaAgendada = {
 };
 
 export const leadServicios = [
-  'desarrollo-web', 
-  'marketing-digital', 
-  'gestion-redes', 
-  'consultoria-negocios', 
-  'diseno-grafico',
+  'landing-page', 
+  'crm', 
+  'menu-digital', 
+  'catalogo-digital', 
+  'panel-administrativo',
   'otro'
 ] as const;
 export type LeadServicio = typeof leadServicios[number];
