@@ -261,7 +261,7 @@ export function PagosPageClient() {
                 <TableRow>
                 <TableHead>Cliente</TableHead>
                 <TableHead>Concepto</TableHead>
-                <TableHead>Monto</TableHead>
+                <TableHead className="text-right">Monto</TableHead>
                 <TableHead>{isPending ? 'Fecha Límite' : 'Fecha de Pago'}</TableHead>
                 <TableHead>Estado</TableHead>
                 </TableRow>
@@ -271,7 +271,7 @@ export function PagosPageClient() {
                     <TableRow key={pago.id} onClick={() => handleOpenPagoDetail(pago)} className="cursor-pointer">
                         <TableCell>{getClienteById(pago.clienteId)?.nombre}</TableCell>
                         <TableCell>{pago.concepto}</TableCell>
-                        <TableCell>{formatCurrency(pago.monto)}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(pago.monto)}</TableCell>
                         <TableCell>
                         <span className={tableType === 'vencidos' ? 'text-status-danger font-medium' : ''}>
                             {formatDate(isPending ? pago.fechaLimite : pago.fechaPago!)}

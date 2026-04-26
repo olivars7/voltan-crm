@@ -318,7 +318,7 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                       <TableHeader>
                         <TableRow>
                           <TableHead>Concepto</TableHead>
-                          <TableHead>Monto</TableHead>
+                          <TableHead className="text-right">Monto</TableHead>
                           <TableHead>Fecha</TableHead>
                           <TableHead>Estado</TableHead>
                         </TableRow>
@@ -327,7 +327,7 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                         {allPagos.slice(0, visiblePagos).map(pago => (
                           <TableRow key={pago.id} onClick={() => handlePagoClick(pago)} className="cursor-pointer">
                             <TableCell className="font-medium">{pago.concepto}</TableCell>
-                            <TableCell>{formatCurrency(pago.monto)}</TableCell>
+                            <TableCell className="text-right">{formatCurrency(pago.monto)}</TableCell>
                             <TableCell>
                                 <span className={getPagoStatus(pago) === 'vencido' ? 'text-status-danger' : ''}>
                                     {formatDate(pago.estado === 'pagado' && pago.fechaPago ? pago.fechaPago : pago.fechaLimite)}
