@@ -44,3 +44,33 @@ export type LlamadaAgendada = {
   estado: LlamadaEstado;
   notas?: string;
 };
+
+export const leadServicios = [
+  'desarrollo-web', 
+  'marketing-digital', 
+  'gestion-redes', 
+  'consultoria-negocios', 
+  'diseno-grafico',
+  'otro'
+] as const;
+export type LeadServicio = typeof leadServicios[number];
+
+export const leadEstados = [
+    'por-contactar', 
+    'contactar-despues', 
+    'contactado', 
+    'cliente-potencial',
+    'no-interesado',
+] as const;
+export type LeadEstado = typeof leadEstados[number];
+
+export type Lead = {
+  id: string;
+  nombre: string;
+  telefono: string;
+  nicho: string;
+  servicios: LeadServicio[];
+  estado: LeadEstado;
+  notas?: string;
+  fechaCreacion: string;
+};
