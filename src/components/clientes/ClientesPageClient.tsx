@@ -169,9 +169,9 @@ export function ClientesPageClient() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nombre</TableHead>
-                <TableHead className="hidden md:table-cell">Empresa</TableHead>
+                <TableHead>Empresa</TableHead>
                 <TableHead>Teléfono</TableHead>
-                <TableHead className="hidden sm:table-cell">Fecha de Inicio</TableHead>
+                <TableHead>Fecha de Inicio</TableHead>
                 <TableHead>Estado</TableHead>
               </TableRow>
             </TableHeader>
@@ -188,11 +188,11 @@ export function ClientesPageClient() {
                     <TableCell className="font-medium">
                       {cliente.nombre}
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">{cliente.empresa}</TableCell>
+                    <TableCell>{cliente.empresa}</TableCell>
                     <TableCell>
                       {cliente.telefono}
                     </TableCell>
-                    <TableCell className="hidden sm:table-cell">{formatDate(cliente.fechaInicio)}</TableCell>
+                    <TableCell>{formatDate(cliente.fechaInicio)}</TableCell>
                     <TableCell>
                       <StatusBadge status={cliente.estado} />
                     </TableCell>

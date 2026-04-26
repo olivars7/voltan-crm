@@ -260,7 +260,7 @@ export function PagosPageClient() {
             <TableHeader>
                 <TableRow>
                 <TableHead>Cliente</TableHead>
-                <TableHead className="hidden sm:table-cell">Concepto</TableHead>
+                <TableHead>Concepto</TableHead>
                 <TableHead>Monto</TableHead>
                 <TableHead>{isPending ? 'Fecha Límite' : 'Fecha de Pago'}</TableHead>
                 <TableHead>Estado</TableHead>
@@ -270,7 +270,7 @@ export function PagosPageClient() {
                 {data.slice(0, visibleCount).map((pago) => (
                     <TableRow key={pago.id} onClick={() => handleOpenPagoDetail(pago)} className="cursor-pointer">
                         <TableCell>{getClienteById(pago.clienteId)?.nombre}</TableCell>
-                        <TableCell className="hidden sm:table-cell">{pago.concepto}</TableCell>
+                        <TableCell>{pago.concepto}</TableCell>
                         <TableCell>{formatCurrency(pago.monto)}</TableCell>
                         <TableCell>
                         <span className={tableType === 'vencidos' ? 'text-status-danger font-medium' : ''}>

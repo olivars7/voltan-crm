@@ -117,9 +117,9 @@ export function AgendaPageClient() {
           <TableHeader>
             <TableRow>
               <TableHead>Cliente/Interesado</TableHead>
-              <TableHead className="hidden md:table-cell">Número</TableHead>
+              <TableHead>Número</TableHead>
               <TableHead>Fecha y Hora</TableHead>
-              <TableHead className="hidden sm:table-cell">Medio</TableHead>
+              <TableHead>Medio</TableHead>
               <TableHead>Estado</TableHead>
             </TableRow>
           </TableHeader>
@@ -127,9 +127,9 @@ export function AgendaPageClient() {
             {calls.slice(0, visibleCount).map((llamada) => (
               <TableRow key={llamada.id} onClick={() => openDetailDialog(llamada)} className="cursor-pointer">
                 <TableCell className="font-medium">{llamada.nombre}</TableCell>
-                <TableCell className="hidden md:table-cell">{llamada.telefono}</TableCell>
+                <TableCell>{llamada.telefono}</TableCell>
                 <TableCell>{formatDate(llamada.fecha, "d MMM, yyyy h:mm a")}</TableCell>
-                <TableCell className="hidden sm:table-cell capitalize">{llamada.medio.replace('-', ' ')}</TableCell>
+                <TableCell className="capitalize">{llamada.medio.replace('-', ' ')}</TableCell>
                 <TableCell><StatusBadge status={getEffectiveStatus(llamada)} /></TableCell>
               </TableRow>
             ))}

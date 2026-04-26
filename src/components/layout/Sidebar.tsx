@@ -69,7 +69,7 @@ export function Sidebar() {
       </aside>
       
       {/* Mobile Bottom Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-10 border-t bg-background/90 p-1 backdrop-blur-sm sm:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-10 border-t bg-background p-1 sm:hidden">
         <div className="grid grid-cols-6 items-center justify-around">
           {navItems.map((item) => {
             const isActive = item.href === '/dashboard' ? pathname === item.href : pathname.startsWith(item.href);
