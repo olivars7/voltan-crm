@@ -19,7 +19,7 @@ import { parseISO, isToday, isPast } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function AgendaPageClient() {
-  const { llamadas, addLlamada, updateLlamada, loading } = useAgenda();
+  const { llamadas, addLlamada, updateLlamada, deleteLlamada, loading } = useAgenda();
   const [isFormOpen, setFormOpen] = React.useState(false);
   const [isDetailOpen, setDetailOpen] = React.useState(false);
   const [isRescheduling, setIsRescheduling] = React.useState(false);
@@ -50,6 +50,18 @@ export function AgendaPageClient() {
         }
     }
   }
+  
+  const handleDeleteLlamada = async () => {
+    if (selectedLlamada) {
+      if(window.confirm(`¿Estás seguro de que quieres eliminar la llamada con ${selectedLlamada.nombre}?`)){
+          await deleteLlamada(selectedLlamada.id);
+          toast({ title: "Llamada eliminada" });
+          setFormOpen(false); // Close the edit form
+          setDetailOpen(false); // Close the detail view if open
+          setSelectedLlamada(undefined); // Clear selection
+      }
+    }
+  };
 
   const handleSetStatus = async (llamada: LlamadaAgendada, status: 'realizada' | 'cancelada') => {
     const updatedLlamada = { ...llamada, estado: status };
@@ -211,7 +223,8 @@ export function AgendaPageClient() {
         <AgendaForm 
             llamada={selectedLlamada} 
             isRescheduling={isRescheduling}
-            onSubmit={selectedLlamada ? handleEditSubmit : handleAddSubmit} 
+            onSubmit={selectedLlamada ? handleEditSubmit : handleAddSubmit}
+            onDelete={selectedLlamada && !isRescheduling ? handleDeleteLlamada : undefined}
             setOpen={setFormOpen}
         />
       </Dialog>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, addDoc, doc, updateDoc, writeBatch, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, updateDoc, writeBatch, getDocs, query, orderBy, deleteDoc } from 'firebase/firestore';
 import type { Lead } from '@/lib/types';
 
 export const useLeads = () => {
@@ -43,7 +43,7 @@ export const useLeads = () => {
   
   const deleteLead = useCallback(async (leadId: string) => {
     const leadDoc = doc(db, 'leads', leadId);
-    await updateDoc(leadDoc, { estado: 'no-interesado' });
+    await deleteDoc(leadDoc);
   }, []);
 
 

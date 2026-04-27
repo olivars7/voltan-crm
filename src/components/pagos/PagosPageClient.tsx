@@ -28,7 +28,7 @@ import { useToast } from '@/hooks/use-toast';
 import { isBefore, parseISO, addMonths, startOfMonth } from 'date-fns';
 
 export function PagosPageClient() {
-  const { pagos, addPago, updatePago, loading: pagosLoading } = usePagos();
+  const { pagos, addPago, updatePago, deletePago, loading: pagosLoading } = usePagos();
   const { clientes, getClienteById, updateCliente: updateClienteData, loading: clientesLoading } = useClientes();
   const [isPagoFormOpen, setPagoFormOpen] = React.useState(false);
   const [isPagoDetailOpen, setPagoDetailOpen] = React.useState(false);
@@ -66,6 +66,21 @@ export function PagosPageClient() {
         }
         setPagoFormOpen(false);
         setEditingPago(undefined);
+    }
+  };
+  
+  const handleDeletePago = async () => {
+    if (editingPago && !editingPago.id.startsWith('recurring-')) {
+        if(window.confirm(`¿Estás seguro de que quieres eliminar este pago? Esta acción es permanente.`)){
+            await deletePago(editingPago.id);
+            toast({ title: "Pago eliminado", description: "El pago ha sido eliminado permanentemente." });
+            setPagoFormOpen(false);
+            setEditingPago(undefined);
+            if (selectedPago?.id === editingPago.id) {
+                setPagoDetailOpen(false);
+                setSelectedPago(undefined);
+            }
+        }
     }
   };
   
@@ -366,6 +381,7 @@ export function PagosPageClient() {
             pago={editingPago}
             clientes={clientes} 
             onSubmit={editingPago ? handleEditSubmit : handleAddSubmit} 
+            onDelete={editingPago ? handleDeletePago : undefined}
             setOpen={setPagoFormOpen}
         />
       </Dialog>

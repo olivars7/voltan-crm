@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, addDoc, doc, updateDoc, writeBatch, getDocs, query, limit } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, updateDoc, writeBatch, getDocs, query, limit, deleteDoc } from 'firebase/firestore';
 import type { Pago } from '@/lib/types';
 import { mockPagos } from '@/data/mockData';
 
@@ -55,6 +55,15 @@ export const usePagos = () => {
     await updateDoc(pagoDoc, pagoData as any);
   }, []);
 
+  const deletePago = useCallback(async (pagoId: string) => {
+    if (pagoId.startsWith('recurring-')) {
+        console.warn("Cannot delete a synthetic recurring payment.");
+        return;
+    }
+    const pagoDoc = doc(db, 'pagos', pagoId);
+    await deleteDoc(pagoDoc);
+  }, []);
+
   const getPagosByClienteId = useCallback(
     (clienteId: string) => {
       return pagos.filter((p) => p.clienteId === clienteId);
@@ -83,5 +92,5 @@ export const usePagos = () => {
   }, [deleteAllPagos]);
 
 
-  return { pagos, loading, addPago, updatePago, getPagosByClienteId, deleteAllPagos, resetPagos };
+  return { pagos, loading, addPago, updatePago, getPagosByClienteId, deleteAllPagos, resetPagos, deletePago };
 };

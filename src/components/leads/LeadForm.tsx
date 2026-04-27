@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Lead, leadServicios, leadEstados } from '@/lib/types';
 import { useEffect } from 'react';
 import { ServiciosCheckboxes } from './ServiciosCheckboxes';
+import { Trash2 } from 'lucide-react';
 
 const formSchema = z.object({
   nombre: z.string().min(2, { message: 'El nombre es requerido.' }),
@@ -25,10 +26,11 @@ const formSchema = z.object({
 type LeadFormProps = {
   lead?: Lead;
   onSubmit: (values: z.infer<typeof formSchema>) => void;
+  onDelete?: () => void;
   setOpen: (open: boolean) => void;
 };
 
-export function LeadForm({ lead, onSubmit, setOpen }: LeadFormProps) {
+export function LeadForm({ lead, onSubmit, onDelete, setOpen }: LeadFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -105,11 +107,21 @@ export function LeadForm({ lead, onSubmit, setOpen }: LeadFormProps) {
             )} />
             <FormField control={form.control} name="notas" render={({ field }) => (<FormItem><FormLabel>Notas (Opcional)</FormLabel><FormControl><Textarea placeholder="Detalles de la conversación, próximos pasos..." {...field} /></FormControl><FormMessage /></FormItem>)}/>
             
-            <DialogFooter className="pt-4">
-                <DialogClose asChild>
-                    <Button type="button" variant="secondary">Cancelar</Button>
-                </DialogClose>
-                <Button type="submit">Guardar</Button>
+            <DialogFooter className="pt-4 flex justify-between items-center">
+                <div>
+                    {lead && onDelete && (
+                        <Button type="button" variant="destructive" onClick={onDelete}>
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Eliminar
+                        </Button>
+                    )}
+                </div>
+                <div className="flex gap-2">
+                    <DialogClose asChild>
+                        <Button type="button" variant="secondary">Cancelar</Button>
+                    </DialogClose>
+                    <Button type="submit">Guardar</Button>
+                </div>
             </DialogFooter>
         </form>
       </Form>

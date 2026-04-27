@@ -29,7 +29,7 @@ import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export function ClientesPageClient() {
-  const { clientes, addCliente, updateCliente, loading: clientesLoading } = useClientes();
+  const { clientes, addCliente, updateCliente, deleteCliente, loading: clientesLoading } = useClientes();
   const { addPago, loading: pagosLoading } = usePagos();
   const [isFormOpen, setFormOpen] = React.useState(false);
   
@@ -99,6 +99,20 @@ export function ClientesPageClient() {
     }
   };
   
+  const handleDeleteCliente = async () => {
+    if (editingCliente) {
+      if(window.confirm(`¿Estás seguro de que quieres eliminar a ${editingCliente.nombre}? Esto eliminará también todos sus pagos asociados de forma permanente.`)){
+        await deleteCliente(editingCliente.id);
+        toast({ title: "Cliente eliminado", description: "El cliente y todos sus datos han sido eliminados." });
+        setFormOpen(false);
+        setEditingCliente(undefined);
+        if(selectedClienteId === editingCliente.id) {
+            setSelectedClienteId(undefined);
+        }
+      }
+    }
+  };
+
   const openEditDialog = (cliente: Cliente) => {
     setEditingCliente(cliente);
     setSelectedClienteId(undefined);
@@ -220,6 +234,7 @@ export function ClientesPageClient() {
         <ClienteForm 
             cliente={editingCliente} 
             onSubmit={editingCliente ? handleEditSubmit : handleAddSubmit} 
+            onDelete={editingCliente ? handleDeleteCliente : undefined}
             setOpen={setFormOpen}
         />
       </Dialog>

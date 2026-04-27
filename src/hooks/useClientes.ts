@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, addDoc, doc, updateDoc, writeBatch, getDocs, query, limit } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, updateDoc, writeBatch, getDocs, query, limit, where, deleteDoc } from 'firebase/firestore';
 import type { Cliente } from '@/lib/types';
 import { mockClientes } from '@/data/mockData';
 
@@ -77,6 +77,25 @@ export const useClientes = () => {
       await batch.commit();
   }, []);
 
+  const deleteCliente = useCallback(async (clienteId: string) => {
+    const clienteDoc = doc(db, 'clientes', clienteId);
+    
+    // Delete associated payments
+    const pagosQuery = query(collection(db, 'pagos'), where('clienteId', '==', clienteId));
+    const pagosSnapshot = await getDocs(pagosQuery);
+    
+    const batch = writeBatch(db);
+    
+    pagosSnapshot.forEach(doc => {
+        batch.delete(doc.ref);
+    });
+
+    // Delete client
+    batch.delete(clienteDoc);
+
+    await batch.commit();
+  }, []);
+
   const resetClientes = useCallback(async () => {
       await deleteAllClientes();
       const batch = writeBatch(db);
@@ -89,5 +108,5 @@ export const useClientes = () => {
   }, [deleteAllClientes]);
 
 
-  return { clientes, loading, addCliente, updateCliente, getClienteById, deleteAllClientes, resetClientes };
+  return { clientes, loading, addCliente, updateCliente, getClienteById, deleteAllClientes, resetClientes, deleteCliente };
 };

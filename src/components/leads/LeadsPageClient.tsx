@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { PlusCircle, Search, Loader2, Users, Phone, Presentation, Target } from 'lucide-react';
+import { PlusCircle, Search, Loader2, Users, Phone, Presentation, Target, Trash2 } from 'lucide-react';
 import { useLeads } from '@/hooks/useLeads';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,7 @@ import { serviceDisplayNames } from './ServiciosCheckboxes';
 import { cn } from '@/lib/utils';
 
 export function LeadsPageClient() {
-  const { leads, addLead, updateLead, loading } = useLeads();
+  const { leads, addLead, updateLead, deleteLead, loading } = useLeads();
   const [isFormOpen, setFormOpen] = React.useState(false);
   const [editingLead, setEditingLead] = React.useState<Lead | undefined>(undefined);
   
@@ -49,6 +49,21 @@ export function LeadsPageClient() {
         }
     }
   }
+
+  const handleDeleteLead = async () => {
+    if (editingLead) {
+      if(window.confirm(`¿Estás seguro de que quieres eliminar a ${editingLead.nombre}? Esta acción es permanente.`)){
+        await deleteLead(editingLead.id);
+        toast({ title: "Lead eliminado", description: "El lead ha sido eliminado permanentemente." });
+        setFormOpen(false);
+        setEditingLead(undefined);
+        if (selectedLead?.id === editingLead.id) {
+          setSelectedLead(undefined);
+          setDetailOpen(false);
+        }
+      }
+    }
+  };
 
   const handleStatusChange = async (lead: Lead, newStatus: LeadEstado) => {
     const updatedLead = { ...lead, estado: newStatus };
@@ -264,6 +279,7 @@ export function LeadsPageClient() {
         <LeadForm 
             lead={editingLead} 
             onSubmit={editingLead ? handleEditSubmit : handleAddSubmit} 
+            onDelete={editingLead ? handleDeleteLead : undefined}
             setOpen={setFormOpen}
         />
       </Dialog>

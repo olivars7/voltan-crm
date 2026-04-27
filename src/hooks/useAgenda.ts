@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, addDoc, doc, updateDoc, writeBatch, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, updateDoc, writeBatch, getDocs, deleteDoc } from 'firebase/firestore';
 import type { LlamadaAgendada } from '@/lib/types';
 
 export const useAgenda = () => {
@@ -35,6 +35,11 @@ export const useAgenda = () => {
     await updateDoc(llamadaDoc, llamadaData as any);
   }, []);
 
+  const deleteLlamada = useCallback(async (llamadaId: string) => {
+    const llamadaDoc = doc(db, 'agenda', llamadaId);
+    await deleteDoc(llamadaDoc);
+  }, []);
+
   const getLlamadaById = useCallback(
     (id: string) => {
       return llamadas.find((l) => l.id === id);
@@ -51,5 +56,5 @@ export const useAgenda = () => {
       await batch.commit();
   }, []);
 
-  return { llamadas, loading, addLlamada, updateLlamada, getLlamadaById, deleteAllLlamadas };
+  return { llamadas, loading, addLlamada, updateLlamada, getLlamadaById, deleteAllLlamadas, deleteLlamada };
 };

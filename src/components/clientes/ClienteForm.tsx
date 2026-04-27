@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import type { Cliente } from '@/lib/types';
-import { CalendarDays, ClipboardCheck, DollarSign, User } from 'lucide-react';
+import { CalendarDays, ClipboardCheck, DollarSign, User, Trash2 } from 'lucide-react';
 import { useEffect } from 'react';
 
 const formSchema = z.object({
@@ -71,10 +71,11 @@ const formSchema = z.object({
 type ClienteFormProps = {
   cliente?: Cliente;
   onSubmit: (values: z.infer<typeof formSchema>) => void;
+  onDelete?: () => void;
   setOpen: (open: boolean) => void;
 };
 
-export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
+export function ClienteForm({ cliente, onSubmit, onDelete, setOpen }: ClienteFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -266,11 +267,21 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
                 </div>
             </div>
 
-            <DialogFooter className="pt-4 bg-background sticky bottom-0">
-                <DialogClose asChild>
-                    <Button type="button" variant="secondary">Cancelar</Button>
-                </DialogClose>
-                <Button type="submit">Guardar Cambios</Button>
+            <DialogFooter className="pt-4 bg-background sticky bottom-0 flex justify-between items-center">
+                <div>
+                    {cliente && onDelete && (
+                        <Button type="button" variant="destructive" onClick={onDelete}>
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Eliminar Cliente
+                        </Button>
+                    )}
+                </div>
+                <div className="flex gap-2">
+                    <DialogClose asChild>
+                        <Button type="button" variant="secondary">Cancelar</Button>
+                    </DialogClose>
+                    <Button type="submit">Guardar Cambios</Button>
+                </div>
             </DialogFooter>
         </form>
       </Form>

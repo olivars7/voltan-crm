@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/dialog';
 import type { Pago, Cliente } from '@/lib/types';
 import { useEffect } from 'react';
+import { Trash2 } from 'lucide-react';
 
 const formSchema = z.object({
   clienteId: z.string().min(1, { message: 'Debes seleccionar un cliente.' }),
@@ -44,10 +45,11 @@ type PagoFormProps = {
   pago?: Pago;
   clientes: Cliente[];
   onSubmit: (values: any) => void;
+  onDelete?: () => void;
   setOpen: (open: boolean) => void;
 };
 
-export function PagoForm({ pago, clientes, onSubmit, setOpen }: PagoFormProps) {
+export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -89,6 +91,8 @@ export function PagoForm({ pago, clientes, onSubmit, setOpen }: PagoFormProps) {
     onSubmit(submissionValues);
     setOpen(false);
   };
+  
+  const isSynthetic = pago?.id?.startsWith('recurring-');
 
   return (
     <DialogContent className="sm:max-w-[425px]">
@@ -186,11 +190,21 @@ export function PagoForm({ pago, clientes, onSubmit, setOpen }: PagoFormProps) {
               </FormItem>
             )}
           />
-          <DialogFooter>
-            <DialogClose asChild>
-                <Button type="button" variant="secondary">Cancelar</Button>
-            </DialogClose>
-            <Button type="submit">Guardar</Button>
+          <DialogFooter className="flex justify-between items-center pt-4">
+            <div>
+                {pago && onDelete && !isSynthetic && (
+                    <Button type="button" variant="destructive" onClick={onDelete}>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Eliminar
+                    </Button>
+                )}
+            </div>
+            <div className="flex gap-2">
+                <DialogClose asChild>
+                    <Button type="button" variant="secondary">Cancelar</Button>
+                </DialogClose>
+                <Button type="submit">Guardar</Button>
+            </div>
           </DialogFooter>
         </form>
       </Form>
