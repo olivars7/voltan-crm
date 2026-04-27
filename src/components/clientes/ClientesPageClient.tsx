@@ -81,11 +81,12 @@ export function ClientesPageClient() {
 
   const handleEditSubmit = async (values: any) => {
     if (editingCliente) {
+      const { montoAdelanto, fechaAdelanto, montoApertura, fechaApertura, ...clienteData } = values;
       const updatedData = { 
         ...editingCliente, 
-        ...values,
-        cuotaMensual: values.cuotaMensual ? Number(values.cuotaMensual) : 0,
-        diaDePago: values.diaDePago ? Number(values.diaDePago) : null,
+        ...clienteData,
+        cuotaMensual: clienteData.cuotaMensual ? Number(clienteData.cuotaMensual) : 0,
+        diaDePago: clienteData.diaDePago ? Number(clienteData.diaDePago) : null,
       };
       await updateCliente(updatedData);
       toast({ title: "Cliente actualizado", description: "Los datos del cliente han sido actualizados." });
