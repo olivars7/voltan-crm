@@ -68,9 +68,9 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest 
   return (
     <DialogContent className="sm:max-w-md">
       <DialogHeader>
-        <div className="flex items-start justify-between">
+        <div className="flex items-center justify-start gap-4">
           <DialogTitle>Detalles del Pago</DialogTitle>
-          <Button variant="outline" size="icon" onClick={onEditRequest} className="-mt-2">
+          <Button variant="outline" size="icon" onClick={onEditRequest}>
               <Pencil className="h-4 w-4" />
               <span className="sr-only">Editar Pago</span>
           </Button>

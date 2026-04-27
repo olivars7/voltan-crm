@@ -45,14 +45,20 @@ export const usePagos = () => {
 
   const updatePago = useCallback(async (updatedPago: Pago) => {
     const { id, ...pagoData } = updatedPago;
+    
+    const cleanPagoData: Partial<typeof pagoData> = { ...pagoData };
+
+    if (!cleanPagoData.fechaPago) {
+      delete cleanPagoData.fechaPago;
+    }
+
     const isSynthetic = id.startsWith('recurring-');
     if (isSynthetic) {
-      // Create a real payment from the synthetic one
-      await addDoc(collection(db, 'pagos'), pagoData);
+      await addDoc(collection(db, 'pagos'), cleanPagoData);
       return;
     }
     const pagoDoc = doc(db, 'pagos', id);
-    await updateDoc(pagoDoc, pagoData as any);
+    await updateDoc(pagoDoc, cleanPagoData as any);
   }, []);
 
   const deletePago = useCallback(async (pagoId: string) => {
