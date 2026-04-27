@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { formatCurrency, formatDate, cn } from '@/lib/utils';
-import { Briefcase, Mail, Phone, DollarSign, ClipboardCheck, CalendarDays, Pencil, CheckCircle, Loader2 } from 'lucide-react';
+import { Briefcase, Mail, Phone, DollarSign, ClipboardCheck, CalendarDays, Pencil, CheckCircle, Loader2, ExternalLink } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Button } from '@/components/ui/button';
@@ -289,6 +289,24 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                               </SelectContent>
                           </Select>
                       </div>
+                       {cliente.proyecto.websiteUrl && cliente.proyecto.websiteUrl !== '#' && (
+                        <div className="space-y-1">
+                            <p className="font-semibold">Página Web</p>
+                            <a href={cliente.proyecto.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline flex items-center gap-1">
+                                <span>Visitar</span>
+                                <ExternalLink className="w-4 h-4" />
+                            </a>
+                        </div>
+                      )}
+                      {cliente.proyecto.portalUrl && cliente.proyecto.portalUrl !== '#' && (
+                          <div className="space-y-1">
+                              <p className="font-semibold">Portal del Cliente</p>
+                              <a href={cliente.proyecto.portalUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline flex items-center gap-1">
+                                  <span>Acceder</span>
+                                  <ExternalLink className="w-4 h-4" />
+                              </a>
+                          </div>
+                      )}
                   </CardContent>
                   {cliente.proyecto.estado !== 'completado' && (
                       <CardFooter>

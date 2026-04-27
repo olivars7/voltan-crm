@@ -53,6 +53,8 @@ const formSchema = z.object({
     descripcion: z.string().optional(),
     fechaEntrega: z.string().min(1, { message: 'La fecha de entrega es requerida.' }),
     estado: z.enum(['en-progreso', 'completado', 'pausado', 'cancelado']),
+    websiteUrl: z.string().optional(),
+    portalUrl: z.string().optional(),
   }),
 }).refine(data => !(data.montoAdelanto && data.montoAdelanto > 0) || !!data.fechaAdelanto, {
     message: "La fecha es requerida si hay un monto.",
@@ -91,6 +93,8 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
             descripcion: '',
             fechaEntrega: '',
             estado: 'en-progreso',
+            websiteUrl: '',
+            portalUrl: '',
         }
     },
   });
@@ -107,7 +111,9 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
             fechaApertura: undefined,
             proyecto: {
                 ...cliente.proyecto,
-                fechaEntrega: cliente.proyecto.fechaEntrega.split('T')[0]
+                fechaEntrega: cliente.proyecto.fechaEntrega.split('T')[0],
+                websiteUrl: cliente.proyecto.websiteUrl || '',
+                portalUrl: cliente.proyecto.portalUrl || '',
             }
         };
         form.reset(defaultValues);
@@ -128,6 +134,8 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
                 descripcion: '',
                 fechaEntrega: '',
                 estado: 'en-progreso',
+                websiteUrl: '',
+                portalUrl: '',
             }
         });
     }
@@ -252,6 +260,8 @@ export function ClienteForm({ cliente, onSubmit, setOpen }: ClienteFormProps) {
                         )}
                     />
                     <FormField control={form.control} name="proyecto.fechaEntrega" render={({ field }) => (<FormItem><FormLabel>Fecha de Entrega</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="proyecto.websiteUrl" render={({ field }) => (<FormItem><FormLabel>Link a la Página</FormLabel><FormControl><Input placeholder="https://ejemplo.com" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="proyecto.portalUrl" render={({ field }) => (<FormItem><FormLabel>Link al Portal del Cliente</FormLabel><FormControl><Input placeholder="https://admin.ejemplo.com" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
                     <FormField control={form.control} name="proyecto.descripcion" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Descripción del Proyecto (Opcional)</FormLabel><FormControl><Textarea placeholder="Descripción breve del proyecto..." {...field} /></FormControl><FormMessage /></FormItem>)}/>
                 </div>
             </div>

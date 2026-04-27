@@ -21,6 +21,8 @@ export const mockClientes: Cliente[] = [
             descripcion: 'Manejo de cuentas de Instagram y Facebook.',
             fechaEntrega: formatISO(new Date('2026-12-31T12:00:00Z')),
             estado: 'en-progreso',
+            portalUrl: '#',
+            websiteUrl: 'https://innovatemarketing.com'
         }
     },
     // 2. Consultoría Legal - Apertura y cuotas
@@ -39,6 +41,8 @@ export const mockClientes: Cliente[] = [
             descripcion: 'Iguala mensual de asesoría legal para la empresa.',
             fechaEntrega: formatISO(new Date('2026-12-31T12:00:00Z')),
             estado: 'en-progreso',
+            portalUrl: '#',
+            websiteUrl: '#'
         }
     },
     // 3. Desarrollo Web - Adelanto, Apertura y Cuotas
@@ -57,6 +61,8 @@ export const mockClientes: Cliente[] = [
             descripcion: 'Desarrollo de nuevo sitio web y sistema de reservas online.',
             fechaEntrega: formatISO(new Date('2026-07-20T12:00:00Z')),
             estado: 'en-progreso',
+            portalUrl: 'https://admin.gourmetbistro.com',
+            websiteUrl: 'https://gourmetbistro.com'
         }
     },
     // 4. Diseño Gráfico - Proyecto por hitos
@@ -74,6 +80,8 @@ export const mockClientes: Cliente[] = [
             descripcion: 'Creación de logo, paleta de colores y manual de marca.',
             fechaEntrega: formatISO(new Date('2026-05-30T12:00:00Z')),
             estado: 'en-progreso',
+            portalUrl: '#',
+            websiteUrl: '#'
         }
     },
     // 5. Contabilidad - Cliente ahora inactivo
@@ -92,6 +100,8 @@ export const mockClientes: Cliente[] = [
             descripcion: 'Servicio de contabilidad mensual.',
             fechaEntrega: formatISO(new Date('2026-03-31T12:00:00Z')),
             estado: 'completado',
+            portalUrl: '#',
+            websiteUrl: '#'
         }
     },
     // 6. Fotografía - Cliente nuevo con pagos futuros
@@ -109,6 +119,8 @@ export const mockClientes: Cliente[] = [
             descripcion: 'Fotografía de producto para 50 SKUs.',
             fechaEntrega: formatISO(new Date('2026-05-10T12:00:00Z')),
             estado: 'en-progreso',
+            portalUrl: '#',
+            websiteUrl: '#'
         }
     }
 ];

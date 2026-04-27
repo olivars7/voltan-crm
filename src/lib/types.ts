@@ -18,6 +18,8 @@ export type Proyecto = {
   descripcion: string;
   fechaEntrega: string;
   estado: ProyectoEstado;
+  portalUrl?: string;
+  websiteUrl?: string;
 };
 
 export type Pago = {
