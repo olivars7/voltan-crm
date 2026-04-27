@@ -26,7 +26,6 @@ export function LeadsPageClient() {
   const { toast } = useToast();
   
   const [searchTerm, setSearchTerm] = React.useState('');
-  const [visibleCount, setVisibleCount] = React.useState(40);
   
   const handleAddSubmit = async (values: any) => {
     await addLead(values);
@@ -80,9 +79,27 @@ export function LeadsPageClient() {
     'no-interesado': 'text-status-danger border-status-danger/50 bg-status-danger/10 hover:bg-status-danger/20',
   };
   
-  const activeLeads = leads.filter(l => l.estado !== 'no-interesado' && l.estado !== 'convertido');
-  const leadsPorContactar = activeLeads.filter(l => l.estado === 'por-contactar').filter(searchFilter);
-  const leadsSeguimiento = activeLeads.filter(l => ['contactado', 'demo-agendada'].includes(l.estado)).filter(searchFilter);
+  const leadsPorContactar = leads.filter(l => l.estado === 'por-contactar').filter(searchFilter);
+  const leadsContactado = leads.filter(l => l.estado === 'contactado').filter(searchFilter);
+  const leadsDemoAgendada = leads.filter(l => l.estado === 'demo-agendada').filter(searchFilter);
+  const leadsConvertido = leads.filter(l => l.estado === 'convertido').filter(searchFilter);
+  const leadsNoInteresado = leads.filter(l => l.estado === 'no-interesado').filter(searchFilter);
+
+  const leadsByStatus: Record<LeadEstado, Lead[]> = {
+    'por-contactar': leadsPorContactar,
+    'contactado': leadsContactado,
+    'demo-agendada': leadsDemoAgendada,
+    'convertido': leadsConvertido,
+    'no-interesado': leadsNoInteresado,
+  };
+
+  const tabTitles: Record<LeadEstado, string> = {
+    'por-contactar': 'Por Contactar',
+    'contactado': 'Contactado',
+    'demo-agendada': 'Demo Agendada',
+    'convertido': 'Convertido',
+    'no-interesado': 'No Interesado',
+  }
 
   const kpi = {
     total: leads.filter(l => l.estado !== 'no-interesado').length,
@@ -107,7 +124,7 @@ export function LeadsPageClient() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.slice(0, visibleCount).map((lead) => (
+            {data.map((lead) => (
               <TableRow key={lead.id} onClick={() => openEditDialog(lead)} className="cursor-pointer">
                 <TableCell className="font-medium">{lead.nombre}</TableCell>
                 <TableCell>{lead.telefono}</TableCell>
@@ -125,7 +142,6 @@ export function LeadsPageClient() {
                     </SelectTrigger>
                     <SelectContent>
                       {leadEstados
-                        .filter(estado => estado !== 'no-interesado')
                         .map(estado => (
                           <SelectItem key={estado} value={estado}>
                             <span className="capitalize">{estado.replace(/-/g, ' ')}</span>
@@ -213,40 +229,25 @@ export function LeadsPageClient() {
         </div>
       ) : (
       <Tabs defaultValue="por-contactar">
-        <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="por-contactar">Por Contactar ({leadsPorContactar.length})</TabsTrigger>
-            <TabsTrigger value="seguimiento">Seguimiento ({leadsSeguimiento.length})</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+            {(Object.keys(leadsByStatus) as LeadEstado[]).map(status => (
+                <TabsTrigger key={status} value={status}>
+                    {tabTitles[status]} ({leadsByStatus[status].length})
+                </TabsTrigger>
+            ))}
         </TabsList>
-        <TabsContent value="por-contactar">
-            <Card>
-                <CardHeader>
-                  <CardTitle>Leads por Contactar</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <LeadsTable data={leadsPorContactar} />
-                </CardContent>
-                {visibleCount < leadsPorContactar.length && (
-                    <CardFooter className="justify-center">
-                        <Button onClick={() => setVisibleCount(v => v + 40)}>Cargar más</Button>
-                    </CardFooter>
-                )}
-            </Card>
-        </TabsContent>
-        <TabsContent value="seguimiento">
-            <Card>
-                <CardHeader>
-                  <CardTitle>Leads en Seguimiento</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <LeadsTable data={leadsSeguimiento} />
-                </CardContent>
-                 {visibleCount < leadsSeguimiento.length && (
-                    <CardFooter className="justify-center">
-                        <Button onClick={() => setVisibleCount(v => v + 40)}>Cargar más</Button>
-                    </CardFooter>
-                )}
-            </Card>
-        </TabsContent>
+        {(Object.keys(leadsByStatus) as LeadEstado[]).map(status => (
+            <TabsContent key={status} value={status}>
+                <Card>
+                    <CardHeader>
+                      <CardTitle>Leads: {tabTitles[status]}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <LeadsTable data={leadsByStatus[status]} />
+                    </CardContent>
+                </Card>
+            </TabsContent>
+        ))}
       </Tabs>
       )}
       
