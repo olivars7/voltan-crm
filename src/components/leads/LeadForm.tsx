@@ -43,7 +43,10 @@ export function LeadForm({ lead, onSubmit, setOpen }: LeadFormProps) {
 
   useEffect(() => {
     if (lead) {
-      form.reset(lead);
+      form.reset({
+        ...lead,
+        servicios: lead.servicios || [],
+      });
     } else {
       form.reset({
         nombre: '',

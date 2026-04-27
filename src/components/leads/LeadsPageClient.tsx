@@ -1,17 +1,18 @@
 'use client';
 
 import * as React from 'react';
-import { PlusCircle, Search, Loader2, Users, Phone, Presentation, Target, Pencil } from 'lucide-react';
+import { PlusCircle, Search, Loader2, Users, Phone, Presentation, Target } from 'lucide-react';
 import { useLeads } from '@/hooks/useLeads';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LeadForm } from './LeadForm';
+import { LeadDetail } from './LeadDetail';
 import type { Lead, LeadEstado } from '@/lib/types';
 import { leadEstados } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -22,6 +23,9 @@ export function LeadsPageClient() {
   const { leads, addLead, updateLead, loading } = useLeads();
   const [isFormOpen, setFormOpen] = React.useState(false);
   const [editingLead, setEditingLead] = React.useState<Lead | undefined>(undefined);
+  
+  const [isDetailOpen, setDetailOpen] = React.useState(false);
+  const [selectedLead, setSelectedLead] = React.useState<Lead | undefined>(undefined);
   
   const { toast } = useToast();
   
@@ -40,6 +44,9 @@ export function LeadsPageClient() {
         toast({ title: "Lead actualizado", description: "La información del lead ha sido actualizada." });
         setFormOpen(false);
         setEditingLead(undefined);
+        if (selectedLead?.id === updatedLead.id) {
+            setSelectedLead(updatedLead);
+        }
     }
   }
 
@@ -57,9 +64,17 @@ export function LeadsPageClient() {
     setFormOpen(true);
   }
   
-  const openEditDialog = (lead: Lead) => {
-    setEditingLead(lead);
-    setFormOpen(true);
+  const openEditDialog = () => {
+    if (selectedLead) {
+        setEditingLead(selectedLead);
+        setDetailOpen(false);
+        setFormOpen(true);
+    }
+  }
+
+  const openDetailDialog = (lead: Lead) => {
+    setSelectedLead(lead);
+    setDetailOpen(true);
   }
 
   const searchFilter = (lead: Lead) => {
@@ -79,18 +94,12 @@ export function LeadsPageClient() {
     'no-interesado': 'text-status-danger border-status-danger/50 bg-status-danger/10 hover:bg-status-danger/20',
   };
   
-  const leadsPorContactar = leads.filter(l => l.estado === 'por-contactar').filter(searchFilter);
-  const leadsContactado = leads.filter(l => l.estado === 'contactado').filter(searchFilter);
-  const leadsDemoAgendada = leads.filter(l => l.estado === 'demo-agendada').filter(searchFilter);
-  const leadsConvertido = leads.filter(l => l.estado === 'convertido').filter(searchFilter);
-  const leadsNoInteresado = leads.filter(l => l.estado === 'no-interesado').filter(searchFilter);
-
   const leadsByStatus: Record<LeadEstado, Lead[]> = {
-    'por-contactar': leadsPorContactar,
-    'contactado': leadsContactado,
-    'demo-agendada': leadsDemoAgendada,
-    'convertido': leadsConvertido,
-    'no-interesado': leadsNoInteresado,
+    'por-contactar': leads.filter(l => l.estado === 'por-contactar').filter(searchFilter),
+    'contactado': leads.filter(l => l.estado === 'contactado').filter(searchFilter),
+    'demo-agendada': leads.filter(l => l.estado === 'demo-agendada').filter(searchFilter),
+    'convertido': leads.filter(l => l.estado === 'convertido').filter(searchFilter),
+    'no-interesado': leads.filter(l => l.estado === 'no-interesado').filter(searchFilter),
   };
 
   const tabTitles: Record<LeadEstado, string> = {
@@ -103,8 +112,8 @@ export function LeadsPageClient() {
 
   const kpi = {
     total: leads.filter(l => l.estado !== 'no-interesado').length,
-    contactados: leads.filter(l => l.estado === 'contactado' || l.estado === 'demo-agendada' || l.estado === 'convertido').length,
-    demos: leads.filter(l => l.estado === 'demo-agendada' || l.estado === 'convertido').length,
+    contactados: leads.filter(l => ['contactado', 'demo-agendada', 'convertido'].includes(l.estado)).length,
+    demos: leads.filter(l => ['demo-agendada', 'convertido'].includes(l.estado)).length,
     cierres: leads.filter(l => l.estado === 'convertido').length,
   }
 
@@ -121,12 +130,11 @@ export function LeadsPageClient() {
               <TableHead>Nicho</TableHead>
               <TableHead>Servicios de Interés</TableHead>
               <TableHead>Estado</TableHead>
-              <TableHead><span className="sr-only">Acciones</span></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.map((lead) => (
-              <TableRow key={lead.id}>
+              <TableRow key={lead.id} onClick={() => openDetailDialog(lead)} className="cursor-pointer">
                 <TableCell className="font-medium">{lead.nombre}</TableCell>
                 <TableCell>{lead.telefono}</TableCell>
                 <TableCell>{lead.nicho}</TableCell>
@@ -138,7 +146,7 @@ export function LeadsPageClient() {
                     value={lead.estado}
                     onValueChange={(newStatus: LeadEstado) => handleStatusChange(lead, newStatus)}
                   >
-                    <SelectTrigger className={cn("w-[180px]", statusSelectStyles[lead.estado])}>
+                    <SelectTrigger onClick={(e) => e.stopPropagation()} className={cn("w-[180px]", statusSelectStyles[lead.estado])}>
                       <SelectValue placeholder="Seleccionar estado..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -150,12 +158,6 @@ export function LeadsPageClient() {
                         ))}
                     </SelectContent>
                   </Select>
-                </TableCell>
-                <TableCell className="text-right">
-                    <Button variant="outline" size="icon" onClick={() => openEditDialog(lead)}>
-                        <Pencil className="h-4 w-4" />
-                        <span className="sr-only">Editar Lead</span>
-                    </Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -264,6 +266,13 @@ export function LeadsPageClient() {
             onSubmit={editingLead ? handleEditSubmit : handleAddSubmit} 
             setOpen={setFormOpen}
         />
+      </Dialog>
+
+      <Dialog open={isDetailOpen} onOpenChange={(isOpen) => { if(!isOpen) { setSelectedLead(undefined) } setDetailOpen(isOpen);}}>
+        {selectedLead && <LeadDetail 
+            lead={selectedLead}
+            onEdit={openEditDialog} 
+        />}
       </Dialog>
     </>
   );
