@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { PlusCircle, Search, Loader2, Users, Phone, Presentation, Target } from 'lucide-react';
+import { PlusCircle, Search, Loader2, Users, Phone, Presentation, Target, Pencil } from 'lucide-react';
 import { useLeads } from '@/hooks/useLeads';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -121,18 +121,19 @@ export function LeadsPageClient() {
               <TableHead>Nicho</TableHead>
               <TableHead>Servicios de Interés</TableHead>
               <TableHead>Estado</TableHead>
+              <TableHead><span className="sr-only">Acciones</span></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.map((lead) => (
-              <TableRow key={lead.id} onClick={() => openEditDialog(lead)} className="cursor-pointer">
+              <TableRow key={lead.id}>
                 <TableCell className="font-medium">{lead.nombre}</TableCell>
                 <TableCell>{lead.telefono}</TableCell>
                 <TableCell>{lead.nicho}</TableCell>
                 <TableCell>
                   {lead.servicios.map(s => serviceDisplayNames[s]).join(', ')}
                 </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
+                <TableCell>
                   <Select
                     value={lead.estado}
                     onValueChange={(newStatus: LeadEstado) => handleStatusChange(lead, newStatus)}
@@ -149,6 +150,12 @@ export function LeadsPageClient() {
                         ))}
                     </SelectContent>
                   </Select>
+                </TableCell>
+                <TableCell className="text-right">
+                    <Button variant="outline" size="icon" onClick={() => openEditDialog(lead)}>
+                        <Pencil className="h-4 w-4" />
+                        <span className="sr-only">Editar Lead</span>
+                    </Button>
                 </TableCell>
               </TableRow>
             ))}
