@@ -32,8 +32,8 @@ type TimelineItem = {
 }
 
 export default function DashboardPageClient() {
-  const { clientes, getClienteById, updateCliente, loading: clientesLoading, deleteAllClientes, resetClientes } = useClientes();
-  const { pagos, updatePago, loading: pagosLoading, deleteAllPagos, resetPagos } = usePagos();
+  const { clientes, getClienteById, updateCliente, deleteCliente, loading: clientesLoading, deleteAllClientes, resetClientes } = useClientes();
+  const { pagos, addPago, updatePago, deletePago, loading: pagosLoading, deleteAllPagos, resetPagos } = usePagos();
   const { llamadas, updateLlamada, loading: llamadasLoading, deleteAllLlamadas } = useAgenda();
 
   const [now, setNow] = useState<Date | null>(null);
@@ -146,6 +146,20 @@ export default function DashboardPageClient() {
     }
   };
 
+  const handleDeleteCliente = async () => {
+    if (editingCliente) {
+      if(window.confirm(`¿Estás seguro de que quieres eliminar a ${editingCliente.nombre}? Esto eliminará también todos sus pagos asociados de forma permanente.`)){
+        await deleteCliente(editingCliente.id);
+        toast({ title: "Cliente eliminado", description: "El cliente y todos sus datos han sido eliminados." });
+        setClienteFormOpen(false);
+        setEditingCliente(undefined);
+        if(selectedClienteId === editingCliente.id) {
+            setSelectedClienteId(undefined);
+        }
+      }
+    }
+  };
+
   const handleOpenEditPago = (pago: Pago) => {
     setEditingPago(pago);
     setPagoDetailOpen(false);
@@ -162,6 +176,21 @@ export default function DashboardPageClient() {
       }
       setPagoFormOpen(false);
       setEditingPago(undefined);
+    }
+  };
+
+  const handleDeletePago = async () => {
+    if (editingPago && !editingPago.id.startsWith('recurring-')) {
+        if(window.confirm(`¿Estás seguro de que quieres eliminar este pago? Esta acción es permanente.`)){
+            await deletePago(editingPago.id);
+            toast({ title: "Pago eliminado", description: "El pago ha sido eliminado permanentemente." });
+            setPagoFormOpen(false);
+            setEditingPago(undefined);
+            if (selectedPago?.id === editingPago.id) {
+                setPagoDetailOpen(false);
+                setSelectedPago(undefined);
+            }
+        }
     }
   };
 
@@ -590,6 +619,7 @@ export default function DashboardPageClient() {
         <ClienteForm 
             cliente={editingCliente} 
             onSubmit={handleEditClienteSubmit} 
+            onDelete={handleDeleteCliente}
             setOpen={setClienteFormOpen}
         />
       </Dialog>
@@ -599,6 +629,7 @@ export default function DashboardPageClient() {
             pago={editingPago}
             clientes={clientes} 
             onSubmit={handleEditPagoSubmit} 
+            onDelete={handleDeletePago}
             setOpen={setPagoFormOpen}
         />
       </Dialog>

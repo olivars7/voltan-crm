@@ -29,8 +29,8 @@ type TimelineItem = {
 }
 
 export default function ConsolePageClient() {
-  const { clientes, getClienteById, updateCliente, loading: clientesLoading } = useClientes();
-  const { pagos, updatePago, loading: pagosLoading } = usePagos();
+  const { clientes, getClienteById, updateCliente, deleteCliente, loading: clientesLoading } = useClientes();
+  const { pagos, updatePago, deletePago, loading: pagosLoading } = usePagos();
   const { llamadas, updateLlamada, loading: llamadasLoading } = useAgenda();
   const [now, setNow] = useState<Date | null>(null);
   
@@ -115,6 +115,20 @@ export default function ConsolePageClient() {
     }
   };
 
+  const handleDeleteCliente = async () => {
+    if (editingCliente) {
+      if(window.confirm(`¿Estás seguro de que quieres eliminar a ${editingCliente.nombre}? Esto eliminará también todos sus pagos asociados de forma permanente.`)){
+        await deleteCliente(editingCliente.id);
+        toast({ title: "Cliente eliminado", description: "El cliente y todos sus datos han sido eliminados." });
+        setClienteFormOpen(false);
+        setEditingCliente(undefined);
+        if(selectedClienteId === editingCliente.id) {
+            setSelectedClienteId(undefined);
+        }
+      }
+    }
+  };
+
   const handleOpenEditPago = (pago: Pago) => {
     setEditingPago(pago);
     setPagoDetailOpen(false);
@@ -134,6 +148,21 @@ export default function ConsolePageClient() {
     }
   };
   
+  const handleDeletePago = async () => {
+    if (editingPago && !editingPago.id.startsWith('recurring-')) {
+        if(window.confirm(`¿Estás seguro de que quieres eliminar este pago? Esta acción es permanente.`)){
+            await deletePago(editingPago.id);
+            toast({ title: "Pago eliminado", description: "El pago ha sido eliminado permanentemente." });
+            setPagoFormOpen(false);
+            setEditingPago(undefined);
+            if (selectedPago?.id === editingPago.id) {
+                setPagoDetailOpen(false);
+                setSelectedPago(undefined);
+            }
+        }
+    }
+  };
+
   const handleItemClick = (item: TimelineItem) => {
     if (item.type === 'pago') {
       handleOpenPagoDetail(item.data as Pago);
@@ -405,6 +434,7 @@ export default function ConsolePageClient() {
         <ClienteForm 
             cliente={editingCliente} 
             onSubmit={handleEditClienteSubmit} 
+            onDelete={handleDeleteCliente}
             setOpen={setClienteFormOpen}
         />
       </Dialog>
@@ -413,6 +443,7 @@ export default function ConsolePageClient() {
             pago={editingPago}
             clientes={clientes} 
             onSubmit={handleEditPagoSubmit} 
+            onDelete={handleDeletePago}
             setOpen={setPagoFormOpen}
         />
       </Dialog>
