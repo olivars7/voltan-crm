@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDate, cn } from '@/lib/utils';
 import { Briefcase, Mail, Phone, DollarSign, ClipboardCheck, CalendarDays, Pencil, CheckCircle, Loader2 } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
@@ -168,6 +168,13 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
     return 'pendiente';
   }
 
+  const projectStatusSelectStyles: Record<ProyectoEstado, string> = {
+    'en-progreso': 'text-status-warning border-status-warning/50 bg-status-warning/10 hover:bg-status-warning/20',
+    'completado': 'text-status-success border-status-success/50 bg-status-success/10 hover:bg-status-success/20',
+    'pausado': 'text-status-inactive border-status-inactive/50 bg-status-inactive/10 hover:bg-status-inactive/20',
+    'cancelado': 'text-status-danger border-status-danger/50 bg-status-danger/10 hover:bg-status-danger/20',
+  };
+
   return (
     <>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col">
@@ -271,7 +278,7 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                       <div className="space-y-1">
                           <p className="font-semibold">Estado</p>
                            <Select onValueChange={(value: ProyectoEstado) => handleProjectStatusChange(value)} value={cliente.proyecto.estado}>
-                              <SelectTrigger className="w-[180px]">
+                              <SelectTrigger className={cn("w-[180px]", projectStatusSelectStyles[cliente.proyecto.estado])}>
                                   <SelectValue placeholder="Estado del proyecto" />
                               </SelectTrigger>
                               <SelectContent>

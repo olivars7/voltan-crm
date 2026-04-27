@@ -16,6 +16,7 @@ import type { Lead, LeadEstado } from '@/lib/types';
 import { leadEstados } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { serviceDisplayNames } from './ServiciosCheckboxes';
+import { cn } from '@/lib/utils';
 
 export function LeadsPageClient() {
   const { leads, addLead, updateLead, loading } = useLeads();
@@ -71,6 +72,14 @@ export function LeadsPageClient() {
           lead.nicho.toLowerCase().includes(search)
       );
   };
+
+  const statusSelectStyles: Record<LeadEstado, string> = {
+    'por-contactar': 'text-status-active border-status-active/50 bg-status-active/10 hover:bg-status-active/20',
+    'contactar-despues': 'text-status-warning border-status-warning/50 bg-status-warning/10 hover:bg-status-warning/20',
+    'contactado': 'text-status-inactive border-status-inactive/50 bg-status-inactive/10 hover:bg-status-inactive/20',
+    'cliente-potencial': 'text-status-success border-status-success/50 bg-status-success/10 hover:bg-status-success/20',
+    'no-interesado': 'text-status-danger border-status-danger/50 bg-status-danger/10 hover:bg-status-danger/20',
+  };
   
   const leadsPorContactar = leads.filter(l => l.estado === 'por-contactar').filter(searchFilter);
   const leadsSeguimiento = leads.filter(l => ['contactar-despues', 'contactado', 'cliente-potencial'].includes(l.estado)).filter(searchFilter);
@@ -104,7 +113,7 @@ export function LeadsPageClient() {
                     value={lead.estado}
                     onValueChange={(newStatus: LeadEstado) => handleStatusChange(lead, newStatus)}
                   >
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className={cn("w-[180px]", statusSelectStyles[lead.estado])}>
                       <SelectValue placeholder="Seleccionar estado..." />
                     </SelectTrigger>
                     <SelectContent>

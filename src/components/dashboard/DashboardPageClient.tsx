@@ -437,7 +437,7 @@ export default function DashboardPageClient() {
     <>
       <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <Card>
+          <Card className="border-l-4 border-status-active">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Clientes activos</CardTitle>
               <Users className="h-4 w-4 text-status-active" />
@@ -447,7 +447,7 @@ export default function DashboardPageClient() {
               {now && <p className="text-xs text-muted-foreground">{kpiData.activeClientsComparisonText}</p>}
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-l-4 border-status-success">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Ingresos de {now ? capitalizedMonthName : '...'}</CardTitle>
               <DollarSign className="h-4 w-4 text-status-success" />
@@ -457,7 +457,7 @@ export default function DashboardPageClient() {
               <p className="text-xs text-muted-foreground">Suma de pagos y pendientes del mes.</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-l-4 border-status-warning">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Cierres de {now ? capitalizedMonthName : '...'}</CardTitle>
               <ClipboardCheck className="h-4 w-4 text-status-warning" />
