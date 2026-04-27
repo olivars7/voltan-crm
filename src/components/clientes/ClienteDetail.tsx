@@ -27,7 +27,7 @@ interface ClienteDetailProps {
 }
 
 export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateCliente }: ClienteDetailProps) {
-  const { pagos, getPagosByClienteId, updatePago, loading: pagosLoading } = usePagos();
+  const { pagos, getPagosByClienteId, updatePago, deletePago, loading: pagosLoading } = usePagos();
   const { toast } = useToast();
   
   const [now, setNow] = React.useState<Date | null>(null);
@@ -130,6 +130,21 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
       toast({ title: "Pago actualizado", description: "Los datos del pago han sido actualizados." });
       setPagoFormOpen(false);
       setEditingPago(undefined);
+    }
+  };
+
+  const handleDeletePago = async () => {
+    if (editingPago && !editingPago.id.startsWith('recurring-')) {
+        if(window.confirm(`¿Estás seguro de que quieres eliminar este pago? Esta acción es permanente.`)){
+            await deletePago(editingPago.id);
+            toast({ title: "Pago eliminado", description: "El pago ha sido eliminado permanentemente." });
+            setPagoFormOpen(false);
+            setEditingPago(undefined);
+            if (selectedPago?.id === editingPago.id) {
+                setPagoDetailOpen(false);
+                setSelectedPago(undefined);
+            }
+        }
     }
   };
 
@@ -391,6 +406,7 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
             pago={editingPago}
             clientes={clientes} 
             onSubmit={handleEditPagoSubmit}
+            onDelete={handleDeletePago}
             setOpen={setPagoFormOpen}
         />
       </Dialog>

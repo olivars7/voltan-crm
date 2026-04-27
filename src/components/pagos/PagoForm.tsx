@@ -82,12 +82,18 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
   }, [pago, form]);
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    const submissionValues = {
-        ...values,
+    const { fechaPago, ...restValues } = values;
+    
+    const submissionValues: any = {
+        ...restValues,
         fechaLimite: new Date(values.fechaLimite.includes('T') ? values.fechaLimite : `${values.fechaLimite}T00:00:00`).toISOString(),
-        fechaPago: values.fechaPago ? new Date(values.fechaPago.includes('T') ? values.fechaPago : `${values.fechaPago}T00:00:00`).toISOString() : undefined,
-        estado: values.fechaPago ? 'pagado' : 'pendiente'
-    } as const;
+        estado: fechaPago ? 'pagado' : 'pendiente',
+    };
+
+    if (fechaPago) {
+        submissionValues.fechaPago = new Date(fechaPago.includes('T') ? fechaPago : `${fechaPago}T00:00:00`).toISOString();
+    }
+    
     onSubmit(submissionValues);
     setOpen(false);
   };
