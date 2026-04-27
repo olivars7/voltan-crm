@@ -6,7 +6,7 @@ type Status =
   | 'activo' | 'inactivo' 
   | 'en-progreso' | 'completado' | 'pausado' | 'cancelado' 
   | 'pronto' | 'realizada'
-  | 'por-contactar' | 'contactar-despues' | 'contactado' | 'cliente-potencial' | 'no-interesado';
+  | 'por-contactar' | 'contactado' | 'demo-agendada' | 'convertido' | 'no-interesado';
 
 type StatusBadgeProps = {
   status: Status;
@@ -29,9 +29,9 @@ const statusStyles: Record<Status, string> = {
   realizada: "bg-status-success/30 text-status-success border-status-success/40",
   // Leads
   'por-contactar': "bg-status-active/30 text-status-active border-status-active/40",
-  'contactar-despues': "bg-status-warning/30 text-status-warning border-status-warning/40",
-  'contactado': "bg-status-inactive/30 text-status-inactive border-status-inactive/40",
-  'cliente-potencial': "bg-status-success/30 text-status-success border-status-success/40",
+  'contactado': "bg-blue-500/20 text-blue-600 border-blue-500/30",
+  'demo-agendada': "bg-status-warning/30 text-status-warning border-status-warning/40",
+  'convertido': "bg-status-success/30 text-status-success border-status-success/40",
   'no-interesado': "bg-status-danger/30 text-status-danger border-status-danger/40",
 };
 

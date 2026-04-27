@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { PlusCircle, Search, Loader2 } from 'lucide-react';
+import { PlusCircle, Search, Loader2, Users, Phone, Presentation, Target } from 'lucide-react';
 import { useLeads } from '@/hooks/useLeads';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -64,7 +64,6 @@ export function LeadsPageClient() {
   }
 
   const searchFilter = (lead: Lead) => {
-      if (lead.estado === 'no-interesado') return false;
       const search = searchTerm.toLowerCase();
       return (
           lead.nombre.toLowerCase().includes(search) ||
@@ -75,14 +74,22 @@ export function LeadsPageClient() {
 
   const statusSelectStyles: Record<LeadEstado, string> = {
     'por-contactar': 'text-status-active border-status-active/50 bg-status-active/10 hover:bg-status-active/20',
-    'contactar-despues': 'text-status-warning border-status-warning/50 bg-status-warning/10 hover:bg-status-warning/20',
-    'contactado': 'text-status-inactive border-status-inactive/50 bg-status-inactive/10 hover:bg-status-inactive/20',
-    'cliente-potencial': 'text-status-success border-status-success/50 bg-status-success/10 hover:bg-status-success/20',
+    'contactado': 'text-blue-600 border-blue-600/50 bg-blue-600/10 hover:bg-blue-600/20',
+    'demo-agendada': 'text-status-warning border-status-warning/50 bg-status-warning/10 hover:bg-status-warning/20',
+    'convertido': 'text-status-success border-status-success/50 bg-status-success/10 hover:bg-status-success/20',
     'no-interesado': 'text-status-danger border-status-danger/50 bg-status-danger/10 hover:bg-status-danger/20',
   };
   
-  const leadsPorContactar = leads.filter(l => l.estado === 'por-contactar').filter(searchFilter);
-  const leadsSeguimiento = leads.filter(l => ['contactar-despues', 'contactado', 'cliente-potencial'].includes(l.estado)).filter(searchFilter);
+  const activeLeads = leads.filter(l => l.estado !== 'no-interesado' && l.estado !== 'convertido');
+  const leadsPorContactar = activeLeads.filter(l => l.estado === 'por-contactar').filter(searchFilter);
+  const leadsSeguimiento = activeLeads.filter(l => ['contactado', 'demo-agendada'].includes(l.estado)).filter(searchFilter);
+
+  const kpi = {
+    total: leads.filter(l => l.estado !== 'no-interesado').length,
+    contactados: leads.filter(l => l.estado === 'contactado' || l.estado === 'demo-agendada' || l.estado === 'convertido').length,
+    demos: leads.filter(l => l.estado === 'demo-agendada' || l.estado === 'convertido').length,
+    cierres: leads.filter(l => l.estado === 'convertido').length,
+  }
 
   const LeadsTable = ({ data }: { data: Lead[] }) => (
     <>
@@ -147,6 +154,46 @@ export function LeadsPageClient() {
         </Button>
       </PageHeader>
       
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{kpi.total}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Contactados</CardTitle>
+            <Phone className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{kpi.contactados}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Demos</CardTitle>
+            <Presentation className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{kpi.demos}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Cierres</CardTitle>
+            <Target className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{kpi.cierres}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+
        <div className="pb-4">
         <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -167,8 +214,8 @@ export function LeadsPageClient() {
       ) : (
       <Tabs defaultValue="por-contactar">
         <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="por-contactar">Por Contactar</TabsTrigger>
-            <TabsTrigger value="seguimiento">Seguimiento</TabsTrigger>
+            <TabsTrigger value="por-contactar">Por Contactar ({leadsPorContactar.length})</TabsTrigger>
+            <TabsTrigger value="seguimiento">Seguimiento ({leadsSeguimiento.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="por-contactar">
             <Card>

@@ -6,7 +6,7 @@ export type Cliente = {
   email: string;
   fechaInicio: string;
   estado: 'activo' | 'inactivo';
-  diaDePago?: number;
+  diaDePago?: number | null;
   cuotaMensual?: number;
   proyecto: Proyecto;
 };
@@ -59,9 +59,9 @@ export type LeadServicio = typeof leadServicios[number];
 
 export const leadEstados = [
     'por-contactar', 
-    'contactar-despues', 
     'contactado', 
-    'cliente-potencial',
+    'demo-agendada', 
+    'convertido',
     'no-interesado',
 ] as const;
 export type LeadEstado = typeof leadEstados[number];

@@ -3,7 +3,7 @@ import { useClientes } from '@/hooks/useClientes';
 import { usePagos } from '@/hooks/usePagos';
 import { useAgenda } from '@/hooks/useAgenda';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Users, DollarSign, ClipboardCheck, RotateCw, Trash2, CalendarDays, Loader2 } from 'lucide-react';
+import { Users, DollarSign, ClipboardCheck, RotateCw, Trash2, CalendarDays, Loader2, ArrowUp, ArrowDown, PlusCircle } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis } from "recharts"
@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { PagoForm } from '@/components/pagos/PagoForm';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { AgendaDetail } from '@/components/agenda/AgendaDetail';
+import { cn } from '@/lib/utils';
 
 type TimelineItem = {
   date: Date;
@@ -178,15 +179,13 @@ export default function DashboardPageClient() {
   };
 
   const kpiData = React.useMemo(() => {
-    if (!now) {
-      return {
+    if (!now) return {
         activeClients: 0,
-        activeClientsComparisonText: '',
-        projectedRevenue: 0,
         newClientsThisMonth: 0,
-        newClientsComparisonText: ''
-      };
-    }
+        projectedRevenue: 0,
+        revenueDiff: 0,
+        newClientsDiff: 0,
+    };
 
     const thisMonthStart = startOfMonth(now);
     const thisMonthEnd = endOfMonth(now);
@@ -195,53 +194,58 @@ export default function DashboardPageClient() {
 
     const activeClients = clientes.filter((c) => c.estado === 'activo').length;
     const newClientsThisMonth = clientes.filter(c => isWithinInterval(parseISO(c.fechaInicio), { start: thisMonthStart, end: thisMonthEnd })).length;
-    const activeClientsComparisonText = `+${newClientsThisMonth} este mes`;
+    const newClientsLastMonth = clientes.filter(c => isWithinInterval(parseISO(c.fechaInicio), { start: lastMonthStart, end: lastMonthEnd })).length;
+    
+    const calculateProjectedRevenue = (start: Date, end: Date) => {
+        const revenue = pagos
+            .filter(p => p.estado === 'pagado' && p.fechaPago && isWithinInterval(parseISO(p.fechaPago), { start, end }))
+            .reduce((sum, p) => sum + p.monto, 0);
 
-    const revenueThisMonth = pagos
-      .filter(p => p.estado === 'pagado' && p.fechaPago && isWithinInterval(parseISO(p.fechaPago), { start: thisMonthStart, end: thisMonthEnd }))
-      .reduce((sum, p) => sum + p.monto, 0);
-
-    let pendingPaymentsThisMonth: Pago[] = [];
-    pagos.forEach(p => {
-        if (p.estado === 'pendiente' && isWithinInterval(parseISO(p.fechaLimite), { start: thisMonthStart, end: thisMonthEnd })) {
-            pendingPaymentsThisMonth.push(p);
-        }
-    });
-    clientes.forEach(cl => {
-        if (cl.estado === 'activo' && cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
-            const paymentDay = cl.diaDePago;
-            const paymentDueDateThisMonth = new Date(now.getFullYear(), now.getMonth(), paymentDay);
-
-            if (isWithinInterval(paymentDueDateThisMonth, { start: thisMonthStart, end: thisMonthEnd })) {
-                const paymentForMonthExists = pagos.some(p =>
-                    p.clienteId === cl.id &&
-                    p.concepto === 'Mensualidad' &&
-                    parseISO(p.fechaLimite).getFullYear() === paymentDueDateThisMonth.getFullYear() &&
-                    parseISO(p.fechaLimite).getMonth() === paymentDueDateThisMonth.getMonth()
-                );
-                if (!paymentForMonthExists) {
-                    pendingPaymentsThisMonth.push({
-                        id: `recurring-${cl.id}-${paymentDueDateThisMonth.toISOString()}`,
-                        clienteId: cl.id,
-                        monto: cl.cuotaMensual,
-                        concepto: 'Mensualidad',
-                        fechaLimite: paymentDueDateThisMonth.toISOString(),
-                        estado: 'pendiente',
-                        notas: 'Pago recurrente autogenerado.',
-                    });
+        let pending: Pago[] = [];
+        pagos.forEach(p => {
+            if (p.estado === 'pendiente' && isWithinInterval(parseISO(p.fechaLimite), { start, end })) {
+                pending.push(p);
+            }
+        });
+        clientes.forEach(cl => {
+            if (cl.estado === 'activo' && cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
+                const paymentDay = cl.diaDePago;
+                const paymentDate = new Date(start.getFullYear(), start.getMonth(), paymentDay);
+                if (isWithinInterval(paymentDate, { start, end })) {
+                    const paymentExists = pagos.some(p =>
+                        p.clienteId === cl.id && p.concepto === 'Mensualidad' &&
+                        parseISO(p.fechaLimite).getFullYear() === paymentDate.getFullYear() &&
+                        parseISO(p.fechaLimite).getMonth() === paymentDate.getMonth()
+                    );
+                    if (!paymentExists) {
+                        pending.push({
+                            id: `recurring-${cl.id}-${paymentDate.toISOString()}`,
+                            clienteId: cl.id,
+                            monto: cl.cuotaMensual,
+                            concepto: 'Mensualidad',
+                            fechaLimite: paymentDate.toISOString(),
+                            estado: 'pendiente',
+                            notas: 'Pago recurrente autogenerado.',
+                        });
+                    }
                 }
             }
-        }
-    });
-    const pendingAmountThisMonth = [...new Map(pendingPaymentsThisMonth.map(item => [item.id, item])).values()].reduce((sum, p) => sum + p.monto, 0);
-    const projectedRevenue = revenueThisMonth + pendingAmountThisMonth;
+        });
+        const pendingAmount = [...new Map(pending.map(item => [item.id, item])).values()].reduce((sum, p) => sum + p.monto, 0);
+        return revenue + pendingAmount;
+    };
 
-    const newClientsLastMonth = clientes.filter(c => isWithinInterval(parseISO(c.fechaInicio), { start: lastMonthStart, end: lastMonthEnd })).length;
-    const diff = newClientsThisMonth - newClientsLastMonth;
-    const newClientsComparisonText = `${diff >= 0 ? '+' : ''}${diff} vs mes pasado`;
+    const projectedRevenue = calculateProjectedRevenue(thisMonthStart, thisMonthEnd);
+    const projectedRevenueLastMonth = calculateProjectedRevenue(lastMonthStart, lastMonthEnd);
 
-    return { activeClients, activeClientsComparisonText, projectedRevenue, newClientsThisMonth, newClientsComparisonText };
-  }, [now, clientes, pagos]);
+    return {
+        activeClients,
+        newClientsThisMonth,
+        projectedRevenue,
+        revenueDiff: projectedRevenue - projectedRevenueLastMonth,
+        newClientsDiff: newClientsThisMonth - newClientsLastMonth,
+    };
+}, [now, clientes, pagos]);
 
 
   const timelineItems: TimelineItem[] = [];
@@ -433,6 +437,16 @@ export default function DashboardPageClient() {
     )
   }
 
+  const Comparison = ({ value, isCurrency = false }: { value: number, isCurrency?: boolean }) => {
+    const isPositive = value >= 0;
+    return (
+        <p className={cn("text-xs font-semibold flex items-center", isPositive ? "text-green-600" : "text-red-600")}>
+            {isPositive ? <ArrowUp className="h-3 w-3 mr-1" /> : <ArrowDown className="h-3 w-3 mr-1" />}
+            {isCurrency ? formatCurrency(Math.abs(value)) : Math.abs(value)}
+        </p>
+    );
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -444,7 +458,7 @@ export default function DashboardPageClient() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{now ? kpiData.activeClients : '...'}</div>
-              {now && <p className="text-xs text-muted-foreground">{kpiData.activeClientsComparisonText}</p>}
+               {now && <p className="text-xs text-muted-foreground flex items-center"><PlusCircle className="h-3 w-3 mr-1" />{kpiData.newClientsThisMonth} este mes</p>}
             </CardContent>
           </Card>
           <Card className="border-l-4 border-status-success">
@@ -454,7 +468,7 @@ export default function DashboardPageClient() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{now ? formatCurrency(kpiData.projectedRevenue) : '...'}</div>
-              <p className="text-xs text-muted-foreground">Suma de pagos y pendientes del mes.</p>
+              {now && <Comparison value={kpiData.revenueDiff} isCurrency />}
             </CardContent>
           </Card>
           <Card className="border-l-4 border-status-warning">
@@ -464,7 +478,7 @@ export default function DashboardPageClient() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{now ? kpiData.newClientsThisMonth : '...'}</div>
-              {now && <p className="text-xs text-muted-foreground">{kpiData.newClientsComparisonText}</p>}
+              {now && <Comparison value={kpiData.newClientsDiff} />}
             </CardContent>
           </Card>
         </div>

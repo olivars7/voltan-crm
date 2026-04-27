@@ -91,9 +91,9 @@ export function LeadForm({ lead, onSubmit, setOpen }: LeadFormProps) {
                         <FormControl><SelectTrigger><SelectValue placeholder="Selecciona un estado" /></SelectTrigger></FormControl>
                         <SelectContent>
                             <SelectItem value="por-contactar">Por Contactar</SelectItem>
-                            <SelectItem value="contactar-despues">Contactar Después</SelectItem>
                             <SelectItem value="contactado">Contactado</SelectItem>
-                            <SelectItem value="cliente-potencial">Cliente Potencial</SelectItem>
+                            <SelectItem value="demo-agendada">Demo Agendada</SelectItem>
+                            <SelectItem value="convertido">Convertido</SelectItem>
                             <SelectItem value="no-interesado">No Interesado</SelectItem>
                         </SelectContent>
                     </Select>
