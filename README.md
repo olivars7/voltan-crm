@@ -4,16 +4,14 @@ Este es un sistema de gestión de clientes (CRM) simple y eficiente diseñado pa
 
 ## Acceso al Sistema
 
-Para ingresar al sistema, utiliza la siguiente clave en la pantalla de inicio de sesión:
-
-**Clave de Acceso:** `voltan2024`
+El sistema es de acceso directo. Al abrir la aplicación, serás dirigido automáticamente al Dashboard.
 
 ## Funcionalidades Principales
 
-- **Dashboard**: Vista general con KPIs de ingresos, clientes y cierres mensuales.
-- **Clientes**: Gestión completa de expedientes de clientes, proyectos y estados.
+- **Dashboard**: Vista general con KPIs de ingresos, clientes y cierres mensuales con comparativas.
+- **Clientes**: Gestión completa de expedientes de clientes, proyectos y estados en tiempo real.
 - **Pagos**: Control de mensualidades, adelantos y pagos vencidos con recordatorios automáticos.
-- **Leads**: Seguimiento de prospectos a través de un embudo de ventas (Por contactar -> Contactado -> Demo -> Cierre).
+- **Leads**: Seguimiento de prospectos a través de un embudo de ventas por estados (Por contactar -> Contactado -> Demo -> Cierre).
 - **Agenda**: Programación de llamadas y reuniones por Google Meet o Zoom.
 - **Consola**: Registro cronológico de todas las actividades y eventos del sistema.
 
