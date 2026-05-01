@@ -163,7 +163,7 @@ export function ClientesPageClient() {
         </Button>
       </PageHeader>
       
-      <Card className="border-white/5 bg-zinc-950/40">
+      <Card>
         <CardHeader>
           <CardTitle>Lista de Clientes</CardTitle>
         </CardHeader>
@@ -174,7 +174,7 @@ export function ClientesPageClient() {
                 <Input
                     type="search"
                     placeholder="Buscar por nombre, empresa, teléfono, estado o mes..."
-                    className="w-full pl-8 md:w-1/2 lg:w-1/3 bg-white/5 border-white/10"
+                    className="w-full pl-8 md:w-1/2 lg:w-1/3 bg-background/50 border-border"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -187,24 +187,24 @@ export function ClientesPageClient() {
           ) : (
           <Table>
             <TableHeader>
-              <TableRow className="border-white/5 hover:bg-transparent">
-                <TableHead className="text-muted-foreground/60">Nombre</TableHead>
-                <TableHead className="text-muted-foreground/60">Empresa</TableHead>
-                <TableHead className="text-muted-foreground/60">Teléfono</TableHead>
-                <TableHead className="text-muted-foreground/60">Fecha de Inicio</TableHead>
-                <TableHead className="text-muted-foreground/60">Estado</TableHead>
+              <TableRow className="border-border/50 hover:bg-transparent">
+                <TableHead className="text-muted-foreground">Nombre</TableHead>
+                <TableHead className="text-muted-foreground">Empresa</TableHead>
+                <TableHead className="text-muted-foreground">Teléfono</TableHead>
+                <TableHead className="text-muted-foreground">Fecha de Inicio</TableHead>
+                <TableHead className="text-muted-foreground">Estado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredClientes.length === 0 && !isLoading ? (
-                <TableRow className="hover:bg-transparent border-white/5">
+                <TableRow className="hover:bg-transparent border-border/50">
                     <TableCell colSpan={5} className="h-24 text-center text-muted-foreground/40">
                         No se encontraron clientes.
                     </TableCell>
                 </TableRow>
               ) : (
                 filteredClientes.slice(0, visibleCount).map((cliente) => (
-                  <TableRow key={cliente.id} onClick={() => openDetailDialog(cliente)} className="cursor-pointer border-white/5 hover:bg-white/5">
+                  <TableRow key={cliente.id} onClick={() => openDetailDialog(cliente)} className="cursor-pointer border-border/50 hover:bg-accent/50">
                     <TableCell className="font-medium">
                       {cliente.nombre}
                     </TableCell>
@@ -224,7 +224,7 @@ export function ClientesPageClient() {
           )}
         </CardContent>
         {visibleCount < filteredClientes.length && (
-          <CardFooter className="justify-center border-t border-white/5 pt-4">
+          <CardFooter className="justify-center border-t border-border/50 pt-4">
             <Button variant="ghost" size="sm" onClick={() => setVisibleCount(v => v + 40)}>Cargar más</Button>
           </CardFooter>
         )}

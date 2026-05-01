@@ -200,7 +200,7 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
 
   return (
     <>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col bg-zinc-950/80 backdrop-blur-3xl border-white/10 shadow-2xl rounded-3xl">
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col bg-background/80 backdrop-blur-3xl border-border shadow-2xl rounded-3xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold tracking-tight">Expediente del Cliente</DialogTitle>
         </DialogHeader>
@@ -208,7 +208,7 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
           <div className="grid gap-6 py-4">
             {/* Header Section */}
             <div className="flex flex-col sm:flex-row items-start gap-6">
-                <Avatar className="w-24 h-24 text-xl border-2 border-white/20 shadow-xl">
+                <Avatar className="w-24 h-24 text-xl border-2 border-border shadow-xl">
                     <AvatarImage src={`https://ui-avatars.com/api/?name=${cliente.nombre.replace(' ', '+')}&background=random`} />
                     <AvatarFallback>{getInitials(cliente.nombre)}</AvatarFallback>
                 </Avatar>
@@ -234,41 +234,41 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                                 </Label>
                             </div>
                         </div>
-                        <Button variant="outline" size="icon" onClick={onEditRequest} className="bg-white/5 border-white/10 hover:bg-white/10">
+                        <Button variant="outline" size="icon" onClick={onEditRequest} className="bg-muted/50 border-border hover:bg-muted">
                             <Pencil className="h-4 w-4" />
                             <span className="sr-only">Editar Cliente</span>
                         </Button>
                     </div>
                     
-                    <Separator className="my-4 border-white/5" />
+                    <Separator className="my-4 border-border" />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                         <div 
-                            className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors group text-muted-foreground/80"
+                            className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors group text-muted-foreground"
                             onClick={() => copyToClipboard(cliente.email, "Correo")}
                         >
-                            <Mail className="w-4 h-4 text-muted-foreground/40" />
+                            <Mail className="w-4 h-4 text-muted-foreground/60" />
                             <span>{cliente.email}</span>
                             <Copy className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                         <div 
-                            className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors group text-muted-foreground/80"
+                            className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors group text-muted-foreground"
                             onClick={() => copyToClipboard(cliente.telefono, "Teléfono")}
                         >
-                            <Phone className="w-4 h-4 text-muted-foreground/40" />
+                            <Phone className="w-4 h-4 text-muted-foreground/60" />
                             <span>{cliente.telefono}</span>
                             <Copy className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                     </div>
-                    <div className="text-[10px] text-muted-foreground/40 mt-4 uppercase tracking-widest font-semibold">
+                    <div className="text-[10px] text-muted-foreground/60 mt-4 uppercase tracking-widest font-semibold">
                         <span>Cliente desde: </span>
-                        <span className="text-muted-foreground/60">{formatDate(cliente.fechaInicio)}</span>
+                        <span className="text-muted-foreground">{formatDate(cliente.fechaInicio)}</span>
                     </div>
                 </div>
             </div>
             
             {/* Recurring Payment Details */}
             {(cliente.diaDePago || cliente.cuotaMensual) && (
-                <Card className="border-white/10 bg-white/5 backdrop-blur-md">
+                <Card className="border-border bg-muted/30 backdrop-blur-md">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground/60">
                             <CalendarDays className="w-4 h-4" />
@@ -294,7 +294,7 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
 
             {/* Project Details */}
             {cliente.proyecto && (
-              <Card className="border-white/10 bg-white/5 backdrop-blur-md">
+              <Card className="border-border bg-muted/30 backdrop-blur-md">
                   <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground/60">
                           <ClipboardCheck className="w-4 h-4" />
@@ -307,16 +307,16 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                           <p className="text-xs text-muted-foreground/60">{cliente.proyecto.descripcion}</p>
                       </div>
                       <div className="space-y-1">
-                          <p className="text-xs font-semibold text-muted-foreground/40 uppercase">Fecha de Entrega</p>
+                          <p className="text-xs font-semibold text-muted-foreground/60 uppercase">Fecha de Entrega</p>
                           <p className="text-sm font-medium">{formatDate(cliente.proyecto.fechaEntrega)}</p>
                       </div>
                       <div className="space-y-1">
-                          <p className="text-xs font-semibold text-muted-foreground/40 uppercase">Estado</p>
+                          <p className="text-xs font-semibold text-muted-foreground/60 uppercase">Estado</p>
                            <Select onValueChange={(value: ProyectoEstado) => handleProjectStatusChange(value)} value={cliente.proyecto.estado}>
-                              <SelectTrigger className={cn("w-[160px] h-8 bg-white/5 border-white/10 text-xs", projectStatusSelectStyles[cliente.proyecto.estado])}>
+                              <SelectTrigger className={cn("w-[160px] h-8 bg-background border-border text-xs", projectStatusSelectStyles[cliente.proyecto.estado])}>
                                   <SelectValue placeholder="Estado" />
                               </SelectTrigger>
-                              <SelectContent className="bg-zinc-900 border-white/10">
+                              <SelectContent>
                                   <SelectItem value="en-progreso">En Progreso</SelectItem>
                                   <SelectItem value="completado">Completado</SelectItem>
                                   <SelectItem value="pausado">Pausado</SelectItem>
@@ -326,7 +326,7 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                       </div>
                        {cliente.proyecto.websiteUrl && cliente.proyecto.websiteUrl !== '#' && (
                         <div className="space-y-1">
-                            <p className="text-xs font-semibold text-muted-foreground/40 uppercase">Página Web</p>
+                            <p className="text-xs font-semibold text-muted-foreground/60 uppercase">Página Web</p>
                             <a href={cliente.proyecto.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline flex items-center gap-1 font-medium">
                                 <span>Visitar sitio</span>
                                 <ExternalLink className="w-3 h-3" />
@@ -346,7 +346,7 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
             )}
 
             {/* History Section */}
-            <Card className="border-white/10 bg-white/5 backdrop-blur-md">
+            <Card className="border-border bg-muted/30 backdrop-blur-md">
               <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground/60">
                   <DollarSign className="w-4 h-4" />
@@ -367,20 +367,20 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
-                        <TableRow className="border-white/5 hover:bg-transparent">
-                          <TableHead className="text-[10px] uppercase font-bold text-muted-foreground/40">Concepto</TableHead>
-                          <TableHead className="text-right text-[10px] uppercase font-bold text-muted-foreground/40">Monto</TableHead>
-                          <TableHead className="text-[10px] uppercase font-bold text-muted-foreground/40">Fecha</TableHead>
-                          <TableHead className="text-[10px] uppercase font-bold text-muted-foreground/40">Estado</TableHead>
+                        <TableRow className="border-border/50 hover:bg-transparent">
+                          <TableHead className="text-[10px] uppercase font-bold text-muted-foreground/60">Concepto</TableHead>
+                          <TableHead className="text-right text-[10px] uppercase font-bold text-muted-foreground/60">Monto</TableHead>
+                          <TableHead className="text-[10px] uppercase font-bold text-muted-foreground/60">Fecha</TableHead>
+                          <TableHead className="text-[10px] uppercase font-bold text-muted-foreground/60">Estado</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {allPagos.slice(0, visiblePagos).map(pago => (
-                          <TableRow key={pago.id} onClick={() => handlePagoClick(pago)} className="cursor-pointer border-white/5 hover:bg-white/5 group">
+                          <TableRow key={pago.id} onClick={() => handlePagoClick(pago)} className="cursor-pointer border-border/50 hover:bg-accent/50 group">
                             <TableCell className="font-medium text-xs">{pago.concepto}</TableCell>
                             <TableCell className="text-right font-bold text-xs">{formatCurrency(pago.monto)}</TableCell>
                             <TableCell className="text-xs">
-                                <span className={getPagoStatus(pago) === 'vencido' ? 'text-status-danger font-bold' : 'text-muted-foreground/60'}>
+                                <span className={getPagoStatus(pago) === 'vencido' ? 'text-status-danger font-bold' : 'text-muted-foreground'}>
                                     {formatDate(pago.estado === 'pagado' && pago.fechaPago ? pago.fechaPago : pago.fechaLimite)}
                                 </span>
                             </TableCell>
@@ -395,7 +395,7 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                 )}
               </CardContent>
               {visiblePagos < allPagos.length && (
-                <CardFooter className="justify-center pt-2 border-t border-white/5">
+                <CardFooter className="justify-center pt-2 border-t border-border/50">
                   <Button variant="ghost" size="sm" className="text-[10px] text-muted-foreground/60" onClick={() => setVisiblePagos(v => v + 40)}>Ver más historial</Button>
                 </CardFooter>
               )}
