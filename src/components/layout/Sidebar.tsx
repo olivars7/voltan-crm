@@ -47,16 +47,15 @@ export function Sidebar() {
     let hasTodayEvents = false;
     let hasTodayMeetings = false;
 
-    // Check Calls
+    // Check Calls - Solo para Agenda
     llamadas.forEach(l => {
       const callDate = parseISO(l.fecha);
       if (isToday(callDate)) {
-        hasTodayEvents = true;
         hasTodayMeetings = true;
       }
     });
 
-    // Check Payments
+    // Check Payments - Para Consola y Pagos
     pagos.forEach(p => {
       const dueDate = parseISO(p.fechaLimite);
       if (p.estado === 'pendiente') {
@@ -129,6 +128,7 @@ export function Sidebar() {
             <div className="flex flex-col gap-4">
               {navItems.map((item) => {
                 const isActive = item.href === '/dashboard' ? pathname === item.href : pathname.startsWith(item.href);
+                const isPagos = item.href === '/pagos';
                 const isConsola = item.href === '/console';
                 const isAgenda = item.href === '/agenda';
                 
@@ -146,6 +146,13 @@ export function Sidebar() {
                       >
                         <item.icon className="h-5 w-5" />
                         
+                        {/* Notification Dot for Pagos (Vencidos) */}
+                        {isPagos && status.hasOverdue && (
+                          <div className="absolute top-2 right-2">
+                            <span className="flex h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)] animate-vibrate" />
+                          </div>
+                        )}
+
                         {/* Notification Dots for Consola */}
                         {isConsola && (
                           <div className="absolute top-2 right-2 flex gap-0.5">
@@ -184,6 +191,7 @@ export function Sidebar() {
         <div className="grid grid-cols-6 items-center justify-around gap-1">
           {navItems.map((item) => {
             const isActive = item.href === '/dashboard' ? pathname === item.href : pathname.startsWith(item.href);
+            const isPagos = item.href === '/pagos';
             const isConsola = item.href === '/console';
             const isAgenda = item.href === '/agenda';
 
@@ -200,6 +208,13 @@ export function Sidebar() {
               >
                 <item.icon className="h-5 w-5" />
                 
+                {/* Notification Dot for Mobile Pagos */}
+                {isPagos && status.hasOverdue && (
+                  <div className="absolute top-1.5 right-1.5">
+                    <span className="flex h-1.5 w-1.5 rounded-full bg-rose-500 animate-vibrate" />
+                  </div>
+                )}
+
                 {/* Notification Dots for Mobile Consola */}
                 {isConsola && (
                   <div className="absolute top-1.5 right-1.5 flex gap-0.5">
