@@ -2,12 +2,12 @@
 import { useClientes } from '@/hooks/useClientes';
 import { usePagos } from '@/hooks/usePagos';
 import { useAgenda } from '@/hooks/useAgenda';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { DollarSign, ClipboardCheck, CheckCircle, CalendarDays, Loader2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
+import { DollarSign, ClipboardCheck, CheckCircle, CalendarDays, Loader2, Info, TrendingUp, HandCoins, Target } from 'lucide-react';
 import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { isBefore, parseISO, addMonths, startOfToday, isToday, isPast, startOfMonth } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { isBefore, parseISO, addMonths, startOfToday, isToday, isPast, startOfMonth, isWithinInterval, endOfMonth } from 'date-fns';
+import { useEffect, useState, useMemo } from 'react';
 import { type Cliente, type Pago, type LlamadaAgendada, type LlamadaEstado } from '@/lib/types';
 import { Dialog } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -19,6 +19,7 @@ import { PagoForm } from '@/components/pagos/PagoForm';
 import { AgendaDetail } from '@/components/agenda/AgendaDetail';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type TimelineItem = {
   date: Date;
@@ -55,6 +56,55 @@ export default function ConsolePageClient() {
   useEffect(() => {
     setNow(startOfToday());
   }, []);
+
+  // KPI Calculations
+  const stats = useMemo(() => {
+    if (!now) return { deliveriesPending: 0, estimatedRevenue: 0, deliveriesCompleted: 0, currentRevenue: 0 };
+    
+    const monthStart = startOfMonth(now);
+    const monthEnd = endOfMonth(now);
+
+    const deliveriesPending = clientes.filter(c => c.estado === 'activo' && c.proyecto?.estado === 'en-progreso').length;
+    
+    const deliveriesCompleted = clientes.filter(c => 
+      c.proyecto?.estado === 'completado' && 
+      c.proyecto.fechaEntrega && 
+      isWithinInterval(parseISO(c.proyecto.fechaEntrega), { start: monthStart, end: monthEnd })
+    ).length;
+
+    const currentRevenue = pagos.filter(p => 
+      p.estado === 'pagado' && 
+      p.fechaPago && 
+      isWithinInterval(parseISO(p.fechaPago), { start: monthStart, end: monthEnd })
+    ).reduce((sum, p) => sum + p.monto, 0);
+
+    let pendingTotal = pagos.filter(p => 
+      p.estado === 'pendiente' && 
+      isWithinInterval(parseISO(p.fechaLimite), { start: monthStart, end: monthEnd })
+    ).reduce((sum, p) => sum + p.monto, 0);
+
+    // Add synthetic recurring payments for the current month
+    clientes.forEach(cl => {
+      if (cl.estado === 'activo' && cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
+        const paymentDate = new Date(now.getFullYear(), now.getMonth(), cl.diaDePago);
+        if (isWithinInterval(paymentDate, { start: monthStart, end: monthEnd })) {
+            const exists = pagos.some(p => 
+                p.clienteId === cl.id && 
+                p.concepto === 'Mensualidad' && 
+                parseISO(p.fechaLimite).getMonth() === now.getMonth()
+            );
+            if (!exists) pendingTotal += cl.cuotaMensual;
+        }
+      }
+    });
+
+    return {
+      deliveriesPending,
+      estimatedRevenue: currentRevenue + pendingTotal,
+      deliveriesCompleted,
+      currentRevenue
+    };
+  }, [now, clientes, pagos]);
 
   // Dialog handlers
   const handleOpenPagoDetail = (pago: Pago) => {
@@ -365,7 +415,8 @@ export default function ConsolePageClient() {
         title="Consola"
         description="Un registro cronológico de todos los eventos importantes."
       />
-       {isLoading ? (
+      
+      {isLoading ? (
             <div className="flex items-center justify-center h-[70vh]">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -373,51 +424,134 @@ export default function ConsolePageClient() {
                 </div>
             </div>
         ) : (
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="border-white/5 bg-zinc-950/40">
-            <CardHeader>
-              <CardTitle>Eventos Próximos y Vencidos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[60vh] custom-scrollbar">
-                  <div className="space-y-2 pr-4">
-                      {now && sortedUpcoming.slice(0, visibleUpcoming).map(renderTimelineItem)}
-                      {(!now || (now && sortedUpcoming.length === 0)) && (
-                          <p className="text-sm text-muted-foreground/40 text-center py-20">
-                            {now ? 'No hay eventos próximos.' : 'Cargando eventos...'}
-                          </p>
-                      )}
-                  </div>
-              </ScrollArea>
-            </CardContent>
-            {visibleUpcoming < sortedUpcoming.length && (
-              <CardFooter className="justify-center border-t border-white/5 pt-4">
-                <Button variant="ghost" size="sm" onClick={() => setVisibleUpcoming(v => v + 40)}>Cargar más</Button>
-              </CardFooter>
-            )}
-        </Card>
-        <Card className="border-white/5 bg-zinc-950/40">
-            <CardHeader>
-              <CardTitle>Registro de Actividad</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[60vh] custom-scrollbar">
-                  <div className="space-y-2 pr-4">
-                      {now && sortedCompleted.slice(0, visibleCompleted).map(renderTimelineItem)}
-                      {(!now || (now && sortedCompleted.length === 0)) && (
-                          <p className="text-sm text-muted-foreground/40 text-center py-20">
-                            {now ? 'No hay eventos completados.' : 'Cargando eventos...'}
-                          </p>
-                      )}
-                  </div>
-              </ScrollArea>
-            </CardContent>
-            {visibleCompleted < sortedCompleted.length && (
-              <CardFooter className="justify-center border-t border-white/5 pt-4">
-                <Button variant="ghost" size="sm" onClick={() => setVisibleCompleted(v => v + 40)}>Cargar más</Button>
-              </CardFooter>
-            )}
-        </Card>
+      <div className="space-y-6">
+        {/* KPI Micro Modules */}
+        <TooltipProvider>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Card className="border-white/5 bg-zinc-950/40 relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-primary/50" />
+                    <CardHeader className="p-4 pb-0 flex flex-row items-center justify-between">
+                        <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Entregas Pendientes</CardTitle>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Info className="h-3 w-3 text-muted-foreground/40 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>Proyectos activos actualmente en progreso.</TooltipContent>
+                        </Tooltip>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-2">
+                        <div className="flex items-center gap-2">
+                            <ClipboardCheck className="h-4 w-4 text-primary" />
+                            <span className="text-xl font-bold">{stats.deliveriesPending}</span>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="border-white/5 bg-zinc-950/40 relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-status-active/50" />
+                    <CardHeader className="p-4 pb-0 flex flex-row items-center justify-between">
+                        <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Proyección Mensual</CardTitle>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <TrendingUp className="h-3 w-3 text-muted-foreground/40 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>Ingreso total estimado para este mes (Cobrado + Pendiente).</TooltipContent>
+                        </Tooltip>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-2">
+                        <div className="flex items-center gap-2">
+                            <DollarSign className="h-4 w-4 text-status-active" />
+                            <span className="text-xl font-bold">{formatCurrency(stats.estimatedRevenue)}</span>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="border-white/5 bg-zinc-950/40 relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-status-success/50" />
+                    <CardHeader className="p-4 pb-0 flex flex-row items-center justify-between">
+                        <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Cierres de Mes</CardTitle>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Target className="h-3 w-3 text-muted-foreground/40 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>Cantidad de proyectos entregados satisfactoriamente este mes.</TooltipContent>
+                        </Tooltip>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-2">
+                        <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-status-success" />
+                            <span className="text-xl font-bold">{stats.deliveriesCompleted}</span>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="border-white/5 bg-zinc-950/40 relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500/50" />
+                    <CardHeader className="p-4 pb-0 flex flex-row items-center justify-between">
+                        <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Ingresos Reales</CardTitle>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <HandCoins className="h-3 w-3 text-muted-foreground/40 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>Dinero efectivamente cobrado este mes.</TooltipContent>
+                        </Tooltip>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-2">
+                        <div className="flex items-center gap-2">
+                            <DollarSign className="h-4 w-4 text-emerald-400" />
+                            <span className="text-xl font-bold">{formatCurrency(stats.currentRevenue)}</span>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        </TooltipProvider>
+
+        <div className="grid gap-6 md:grid-cols-2">
+            <Card className="border-white/5 bg-zinc-950/40">
+                <CardHeader>
+                <CardTitle>Eventos Próximos y Vencidos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                <ScrollArea className="h-[55vh] custom-scrollbar">
+                    <div className="space-y-2 pr-4">
+                        {now && sortedUpcoming.slice(0, visibleUpcoming).map(renderTimelineItem)}
+                        {(!now || (now && sortedUpcoming.length === 0)) && (
+                            <p className="text-sm text-muted-foreground/40 text-center py-20">
+                                {now ? 'No hay eventos próximos.' : 'Cargando eventos...'}
+                            </p>
+                        )}
+                    </div>
+                </ScrollArea>
+                </CardContent>
+                {visibleUpcoming < sortedUpcoming.length && (
+                <CardFooter className="justify-center border-t border-white/5 pt-4">
+                    <Button variant="ghost" size="sm" onClick={() => setVisibleUpcoming(v => v + 40)}>Cargar más</Button>
+                </CardFooter>
+                )}
+            </Card>
+            <Card className="border-white/5 bg-zinc-950/40">
+                <CardHeader>
+                <CardTitle>Registro de Actividad</CardTitle>
+                </CardHeader>
+                <CardContent>
+                <ScrollArea className="h-[55vh] custom-scrollbar">
+                    <div className="space-y-2 pr-4">
+                        {now && sortedCompleted.slice(0, visibleCompleted).map(renderTimelineItem)}
+                        {(!now || (now && sortedCompleted.length === 0)) && (
+                            <p className="text-sm text-muted-foreground/40 text-center py-20">
+                                {now ? 'No hay eventos completados.' : 'Cargando eventos...'}
+                            </p>
+                        )}
+                    </div>
+                </ScrollArea>
+                </CardContent>
+                {visibleCompleted < sortedCompleted.length && (
+                <CardFooter className="justify-center border-t border-white/5 pt-4">
+                    <Button variant="ghost" size="sm" onClick={() => setVisibleCompleted(v => v + 40)}>Cargar más</Button>
+                </CardFooter>
+                )}
+            </Card>
+        </div>
       </div>
       )}
 
