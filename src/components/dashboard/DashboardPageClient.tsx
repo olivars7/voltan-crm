@@ -424,9 +424,9 @@ export default function DashboardPageClient() {
 
   const TimelineIcon = ({ type }: { type: TimelineItem['type'] }) => {
     switch (type) {
-      case 'pago': return <DollarSign className="h-4 w-4 text-muted-foreground" />;
-      case 'entrega': return <ClipboardCheck className="h-4 w-4 text-muted-foreground" />;
-      case 'llamada': return <CalendarDays className="h-4 w-4 text-muted-foreground" />;
+      case 'pago': return <DollarSign className="h-3 w-3 text-muted-foreground" />;
+      case 'entrega': return <ClipboardCheck className="h-3 w-3 text-muted-foreground" />;
+      case 'llamada': return <CalendarDays className="h-3 w-3 text-muted-foreground" />;
       default: return null;
     }
   }
@@ -469,8 +469,8 @@ export default function DashboardPageClient() {
   const Comparison = ({ value, isCurrency = false }: { value: number, isCurrency?: boolean }) => {
     const isPositive = value >= 0;
     return (
-        <p className={cn("text-xs font-semibold flex items-center mt-1", isPositive ? "text-emerald-400" : "text-rose-400")}>
-            {isPositive ? <ArrowUp className="h-3 w-3 mr-1" /> : <ArrowDown className="h-3 w-3 mr-1" />}
+        <p className={cn("text-[10px] font-semibold flex items-center mt-0.5", isPositive ? "text-emerald-400" : "text-rose-400")}>
+            {isPositive ? <ArrowUp className="h-2.5 w-2.5 mr-0.5" /> : <ArrowDown className="h-2.5 w-2.5 mr-0.5" />}
             {isCurrency ? formatCurrency(Math.abs(value)) : Math.abs(value)}
         </p>
     );
@@ -478,73 +478,73 @@ export default function DashboardPageClient() {
 
   return (
     <>
-      <div className="space-y-8 animate-in fade-in duration-1000">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="space-y-6 animate-in fade-in duration-1000">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Card className="relative overflow-hidden group">
             <div className="absolute top-0 left-0 w-1 h-full bg-status-active/50" />
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium uppercase tracking-widest text-muted-foreground">Clientes activos</CardTitle>
-              <Users className="h-4 w-4 text-status-active" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-4 px-4">
+              <CardTitle className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Clientes activos</CardTitle>
+              <Users className="h-3 w-3 text-status-active" />
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold tracking-tight">{now ? kpiData.activeClients : '...'}</div>
-               {now && <p className="text-xs text-muted-foreground flex items-center mt-2 opacity-70"><PlusCircle className="h-3 w-3 mr-1" />{kpiData.newClientsThisMonth} este mes</p>}
+            <CardContent className="px-4 pb-4">
+              <div className="text-2xl font-bold tracking-tight">{now ? kpiData.activeClients : '...'}</div>
+               {now && <p className="text-[10px] text-muted-foreground flex items-center mt-1 opacity-70"><PlusCircle className="h-2.5 w-2.5 mr-1" />{kpiData.newClientsThisMonth} este mes</p>}
             </CardContent>
           </Card>
           
           <Card className="relative overflow-hidden group">
             <div className="absolute top-0 left-0 w-1 h-full bg-status-success/50" />
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium uppercase tracking-widest text-muted-foreground">Ingresos de {now ? capitalizedMonthName : '...'}</CardTitle>
-              <DollarSign className="h-4 w-4 text-status-success" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-4 px-4">
+              <CardTitle className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Ingresos de {now ? capitalizedMonthName : '...'}</CardTitle>
+              <DollarSign className="h-3 w-3 text-status-success" />
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold tracking-tight">{now ? formatCurrency(kpiData.projectedRevenue) : '...'}</div>
+            <CardContent className="px-4 pb-4">
+              <div className="text-2xl font-bold tracking-tight">{now ? formatCurrency(kpiData.projectedRevenue) : '...'}</div>
               {now && <Comparison value={kpiData.revenueDiff} isCurrency />}
             </CardContent>
           </Card>
 
           <Card className="relative overflow-hidden group">
             <div className="absolute top-0 left-0 w-1 h-full bg-status-warning/50" />
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium uppercase tracking-widest text-muted-foreground">Cierres de {now ? capitalizedMonthName : '...'}</CardTitle>
-              <ClipboardCheck className="h-4 w-4 text-status-warning" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-4 px-4">
+              <CardTitle className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Cierres de {now ? capitalizedMonthName : '...'}</CardTitle>
+              <ClipboardCheck className="h-3 w-3 text-status-warning" />
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold tracking-tight">{now ? kpiData.newClientsThisMonth : '...'}</div>
+            <CardContent className="px-4 pb-4">
+              <div className="text-2xl font-bold tracking-tight">{now ? kpiData.newClientsThisMonth : '...'}</div>
               {now && <Comparison value={kpiData.newClientsDiff} />}
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid gap-8 xl:grid-cols-3">
+        <div className="grid gap-6 xl:grid-cols-3">
           <Card className="xl:col-span-1 border-white/5 bg-zinc-950/40">
-            <CardHeader>
-              <CardTitle className="text-lg font-bold">Consola General</CardTitle>
-              <CardDescription className="text-xs">Eventos importantes del sistema.</CardDescription>
+            <CardHeader className="p-4">
+              <CardTitle className="text-base font-bold">Consola General</CardTitle>
+              <CardDescription className="text-[10px]">Eventos importantes del sistema.</CardDescription>
             </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[450px] custom-scrollbar">
-                  <div className="space-y-4 pr-4">
+            <CardContent className="px-4 pb-2">
+              <ScrollArea className="h-[400px] custom-scrollbar">
+                  <div className="space-y-2 pr-3">
                       {now && sortedTimeline.slice(0, visibleTimeline).map((item, index) => (
                           <div 
                             key={`${item.type}-${item.data.id}-${index}`}
                             onClick={() => handleItemClick(item)} 
-                            className="flex items-start gap-4 cursor-pointer hover:bg-white/5 p-3 rounded-xl transition-all duration-300 border border-transparent hover:border-white/5"
+                            className="flex items-start gap-3 cursor-pointer hover:bg-white/5 p-2 rounded-lg transition-all duration-300 border border-transparent hover:border-white/5"
                           >
-                              <div className="mt-1 p-2 rounded-lg bg-white/5">
+                              <div className="mt-0.5 p-1.5 rounded-md bg-white/5">
                                 <TimelineIcon type={item.type} />
                               </div>
-                              <div className="flex-1 space-y-1 overflow-hidden">
+                              <div className="flex-1 space-y-0.5 overflow-hidden">
                                   <div className="flex flex-wrap items-center justify-between gap-x-2">
-                                    <p className="text-sm font-medium leading-none truncate pr-2">
+                                    <p className="text-xs font-medium leading-tight truncate pr-2">
                                         {item.type === 'pago' && `${item.data.concepto}: ${formatCurrency(item.data.monto)}`}
                                         {item.type === 'entrega' && `Entrega: ${item.data.nombre}`}
                                         {item.type === 'llamada' && `Llamada: ${item.data.nombre}`}
                                     </p>
                                     {item.subType === 'overdue' && <StatusBadge status={getItemStatus(item)} />}
                                   </div>
-                                  <p className="text-xs text-muted-foreground">
+                                  <p className="text-[10px] text-muted-foreground">
                                       <span className={item.subType === 'overdue' ? 'text-rose-400 font-medium' : ''}>
                                         {formatDate(item.date, "d MMM, yyyy")}
                                       </span>
@@ -563,38 +563,38 @@ export default function DashboardPageClient() {
               </ScrollArea>
             </CardContent>
             {visibleTimeline < sortedTimeline.length && (
-              <CardFooter className="justify-center border-t border-white/5 pt-4">
-                <Button variant="ghost" size="sm" onClick={() => setVisibleTimeline(v => v + 40)}>Cargar más</Button>
+              <CardFooter className="justify-center border-t border-white/5 p-2">
+                <Button variant="ghost" size="sm" className="h-7 text-[10px]" onClick={() => setVisibleTimeline(v => v + 40)}>Cargar más</Button>
               </CardFooter>
             )}
           </Card>
 
           <Card className="xl:col-span-2 border-white/5 bg-zinc-950/40">
-              <CardHeader>
-                  <CardTitle className="text-lg font-bold">Estadísticas</CardTitle>
-                  <CardDescription className="text-xs">Rendimiento trimestral.</CardDescription>
+              <CardHeader className="p-4">
+                  <CardTitle className="text-base font-bold">Estadísticas</CardTitle>
+                  <CardDescription className="text-[10px]">Rendimiento trimestral.</CardDescription>
               </CardHeader>
-              <CardContent className="grid gap-8 md:grid-cols-2">
-                  <div className="space-y-4">
-                      <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground/60 text-center">Ingresos Mensuales</h4>
-                      <ChartContainer config={chartConfig} className="w-full h-64">
+              <CardContent className="grid gap-6 md:grid-cols-2 p-4 pt-0">
+                  <div className="space-y-3">
+                      <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 text-center">Ingresos Mensuales</h4>
+                      <ChartContainer config={chartConfig} className="w-full h-56">
                           <BarChart accessibilityLayer data={monthlyRevenue} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                              <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={12} fontSize={10} stroke="rgba(255,255,255,0.4)" />
-                              <YAxis tickFormatter={(value) => `$${value/1000}k`} tickLine={false} axisLine={false} fontSize={10} width={40} stroke="rgba(255,255,255,0.4)" />
+                              <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={9} stroke="rgba(255,255,255,0.4)" />
+                              <YAxis tickFormatter={(value) => `$${value/1000}k`} tickLine={false} axisLine={false} fontSize={9} width={35} stroke="rgba(255,255,255,0.4)" />
                               <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" className="bg-zinc-900/90 border-white/10" />} />
-                              <Bar dataKey="ingresos" fill="var(--color-ingresos)" radius={[4, 4, 0, 0]} barSize={32} />
+                              <Bar dataKey="ingresos" fill="var(--color-ingresos)" radius={[3, 3, 0, 0]} barSize={24} />
                           </BarChart>
                       </ChartContainer>
                   </div>
                   
-                  <div className="space-y-4">
-                      <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground/60 text-center">Nuevos Clientes</h4>
-                      <ChartContainer config={chartConfig} className="w-full h-64">
+                  <div className="space-y-3">
+                      <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 text-center">Nuevos Clientes</h4>
+                      <ChartContainer config={chartConfig} className="w-full h-56">
                           <BarChart accessibilityLayer data={newClientsByMonth} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                              <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={12} fontSize={10} stroke="rgba(255,255,255,0.4)" />
-                              <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={10} width={20} stroke="rgba(255,255,255,0.4)" />
+                              <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={9} stroke="rgba(255,255,255,0.4)" />
+                              <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={9} width={15} stroke="rgba(255,255,255,0.4)" />
                               <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" className="bg-zinc-900/90 border-white/10" />} />
-                              <Bar dataKey="clientes" fill="var(--color-clientes)" radius={[4, 4, 0, 0]} barSize={32} />
+                              <Bar dataKey="clientes" fill="var(--color-clientes)" radius={[3, 3, 0, 0]} barSize={24} />
                           </BarChart>
                       </ChartContainer>
                   </div>
@@ -642,38 +642,38 @@ export default function DashboardPageClient() {
         />}
       </Dialog>
 
-      <Card className="mt-12 border-white/5 bg-zinc-950/40">
-        <CardHeader>
-          <CardTitle className="text-lg font-bold">Zona de Desarrollo</CardTitle>
-          <CardDescription className="text-xs">
+      <Card className="mt-8 border-white/5 bg-zinc-950/40">
+        <CardHeader className="p-4">
+          <CardTitle className="text-base font-bold">Zona de Desarrollo</CardTitle>
+          <CardDescription className="text-[10px]">
             Acciones administrativas del sistema.
           </CardDescription>
         </CardHeader>
-        <CardContent className="relative">
+        <CardContent className="relative px-4 pb-4">
           {devZoneLoading && (
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-10 rounded-2xl">
                 <div className="flex items-center gap-3">
-                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                    <span className="text-sm font-medium">{devZoneLoading}</span>
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                    <span className="text-xs font-medium">{devZoneLoading}</span>
                 </div>
             </div>
           )}
-          <div className="flex flex-wrap items-start gap-12">
+          <div className="flex flex-wrap items-start gap-8">
             <div>
-              <Button variant="outline" size="sm" className="border-rose-500/50 hover:bg-rose-500/10 text-rose-400" onClick={handleResetData} disabled={!!devZoneLoading}>
-                <RotateCw className="mr-2 h-4 w-4" />
+              <Button variant="outline" size="sm" className="h-8 text-[10px] border-rose-500/50 hover:bg-rose-500/10 text-rose-400" onClick={handleResetData} disabled={!!devZoneLoading}>
+                <RotateCw className="mr-2 h-3 w-3" />
                 Reiniciar Datos de Prueba
               </Button>
-              <p className="text-[10px] text-muted-foreground mt-2 max-w-xs uppercase tracking-tight opacity-50">
+              <p className="text-[9px] text-muted-foreground mt-1 max-w-xs uppercase tracking-tight opacity-50">
                 Restaura el sistema a su estado inicial de demostración.
               </p>
             </div>
             <div>
-              <Button variant="outline" size="sm" className="border-rose-900/50 hover:bg-rose-900/10 text-rose-600" onClick={handleDeleteAllData} disabled={!!devZoneLoading}>
-                <Trash2 className="mr-2 h-4 w-4" />
+              <Button variant="outline" size="sm" className="h-8 text-[10px] border-rose-900/50 hover:bg-rose-900/10 text-rose-600" onClick={handleDeleteAllData} disabled={!!devZoneLoading}>
+                <Trash2 className="mr-2 h-3 w-3" />
                 Purgar Base de Datos
               </Button>
-              <p className="text-[10px] text-muted-foreground mt-2 max-w-xs uppercase tracking-tight opacity-50">
+              <p className="text-[9px] text-muted-foreground mt-1 max-w-xs uppercase tracking-tight opacity-50">
                 Elimina permanentemente todos los registros del sistema.
               </p>
             </div>
