@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { PlusCircle, Search, Loader2, Users, Phone, Presentation, Target, Trash2 } from 'lucide-react';
+import { PlusCircle, Search, Loader2, Users, Phone, Presentation, Target, ArrowRight, XCircle } from 'lucide-react';
 import { useLeads } from '@/hooks/useLeads';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -10,14 +10,11 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LeadForm } from './LeadForm';
 import { LeadDetail } from './LeadDetail';
 import type { Lead, LeadEstado } from '@/lib/types';
-import { leadEstados } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { serviceDisplayNames } from './ServiciosCheckboxes';
-import { cn } from '@/lib/utils';
 
 export function LeadsPageClient() {
   const { leads, addLead, updateLead, deleteLead, loading } = useLeads();
@@ -74,6 +71,25 @@ export function LeadsPageClient() {
     });
   };
 
+  const handleAvanzar = async (e: React.MouseEvent, lead: Lead) => {
+    e.stopPropagation();
+    let nextStatus: LeadEstado = lead.estado;
+
+    switch (lead.estado) {
+        case 'por-contactar': nextStatus = 'contactado'; break;
+        case 'contactado': nextStatus = 'demo-agendada'; break;
+        case 'demo-agendada': nextStatus = 'convertido'; break;
+        default: return; // No hay más avances
+    }
+
+    await handleStatusChange(lead, nextStatus);
+  };
+
+  const handleNoInteresado = async (e: React.MouseEvent, lead: Lead) => {
+    e.stopPropagation();
+    await handleStatusChange(lead, 'no-interesado');
+  };
+
   const openNewDialog = () => {
     setEditingLead(undefined);
     setFormOpen(true);
@@ -99,14 +115,6 @@ export function LeadsPageClient() {
           lead.telefono.includes(search) ||
           lead.nicho.toLowerCase().includes(search)
       );
-  };
-
-  const statusSelectStyles: Record<LeadEstado, string> = {
-    'por-contactar': 'text-status-active border-status-active/50 bg-status-active/10 hover:bg-status-active/20',
-    'contactado': 'text-blue-600 border-blue-600/50 bg-blue-600/10 hover:bg-blue-600/20',
-    'demo-agendada': 'text-status-warning border-status-warning/50 bg-status-warning/10 hover:bg-status-warning/20',
-    'convertido': 'text-status-success border-status-success/50 bg-status-success/10 hover:bg-status-success/20',
-    'no-interesado': 'text-status-danger border-status-danger/50 bg-status-danger/10 hover:bg-status-danger/20',
   };
   
   const leadsByStatus: Record<LeadEstado, Lead[]> = {
@@ -144,35 +152,42 @@ export function LeadsPageClient() {
               <TableHead>Contacto</TableHead>
               <TableHead>Nicho</TableHead>
               <TableHead>Servicios de Interés</TableHead>
-              <TableHead>Estado</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.map((lead) => (
-              <TableRow key={lead.id} onClick={() => openDetailDialog(lead)} className="cursor-pointer">
+              <TableRow key={lead.id} onClick={() => openDetailDialog(lead)} className="cursor-pointer group">
                 <TableCell className="font-medium">{lead.nombre}</TableCell>
                 <TableCell>{lead.telefono}</TableCell>
                 <TableCell>{lead.nicho}</TableCell>
                 <TableCell>
                   {lead.servicios.map(s => serviceDisplayNames[s]).join(', ')}
                 </TableCell>
-                <TableCell>
-                  <Select
-                    value={lead.estado}
-                    onValueChange={(newStatus: LeadEstado) => handleStatusChange(lead, newStatus)}
-                  >
-                    <SelectTrigger onClick={(e) => e.stopPropagation()} className={cn("w-[180px]", statusSelectStyles[lead.estado])}>
-                      <SelectValue placeholder="Seleccionar estado..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {leadEstados
-                        .map(estado => (
-                          <SelectItem key={estado} value={estado}>
-                            <span className="capitalize">{estado.replace(/-/g, ' ')}</span>
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    {lead.estado !== 'convertido' && lead.estado !== 'no-interesado' && (
+                        <Button 
+                            size="sm" 
+                            className="bg-status-success hover:bg-status-success/90 h-8"
+                            onClick={(e) => handleAvanzar(e, lead)}
+                        >
+                            <ArrowRight className="w-3 h-3 mr-1" />
+                            Avanzar
+                        </Button>
+                    )}
+                    {lead.estado !== 'no-interesado' && (
+                        <Button 
+                            size="sm" 
+                            variant="secondary"
+                            className="h-8 bg-muted text-muted-foreground hover:bg-muted-foreground hover:text-white"
+                            onClick={(e) => handleNoInteresado(e, lead)}
+                        >
+                            <XCircle className="w-3 h-3 mr-1" />
+                            No interesado
+                        </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

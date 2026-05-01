@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { formatCurrency, formatDate, cn } from '@/lib/utils';
-import { Briefcase, Mail, Phone, DollarSign, ClipboardCheck, CalendarDays, Pencil, CheckCircle, Loader2, ExternalLink } from 'lucide-react';
+import { Briefcase, Mail, Phone, DollarSign, ClipboardCheck, CalendarDays, Pencil, CheckCircle, Loader2, ExternalLink, Copy } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Button } from '@/components/ui/button';
@@ -183,6 +183,14 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
     return 'pendiente';
   }
 
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+        title: "Copiado al portapapeles",
+        description: `${label} copiado exitosamente.`
+    });
+  };
+
   const projectStatusSelectStyles: Record<ProyectoEstado, string> = {
     'en-progreso': 'text-status-warning border-status-warning/50 bg-status-warning/10 hover:bg-status-warning/20',
     'completado': 'text-status-success border-status-success/50 bg-status-success/10 hover:bg-status-success/20',
@@ -207,8 +215,12 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                 <div className="flex-1">
                     <div className="flex items-start justify-between">
                         <div className="flex flex-col gap-2">
-                             <h2 className="text-2xl font-bold flex items-center gap-2">
+                             <h2 
+                                className="text-2xl font-bold flex items-center gap-2 cursor-pointer hover:text-primary transition-colors group"
+                                onClick={() => copyToClipboard(cliente.nombre, "Nombre")}
+                            >
                                 {cliente.nombre}
+                                <Copy className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                                 <StatusBadge status={cliente.estado} />
                             </h2>
                             <div className="flex items-center space-x-2">
@@ -230,13 +242,21 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                     
                     <Separator className="my-4" />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                        <div className="flex items-center gap-2">
+                        <div 
+                            className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors group"
+                            onClick={() => copyToClipboard(cliente.email, "Correo")}
+                        >
                             <Mail className="w-4 h-4 text-muted-foreground" />
                             <span>{cliente.email}</span>
+                            <Copy className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div 
+                            className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors group"
+                            onClick={() => copyToClipboard(cliente.telefono, "Teléfono")}
+                        >
                             <Phone className="w-4 h-4 text-muted-foreground" />
                             <span>{cliente.telefono}</span>
+                            <Copy className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                     </div>
                     <div className="text-sm text-muted-foreground mt-4">
