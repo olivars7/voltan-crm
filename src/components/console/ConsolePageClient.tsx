@@ -317,9 +317,9 @@ export default function ConsolePageClient() {
       return <CheckCircle className="h-4 w-4 text-status-success" />;
     }
     switch (type) {
-      case 'pago': return <DollarSign className="h-4 w-4 text-muted-foreground" />;
-      case 'entrega': return <ClipboardCheck className="h-4 w-4 text-muted-foreground" />;
-      case 'llamada': return <CalendarDays className="h-4 w-4 text-muted-foreground" />;
+      case 'pago': return <DollarSign className="h-4 w-4 text-muted-foreground/60" />;
+      case 'entrega': return <ClipboardCheck className="h-4 w-4 text-muted-foreground/60" />;
+      case 'llamada': return <CalendarDays className="h-4 w-4 text-muted-foreground/60" />;
       default: return null;
     }
   }
@@ -328,20 +328,22 @@ export default function ConsolePageClient() {
       <div 
         key={`${item.type}-${item.data.id}-${index}`}
         onClick={() => handleItemClick(item)} 
-        className="flex items-start gap-4 cursor-pointer hover:bg-muted/50 p-2 -m-2 rounded-lg transition-colors"
+        className="flex items-start gap-4 cursor-pointer hover:bg-white/5 p-3 rounded-xl transition-all duration-300 border border-transparent hover:border-white/5"
       >
-          <TimelineIcon type={item.type} subType={item.subType} />
+          <div className="mt-1 p-2 rounded-lg bg-white/5">
+            <TimelineIcon type={item.type} subType={item.subType} />
+          </div>
           <div className="flex-1 space-y-1 overflow-hidden">
             <div className="flex flex-wrap items-center justify-between gap-x-2">
-                <p className="text-sm font-medium leading-none">
+                <p className="text-sm font-medium leading-none truncate pr-2">
                     {item.type === 'pago' && `${item.data.concepto}: ${formatCurrency(item.data.monto)}`}
                     {item.type === 'entrega' && `Entrega: ${item.data.nombre}`}
                     {item.type === 'llamada' && `Llamada: ${item.data.nombre}`}
                 </p>
                 {item.subType === 'overdue' && <StatusBadge status="vencido" />}
               </div>
-              <p className="text-sm text-muted-foreground">
-                  <span className={item.subType === 'overdue' ? 'text-status-danger font-medium' : ''}>
+              <p className="text-xs text-muted-foreground/60">
+                  <span className={item.subType === 'overdue' ? 'text-rose-400 font-medium' : ''}>
                     {item.subType === 'completed' 
                       ? `Completado ${formatRelativeTime(item.date)}`
                       : formatDate(item.date, "d MMM, yyyy")
@@ -371,7 +373,7 @@ export default function ConsolePageClient() {
             </div>
         ) : (
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+        <Card className="border-white/5 bg-zinc-950/40">
             <CardHeader>
               <CardTitle>Eventos Próximos y Vencidos</CardTitle>
             </CardHeader>
@@ -380,7 +382,7 @@ export default function ConsolePageClient() {
                   <div className="space-y-2 pr-4">
                       {now && sortedUpcoming.slice(0, visibleUpcoming).map(renderTimelineItem)}
                       {(!now || (now && sortedUpcoming.length === 0)) && (
-                          <p className="text-sm text-muted-foreground text-center py-10">
+                          <p className="text-sm text-muted-foreground/40 text-center py-20">
                             {now ? 'No hay eventos próximos.' : 'Cargando eventos...'}
                           </p>
                       )}
@@ -388,12 +390,12 @@ export default function ConsolePageClient() {
               </ScrollArea>
             </CardContent>
             {visibleUpcoming < sortedUpcoming.length && (
-              <CardFooter className="justify-center pt-4">
-                <Button onClick={() => setVisibleUpcoming(v => v + 40)}>Cargar más</Button>
+              <CardFooter className="justify-center border-t border-white/5 pt-4">
+                <Button variant="ghost" size="sm" onClick={() => setVisibleUpcoming(v => v + 40)}>Cargar más</Button>
               </CardFooter>
             )}
         </Card>
-        <Card>
+        <Card className="border-white/5 bg-zinc-950/40">
             <CardHeader>
               <CardTitle>Registro de Actividad</CardTitle>
             </CardHeader>
@@ -402,7 +404,7 @@ export default function ConsolePageClient() {
                   <div className="space-y-2 pr-4">
                       {now && sortedCompleted.slice(0, visibleCompleted).map(renderTimelineItem)}
                       {(!now || (now && sortedCompleted.length === 0)) && (
-                          <p className="text-sm text-muted-foreground text-center py-10">
+                          <p className="text-sm text-muted-foreground/40 text-center py-20">
                             {now ? 'No hay eventos completados.' : 'Cargando eventos...'}
                           </p>
                       )}
@@ -410,8 +412,8 @@ export default function ConsolePageClient() {
               </ScrollArea>
             </CardContent>
             {visibleCompleted < sortedCompleted.length && (
-              <CardFooter className="justify-center pt-4">
-                <Button onClick={() => setVisibleCompleted(v => v + 40)}>Cargar más</Button>
+              <CardFooter className="justify-center border-t border-white/5 pt-4">
+                <Button variant="ghost" size="sm" onClick={() => setVisibleCompleted(v => v + 40)}>Cargar más</Button>
               </CardFooter>
             )}
         </Card>

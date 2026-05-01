@@ -200,7 +200,7 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
 
   return (
     <>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col bg-zinc-950/95 border-white/10">
         <DialogHeader>
           <DialogTitle>Expediente del Cliente</DialogTitle>
         </DialogHeader>
@@ -208,7 +208,7 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
           <div className="grid gap-6 py-4">
             {/* Header Section */}
             <div className="flex flex-col sm:flex-row items-start gap-6">
-                <Avatar className="w-24 h-24 text-xl border-2 border-primary/10">
+                <Avatar className="w-24 h-24 text-xl border-2 border-white/10">
                     <AvatarImage src={`https://ui-avatars.com/api/?name=${cliente.nombre.replace(' ', '+')}&background=random`} />
                     <AvatarFallback>{getInitials(cliente.nombre)}</AvatarFallback>
                 </Avatar>
@@ -229,37 +229,37 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                                     checked={cliente.estado === 'activo'}
                                     onCheckedChange={handleStatusToggle}
                                 />
-                                <Label htmlFor="client-status" className="text-sm font-medium">
+                                <Label htmlFor="client-status" className="text-sm font-medium text-muted-foreground">
                                     {cliente.estado === 'activo' ? 'Activo' : 'Inactivo'}
                                 </Label>
                             </div>
                         </div>
-                        <Button variant="outline" size="icon" onClick={onEditRequest}>
+                        <Button variant="outline" size="icon" onClick={onEditRequest} className="bg-white/5 border-white/10">
                             <Pencil className="h-4 w-4" />
                             <span className="sr-only">Editar Cliente</span>
                         </Button>
                     </div>
                     
-                    <Separator className="my-4" />
+                    <Separator className="my-4 border-white/10" />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                         <div 
-                            className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors group"
+                            className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors group text-muted-foreground"
                             onClick={() => copyToClipboard(cliente.email, "Correo")}
                         >
-                            <Mail className="w-4 h-4 text-muted-foreground" />
+                            <Mail className="w-4 h-4 text-muted-foreground/60" />
                             <span>{cliente.email}</span>
                             <Copy className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                         <div 
-                            className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors group"
+                            className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors group text-muted-foreground"
                             onClick={() => copyToClipboard(cliente.telefono, "Teléfono")}
                         >
-                            <Phone className="w-4 h-4 text-muted-foreground" />
+                            <Phone className="w-4 h-4 text-muted-foreground/60" />
                             <span>{cliente.telefono}</span>
                             <Copy className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                     </div>
-                    <div className="text-sm text-muted-foreground mt-4">
+                    <div className="text-sm text-muted-foreground/60 mt-4">
                         <span>Cliente desde: </span>
                         <span className="font-medium">{formatDate(cliente.fechaInicio)}</span>
                     </div>
@@ -268,10 +268,10 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
             
             {/* Recurring Payment Details */}
             {(cliente.diaDePago || cliente.cuotaMensual) && (
-                <Card className="bg-muted/50">
+                <Card className="border-white/5 bg-white/5">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-base">
-                            <CalendarDays className="w-5 h-5" />
+                            <CalendarDays className="w-5 h-5 text-muted-foreground/60" />
                             Pagos Recurrentes
                         </CardTitle>
                     </CardHeader>
@@ -279,13 +279,13 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                         {cliente.diaDePago && (
                             <div className="space-y-1">
                                 <p className="font-semibold">Día de Pago Mensual</p>
-                                <p className="text-sm text-muted-foreground">El día {cliente.diaDePago} de cada mes</p>
+                                <p className="text-sm text-muted-foreground/60">El día {cliente.diaDePago} de cada mes</p>
                             </div>
                         )}
                         {cliente.cuotaMensual && cliente.cuotaMensual > 0 && (
                             <div className="space-y-1">
                                 <p className="font-semibold">Cuota Mensual</p>
-                                <p className="text-sm text-muted-foreground">{formatCurrency(cliente.cuotaMensual)}</p>
+                                <p className="text-sm text-muted-foreground/60">{formatCurrency(cliente.cuotaMensual)}</p>
                             </div>
                         )}
                     </CardContent>
@@ -294,29 +294,29 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
 
             {/* Project Details */}
             {cliente.proyecto && (
-              <Card className="bg-muted/50">
+              <Card className="border-white/5 bg-white/5">
                   <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-base">
-                          <ClipboardCheck className="w-5 h-5" />
+                          <ClipboardCheck className="w-5 h-5 text-muted-foreground/60" />
                           Detalles del Proyecto
                       </CardTitle>
                   </CardHeader>
                   <CardContent className="grid gap-4 md:grid-cols-3">
                       <div className="space-y-1 md:col-span-3">
                           <p className="font-semibold">{cliente.proyecto.nombre}</p>
-                          <p className="text-sm text-muted-foreground">{cliente.proyecto.descripcion}</p>
+                          <p className="text-sm text-muted-foreground/60">{cliente.proyecto.descripcion}</p>
                       </div>
                       <div className="space-y-1">
                           <p className="font-semibold">Fecha de Entrega</p>
-                          <p className="text-sm text-muted-foreground">{formatDate(cliente.proyecto.fechaEntrega)}</p>
+                          <p className="text-sm text-muted-foreground/60">{formatDate(cliente.proyecto.fechaEntrega)}</p>
                       </div>
                       <div className="space-y-1">
                           <p className="font-semibold">Estado</p>
                            <Select onValueChange={(value: ProyectoEstado) => handleProjectStatusChange(value)} value={cliente.proyecto.estado}>
-                              <SelectTrigger className={cn("w-[180px]", projectStatusSelectStyles[cliente.proyecto.estado])}>
+                              <SelectTrigger className={cn("w-[180px] bg-white/5 border-white/10", projectStatusSelectStyles[cliente.proyecto.estado])}>
                                   <SelectValue placeholder="Estado del proyecto" />
                               </SelectTrigger>
-                              <SelectContent>
+                              <SelectContent className="bg-zinc-900 border-white/10">
                                   <SelectItem value="en-progreso">En Progreso</SelectItem>
                                   <SelectItem value="completado">Completado</SelectItem>
                                   <SelectItem value="pausado">Pausado</SelectItem>
@@ -345,7 +345,7 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                   </CardContent>
                   {cliente.proyecto.estado !== 'completado' && (
                       <CardFooter>
-                          <Button onClick={handleConfirmDelivery}>
+                          <Button onClick={handleConfirmDelivery} className="bg-status-success hover:bg-status-success/90">
                               <CheckCircle className="mr-2 h-4 w-4" />
                               Confirmar Entrega
                           </Button>
@@ -356,14 +356,14 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
 
             {/* History Section */}
             <div className="grid md:grid-cols-1 gap-6">
-              <Card>
+              <Card className="border-white/5 bg-white/5">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-base">
-                    <DollarSign className="w-5 h-5" />
+                    <DollarSign className="w-5 h-5 text-muted-foreground/60" />
                     Historial de Pagos
                   </CardTitle>
                   {totalAdeudo > 0 && (
-                    <p className="text-sm text-status-danger pt-1">
+                    <p className="text-sm text-status-danger pt-1 font-medium">
                       Adeudo total: {formatCurrency(totalAdeudo)}
                     </p>
                   )}
@@ -376,20 +376,20 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                   ) : allPagos.length > 0 ? (
                     <Table>
                       <TableHeader>
-                        <TableRow>
-                          <TableHead>Concepto</TableHead>
-                          <TableHead className="text-right">Monto</TableHead>
-                          <TableHead>Fecha</TableHead>
-                          <TableHead>Estado</TableHead>
+                        <TableRow className="border-white/5 hover:bg-transparent">
+                          <TableHead className="text-muted-foreground/60">Concepto</TableHead>
+                          <TableHead className="text-right text-muted-foreground/60">Monto</TableHead>
+                          <TableHead className="text-muted-foreground/60">Fecha</TableHead>
+                          <TableHead className="text-muted-foreground/60">Estado</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {allPagos.slice(0, visiblePagos).map(pago => (
-                          <TableRow key={pago.id} onClick={() => handlePagoClick(pago)} className="cursor-pointer">
+                          <TableRow key={pago.id} onClick={() => handlePagoClick(pago)} className="cursor-pointer border-white/5 hover:bg-white/5">
                             <TableCell className="font-medium">{pago.concepto}</TableCell>
-                            <TableCell className="text-right">{formatCurrency(pago.monto)}</TableCell>
+                            <TableCell className="text-right font-medium">{formatCurrency(pago.monto)}</TableCell>
                             <TableCell>
-                                <span className={getPagoStatus(pago) === 'vencido' ? 'text-status-danger' : ''}>
+                                <span className={getPagoStatus(pago) === 'vencido' ? 'text-status-danger font-medium' : 'text-muted-foreground/80'}>
                                     {formatDate(pago.estado === 'pagado' && pago.fechaPago ? pago.fechaPago : pago.fechaLimite)}
                                 </span>
                             </TableCell>
@@ -399,12 +399,12 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                       </TableBody>
                     </Table>
                   ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">No hay pagos registrados.</p>
+                    <p className="text-sm text-muted-foreground/40 text-center py-4">No hay pagos registrados.</p>
                   )}
                 </CardContent>
                 {visiblePagos < allPagos.length && (
-                  <CardFooter className="justify-center">
-                    <Button onClick={() => setVisiblePagos(v => v + 40)}>Cargar más</Button>
+                  <CardFooter className="justify-center pt-4 border-t border-white/5">
+                    <Button variant="ghost" size="sm" onClick={() => setVisiblePagos(v => v + 40)}>Cargar más</Button>
                   </CardFooter>
                 )}
               </Card>

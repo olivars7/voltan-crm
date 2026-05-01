@@ -163,18 +163,18 @@ export function ClientesPageClient() {
         </Button>
       </PageHeader>
       
-      <Card>
+      <Card className="border-white/5 bg-zinc-950/40">
         <CardHeader>
           <CardTitle>Lista de Clientes</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="pb-4">
             <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground/60" />
                 <Input
                     type="search"
                     placeholder="Buscar por nombre, empresa, teléfono, estado o mes..."
-                    className="w-full pl-8 md:w-1/2 lg:w-1/3"
+                    className="w-full pl-8 md:w-1/2 lg:w-1/3 bg-white/5 border-white/10"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -187,32 +187,32 @@ export function ClientesPageClient() {
           ) : (
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Empresa</TableHead>
-                <TableHead>Teléfono</TableHead>
-                <TableHead>Fecha de Inicio</TableHead>
-                <TableHead>Estado</TableHead>
+              <TableRow className="border-white/5 hover:bg-transparent">
+                <TableHead className="text-muted-foreground/60">Nombre</TableHead>
+                <TableHead className="text-muted-foreground/60">Empresa</TableHead>
+                <TableHead className="text-muted-foreground/60">Teléfono</TableHead>
+                <TableHead className="text-muted-foreground/60">Fecha de Inicio</TableHead>
+                <TableHead className="text-muted-foreground/60">Estado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredClientes.length === 0 && !isLoading ? (
-                <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
+                <TableRow className="hover:bg-transparent border-white/5">
+                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground/40">
                         No se encontraron clientes.
                     </TableCell>
                 </TableRow>
               ) : (
                 filteredClientes.slice(0, visibleCount).map((cliente) => (
-                  <TableRow key={cliente.id} onClick={() => openDetailDialog(cliente)} className="cursor-pointer">
+                  <TableRow key={cliente.id} onClick={() => openDetailDialog(cliente)} className="cursor-pointer border-white/5 hover:bg-white/5">
                     <TableCell className="font-medium">
                       {cliente.nombre}
                     </TableCell>
-                    <TableCell>{cliente.empresa}</TableCell>
-                    <TableCell>
+                    <TableCell className="text-muted-foreground/80">{cliente.empresa}</TableCell>
+                    <TableCell className="text-muted-foreground/80">
                       {cliente.telefono}
                     </TableCell>
-                    <TableCell>{formatDate(cliente.fechaInicio)}</TableCell>
+                    <TableCell className="text-muted-foreground/80">{formatDate(cliente.fechaInicio)}</TableCell>
                     <TableCell>
                       <StatusBadge status={cliente.estado} />
                     </TableCell>
@@ -224,8 +224,8 @@ export function ClientesPageClient() {
           )}
         </CardContent>
         {visibleCount < filteredClientes.length && (
-          <CardFooter className="justify-center">
-            <Button onClick={() => setVisibleCount(v => v + 40)}>Cargar más</Button>
+          <CardFooter className="justify-center border-t border-white/5 pt-4">
+            <Button variant="ghost" size="sm" onClick={() => setVisibleCount(v => v + 40)}>Cargar más</Button>
           </CardFooter>
         )}
       </Card>

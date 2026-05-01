@@ -267,28 +267,28 @@ export function PagosPageClient() {
     return (
         <>
         {data.length === 0 && !isLoading ? (
-            <p className="text-center text-muted-foreground py-8">
+            <p className="text-center text-muted-foreground/40 py-8">
                 No hay pagos en esta categoría.
             </p>
         ) : (
             <Table>
             <TableHeader>
-                <TableRow>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Concepto</TableHead>
-                <TableHead className="text-right">Monto</TableHead>
-                <TableHead>{isPending ? 'Fecha Límite' : 'Fecha de Pago'}</TableHead>
-                <TableHead>Estado</TableHead>
+                <TableRow className="border-white/5 hover:bg-transparent">
+                <TableHead className="text-muted-foreground/60">Cliente</TableHead>
+                <TableHead className="text-muted-foreground/60">Concepto</TableHead>
+                <TableHead className="text-right text-muted-foreground/60">Monto</TableHead>
+                <TableHead className="text-muted-foreground/60">{isPending ? 'Fecha Límite' : 'Fecha de Pago'}</TableHead>
+                <TableHead className="text-muted-foreground/60">Estado</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
                 {data.slice(0, visibleCount).map((pago) => (
-                    <TableRow key={pago.id} onClick={() => handleOpenPagoDetail(pago)} className="cursor-pointer">
-                        <TableCell>{getClienteById(pago.clienteId)?.nombre}</TableCell>
-                        <TableCell>{pago.concepto}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(pago.monto)}</TableCell>
+                    <TableRow key={pago.id} onClick={() => handleOpenPagoDetail(pago)} className="cursor-pointer border-white/5 hover:bg-white/5">
+                        <TableCell className="font-medium">{getClienteById(pago.clienteId)?.nombre}</TableCell>
+                        <TableCell className="text-muted-foreground/80">{pago.concepto}</TableCell>
+                        <TableCell className="text-right font-medium">{formatCurrency(pago.monto)}</TableCell>
                         <TableCell>
-                        <span className={tableType === 'vencidos' ? 'text-status-danger font-medium' : ''}>
+                        <span className={tableType === 'vencidos' ? 'text-status-danger font-medium' : 'text-muted-foreground/80'}>
                             {formatDate(isPending ? pago.fechaLimite : pago.fechaPago!)}
                         </span>
                         </TableCell>
@@ -320,13 +320,13 @@ export function PagosPageClient() {
             </div>
         ) : (
       <Tabs defaultValue="proximos">
-        <TabsList>
-          <TabsTrigger value="proximos">Próximos ({pagosProximos.length})</TabsTrigger>
-          <TabsTrigger value="pendientes">Vencidos ({pagosVencidos.length})</TabsTrigger>
-          <TabsTrigger value="historial">Historial ({historialPagos.length})</TabsTrigger>
+        <TabsList className="bg-white/5 border border-white/10">
+          <TabsTrigger value="proximos" className="data-[state=active]:bg-white/10">Próximos ({pagosProximos.length})</TabsTrigger>
+          <TabsTrigger value="pendientes" className="data-[state=active]:bg-white/10">Vencidos ({pagosVencidos.length})</TabsTrigger>
+          <TabsTrigger value="historial" className="data-[state=active]:bg-white/10">Historial ({historialPagos.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="proximos">
-            <Card>
+            <Card className="border-white/5 bg-zinc-950/40">
                 <CardHeader>
                     <CardTitle>Pagos Próximos</CardTitle>
                     <CardDescription>Pagos programados y recurrentes que aún no han vencido.</CardDescription>
@@ -335,14 +335,14 @@ export function PagosPageClient() {
                     <PagosTable data={pagosProximos} tableType="proximos" visibleCount={visibleProximos} />
                 </CardContent>
                 {visibleProximos < pagosProximos.length && (
-                  <CardFooter className="justify-center pt-4">
-                    <Button onClick={() => setVisibleProximos(v => v + 40)}>Cargar más</Button>
+                  <CardFooter className="justify-center pt-4 border-t border-white/5">
+                    <Button variant="ghost" size="sm" onClick={() => setVisibleProximos(v => v + 40)}>Cargar más</Button>
                   </CardFooter>
                 )}
             </Card>
         </TabsContent>
         <TabsContent value="pendientes">
-            <Card>
+            <Card className="border-white/5 bg-zinc-950/40">
                 <CardHeader>
                     <CardTitle>Pagos Vencidos</CardTitle>
                     <CardDescription>Pagos que no se han cubierto y su fecha límite ya pasó.</CardDescription>
@@ -351,14 +351,14 @@ export function PagosPageClient() {
                     <PagosTable data={pagosVencidos} tableType="vencidos" visibleCount={visibleVencidos} />
                 </CardContent>
                  {visibleVencidos < pagosVencidos.length && (
-                  <CardFooter className="justify-center pt-4">
-                    <Button onClick={() => setVisibleVencidos(v => v + 40)}>Cargar más</Button>
+                  <CardFooter className="justify-center pt-4 border-t border-white/5">
+                    <Button variant="ghost" size="sm" onClick={() => setVisibleVencidos(v => v + 40)}>Cargar más</Button>
                   </CardFooter>
                 )}
             </Card>
         </TabsContent>
         <TabsContent value="historial">
-            <Card>
+            <Card className="border-white/5 bg-zinc-950/40">
                 <CardHeader>
                     <CardTitle>Historial de Pagos</CardTitle>
                     <CardDescription>Un registro de todos los pagos realizados.</CardDescription>
@@ -367,8 +367,8 @@ export function PagosPageClient() {
                     <PagosTable data={historialPagos} tableType="historial" visibleCount={visibleHistorial} />
                 </CardContent>
                 {visibleHistorial < historialPagos.length && (
-                  <CardFooter className="justify-center pt-4">
-                    <Button onClick={() => setVisibleHistorial(v => v + 40)}>Cargar más</Button>
+                  <CardFooter className="justify-center pt-4 border-t border-white/5">
+                    <Button variant="ghost" size="sm" onClick={() => setVisibleHistorial(v => v + 40)}>Cargar más</Button>
                   </CardFooter>
                 )}
             </Card>

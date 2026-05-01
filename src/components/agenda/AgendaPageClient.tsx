@@ -123,25 +123,25 @@ export function AgendaPageClient() {
   const CallsTable = ({ calls, visibleCount, type }: { calls: LlamadaAgendada[], visibleCount: number, type: 'proximas' | 'pasadas' }) => (
     <>
       {calls.length === 0 && !loading ? (
-        <p className="text-center text-muted-foreground py-8">No hay llamadas {type}.</p>
+        <p className="text-center text-muted-foreground/40 py-8">No hay llamadas {type}.</p>
       ) : (
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Cliente/Interesado</TableHead>
-              <TableHead>Número</TableHead>
-              <TableHead>Fecha y Hora</TableHead>
-              <TableHead>Medio</TableHead>
-              <TableHead>Estado</TableHead>
+            <TableRow className="border-white/5 hover:bg-transparent">
+              <TableHead className="text-muted-foreground/60">Cliente/Interesado</TableHead>
+              <TableHead className="text-muted-foreground/60">Número</TableHead>
+              <TableHead className="text-muted-foreground/60">Fecha y Hora</TableHead>
+              <TableHead className="text-muted-foreground/60">Medio</TableHead>
+              <TableHead className="text-muted-foreground/60">Estado</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {calls.slice(0, visibleCount).map((llamada) => (
-              <TableRow key={llamada.id} onClick={() => openDetailDialog(llamada)} className="cursor-pointer">
+              <TableRow key={llamada.id} onClick={() => openDetailDialog(llamada)} className="cursor-pointer border-white/5 hover:bg-white/5">
                 <TableCell className="font-medium">{llamada.nombre}</TableCell>
-                <TableCell>{llamada.telefono}</TableCell>
-                <TableCell>{formatDate(llamada.fecha, "d MMM, yyyy h:mm a")}</TableCell>
-                <TableCell className="capitalize">{llamada.medio.replace('-', ' ')}</TableCell>
+                <TableCell className="text-muted-foreground/80">{llamada.telefono}</TableCell>
+                <TableCell className="text-muted-foreground/80">{formatDate(llamada.fecha, "d MMM, yyyy h:mm a")}</TableCell>
+                <TableCell className="capitalize text-muted-foreground/80">{llamada.medio.replace('-', ' ')}</TableCell>
                 <TableCell><StatusBadge status={getEffectiveStatus(llamada)} /></TableCell>
               </TableRow>
             ))}
@@ -165,11 +165,11 @@ export function AgendaPageClient() {
       
        <div className="pb-4">
         <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground/60" />
             <Input
                 type="search"
                 placeholder="Buscar por nombre, número o estado..."
-                className="w-full pl-8 md:w-1/2 lg:w-1/3"
+                className="w-full pl-8 md:w-1/2 lg:w-1/3 bg-white/5 border-white/10"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -182,12 +182,12 @@ export function AgendaPageClient() {
         </div>
       ) : (
       <Tabs defaultValue="proximas">
-        <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="proximas">Próximas</TabsTrigger>
-            <TabsTrigger value="pasadas">Pasadas</TabsTrigger>
+        <TabsList className="bg-white/5 border border-white/10">
+            <TabsTrigger value="proximas" className="data-[state=active]:bg-white/10">Próximas</TabsTrigger>
+            <TabsTrigger value="pasadas" className="data-[state=active]:bg-white/10">Pasadas</TabsTrigger>
         </TabsList>
         <TabsContent value="proximas">
-            <Card>
+            <Card className="border-white/5 bg-zinc-950/40">
                 <CardHeader>
                   <CardTitle>Llamadas Próximas</CardTitle>
                 </CardHeader>
@@ -195,14 +195,14 @@ export function AgendaPageClient() {
                     <CallsTable calls={llamadasProximas} visibleCount={visibleUpcoming} type="proximas" />
                 </CardContent>
                 {visibleUpcoming < llamadasProximas.length && (
-                    <CardFooter className="justify-center">
-                        <Button onClick={() => setVisibleUpcoming(v => v + 40)}>Cargar más</Button>
+                    <CardFooter className="justify-center border-t border-white/5 pt-4">
+                        <Button variant="ghost" size="sm" onClick={() => setVisibleUpcoming(v => v + 40)}>Cargar más</Button>
                     </CardFooter>
                 )}
             </Card>
         </TabsContent>
         <TabsContent value="pasadas">
-            <Card>
+            <Card className="border-white/5 bg-zinc-950/40">
                 <CardHeader>
                   <CardTitle>Llamadas Pasadas</CardTitle>
                 </CardHeader>
@@ -210,8 +210,8 @@ export function AgendaPageClient() {
                     <CallsTable calls={llamadasPasadas} visibleCount={visiblePast} type="pasadas" />
                 </CardContent>
                  {visiblePast < llamadasPasadas.length && (
-                    <CardFooter className="justify-center">
-                        <Button onClick={() => setVisiblePast(v => v + 40)}>Cargar más</Button>
+                    <CardFooter className="justify-center border-t border-white/5 pt-4">
+                        <Button variant="ghost" size="sm" onClick={() => setVisiblePast(v => v + 40)}>Cargar más</Button>
                     </CardFooter>
                 )}
             </Card>
