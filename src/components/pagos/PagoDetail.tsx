@@ -69,23 +69,23 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest,
   const isSynthetic = pago.id.startsWith('recurring-');
 
   return (
-    <DialogContent className="sm:max-w-md bg-background/80 backdrop-blur-3xl border-border shadow-2xl rounded-3xl">
+    <DialogContent className="sm:max-w-md bg-zinc-950/80 backdrop-blur-3xl border-white/10 shadow-2xl rounded-3xl text-white">
       <DialogHeader>
         <div className="flex items-center justify-between">
-          <DialogTitle className="text-xl font-bold tracking-tight">Detalles del Pago</DialogTitle>
+          <DialogTitle className="text-xl font-bold tracking-tight text-white">Detalles del Pago</DialogTitle>
           <div className="flex gap-2">
             {!isSynthetic && onDeleteRequest && (
               <Button 
                 variant="outline" 
                 size="icon" 
                 onClick={onDeleteRequest} 
-                className="bg-destructive/10 border-destructive/20 hover:bg-destructive/20 text-destructive h-8 w-8"
+                className="bg-rose-500/10 border-rose-500/20 hover:bg-rose-500/20 text-rose-500 h-8 w-8"
               >
                 <Trash2 className="h-4 w-4" />
                 <span className="sr-only">Eliminar Pago</span>
               </Button>
             )}
-            <Button variant="outline" size="icon" onClick={onEditRequest} className="bg-muted/50 border-border hover:bg-muted h-8 w-8">
+            <Button variant="outline" size="icon" onClick={onEditRequest} className="bg-white/5 border-white/10 hover:bg-white/10 text-white h-8 w-8">
                 <Pencil className="h-4 w-4" />
                 <span className="sr-only">Editar Pago</span>
             </Button>
@@ -94,49 +94,49 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest,
       </DialogHeader>
 
       <div className="py-2 space-y-6">
-        <div className="text-center py-6 bg-muted/30 rounded-2xl border border-border/50">
-            <p className="text-4xl font-bold tracking-tighter text-foreground">{formatCurrency(pago.monto)}</p>
+        <div className="text-center py-6 bg-white/5 rounded-2xl border border-white/10">
+            <p className="text-4xl font-bold tracking-tighter text-white">{formatCurrency(pago.monto)}</p>
             <p className="text-xs text-muted-foreground uppercase tracking-widest mt-1 font-bold">{pago.concepto}</p>
         </div>
 
-        <div className="space-y-4 rounded-2xl border border-border/50 bg-muted/30 p-5 text-sm">
+        <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-5 text-sm">
             <div className="flex items-center justify-between">
-                <span className="text-muted-foreground flex items-center gap-2"><User className="w-4 h-4 text-primary" /> Cliente</span>
-                <span className="font-semibold text-right text-foreground">{cliente?.nombre}</span>
+                <span className="text-zinc-400 flex items-center gap-2"><User className="w-4 h-4 text-primary" /> Cliente</span>
+                <span className="font-semibold text-right text-white">{cliente?.nombre}</span>
             </div>
             <div className="flex items-center justify-between">
-                <span className="text-muted-foreground flex items-center gap-2"><Calendar className="w-4 h-4 text-primary" /> Fecha Límite</span>
-                <span className={`font-semibold ${getPagoStatus(pago) === 'vencido' ? 'text-status-danger' : 'text-foreground'}`}>{formatDate(pago.fechaLimite)}</span>
+                <span className="text-zinc-400 flex items-center gap-2"><Calendar className="w-4 h-4 text-primary" /> Fecha Límite</span>
+                <span className={`font-semibold ${getPagoStatus(pago) === 'vencido' ? 'text-status-danger' : 'text-white'}`}>{formatDate(pago.fechaLimite)}</span>
             </div>
             {pago.estado === 'pagado' && pago.fechaPago && (
                 <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground flex items-center gap-2"><CheckCircle className="w-4 h-4 text-status-success" /> Fecha de Pago</span>
+                    <span className="text-zinc-400 flex items-center gap-2"><CheckCircle className="w-4 h-4 text-status-success" /> Fecha de Pago</span>
                     <span className={`font-semibold ${wasPaidLate ? 'text-status-danger' : 'text-status-success'}`}>{formatDate(pago.fechaPago)}</span>
                 </div>
             )}
             <div className="flex items-center justify-between">
-                <span className="text-muted-foreground flex items-center gap-2"><Info className="w-4 h-4 text-primary" /> Estado</span>
+                <span className="text-zinc-400 flex items-center gap-2"><Info className="w-4 h-4 text-primary" /> Estado</span>
                 <StatusBadge status={getPagoStatus(pago)} />
             </div>
         </div>
         
         {pago.notas && (
-            <div className="space-y-2 p-4 bg-muted/30 rounded-2xl border border-border/50">
-                <h4 className="font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 text-muted-foreground"><Notebook className="w-3 h-3" /> Notas</h4>
-                <p className="text-xs text-muted-foreground/80 pl-1 leading-relaxed">{pago.notas}</p>
+            <div className="space-y-2 p-4 bg-white/5 rounded-2xl border border-white/10">
+                <h4 className="font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 text-zinc-400"><Notebook className="w-3 h-3" /> Notas</h4>
+                <p className="text-xs text-zinc-300 pl-1 leading-relaxed">{pago.notas}</p>
             </div>
         )}
       </div>
 
-      <DialogFooter className="flex-col gap-2 sm:flex-col sm:space-x-0 pt-4 border-t border-border/50 mt-2">
-          <Button onClick={onToggleStatus} size="lg" className="w-full bg-primary shadow-lg shadow-primary/20 h-11">
+      <DialogFooter className="flex-col gap-2 sm:flex-col sm:space-x-0 pt-4 border-t border-white/10 mt-2">
+          <Button onClick={onToggleStatus} size="lg" className="w-full bg-primary shadow-lg shadow-primary/20 h-11 text-white hover:bg-primary/90">
             {pago.estado === 'pendiente' ? 'Marcar como Pagado' : 'Marcar como Pendiente'}
           </Button>
-          <Button variant="outline" onClick={handleCopyReminder} disabled={pago.estado === 'pagado'} className="w-full bg-muted/50 border-border hover:bg-muted h-11">
+          <Button variant="outline" onClick={handleCopyReminder} disabled={pago.estado === 'pagado'} className="w-full bg-white/5 border-white/10 hover:bg-white/10 text-white h-11">
               <Copy className="mr-2 h-4 w-4" />
               Copiar Recordatorio
           </Button>
-          <Button variant="ghost" onClick={() => onOpenCliente(pago.clienteId)} className="w-full h-8 text-[10px] text-muted-foreground hover:text-foreground">
+          <Button variant="ghost" onClick={() => onOpenCliente(pago.clienteId)} className="w-full h-8 text-[10px] text-zinc-500 hover:text-white">
             <ExternalLink className="mr-2 h-3 w-3" />
             Ver Expediente del Cliente
           </Button>

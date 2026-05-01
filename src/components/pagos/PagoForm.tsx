@@ -101,9 +101,9 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
   const isSynthetic = pago?.id?.startsWith('recurring-');
 
   return (
-    <DialogContent className="sm:max-w-md bg-background/80 backdrop-blur-3xl border-border shadow-2xl rounded-3xl">
+    <DialogContent className="sm:max-w-md bg-zinc-950/80 backdrop-blur-3xl border-white/10 shadow-2xl rounded-3xl text-white">
       <DialogHeader>
-        <DialogTitle className="text-xl font-bold tracking-tight">{pago ? 'Editar Pago' : 'Registrar Pago'}</DialogTitle>
+        <DialogTitle className="text-xl font-bold tracking-tight text-white">{pago ? 'Editar Pago' : 'Registrar Pago'}</DialogTitle>
       </DialogHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4">
@@ -112,14 +112,14 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
             name="clienteId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Cliente</FormLabel>
+                <FormLabel className="text-zinc-300">Cliente</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value} disabled={!!pago}>
                   <FormControl>
-                    <SelectTrigger className="bg-background/50 border-border">
+                    <SelectTrigger className="bg-white/5 border-white/10 text-white placeholder:text-zinc-500">
                       <SelectValue placeholder="Selecciona un cliente" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="bg-popover border-border">
+                  <SelectContent className="bg-zinc-900 border-white/10 text-white">
                     {clientes.map((cliente) => (
                       <SelectItem key={cliente.id} value={cliente.id}>
                         {cliente.nombre}
@@ -136,9 +136,9 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
             name="concepto"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Concepto</FormLabel>
+                <FormLabel className="text-zinc-300">Concepto</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ej. Mensualidad, Adelanto, etc." {...field} className="bg-background/50 border-border" />
+                  <Input placeholder="Ej. Mensualidad, Adelanto, etc." {...field} className="bg-white/5 border-white/10 text-white placeholder:text-zinc-500" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -149,9 +149,9 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
             name="monto"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Monto (MXN)</FormLabel>
+                <FormLabel className="text-zinc-300">Monto (MXN)</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.01" placeholder="15000.00" {...field} className="bg-background/50 border-border" />
+                  <Input type="number" step="0.01" placeholder="15000.00" {...field} className="bg-white/5 border-white/10 text-white placeholder:text-zinc-500" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -162,9 +162,9 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
             name="fechaLimite"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Fecha Límite</FormLabel>
+                <FormLabel className="text-zinc-300">Fecha Límite</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} className="bg-background/50 border-border" />
+                  <Input type="date" {...field} className="bg-white/5 border-white/10 text-white invert-calendar-icon" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -175,9 +175,9 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
             name="fechaPago"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Fecha de Pago (opcional)</FormLabel>
+                <FormLabel className="text-zinc-300">Fecha de Pago (opcional)</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} className="bg-background/50 border-border" />
+                  <Input type="date" {...field} className="bg-white/5 border-white/10 text-white invert-calendar-icon" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -188,18 +188,18 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
             name="notas"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Notas (opcional)</FormLabel>
+                <FormLabel className="text-zinc-300">Notas (opcional)</FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Detalles adicionales sobre el pago..." {...field} className="bg-background/50 border-border min-h-[80px]" />
+                  <Textarea placeholder="Detalles adicionales sobre el pago..." {...field} className="bg-white/5 border-white/10 text-white placeholder:text-zinc-500 min-h-[80px]" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <DialogFooter className="flex justify-between items-center pt-6 border-t border-border/50 mt-4 gap-2">
+          <DialogFooter className="flex justify-between items-center pt-6 border-t border-white/10 mt-4 gap-2">
             <div>
                 {pago && onDelete && !isSynthetic && (
-                    <Button type="button" variant="destructive" onClick={onDelete} className="bg-status-danger/10 text-status-danger hover:bg-status-danger/20 border-status-danger/20 h-9">
+                    <Button type="button" variant="destructive" onClick={onDelete} className="bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 border-rose-500/20 h-9">
                         <Trash2 className="mr-2 h-4 w-4" />
                         Eliminar
                     </Button>
@@ -207,9 +207,9 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
             </div>
             <div className="flex gap-2">
                 <DialogClose asChild>
-                    <Button type="button" variant="secondary" className="bg-muted/50 border-border hover:bg-muted h-9">Cancelar</Button>
+                    <Button type="button" variant="secondary" className="bg-white/5 border-white/10 hover:bg-white/10 text-white h-9">Cancelar</Button>
                 </DialogClose>
-                <Button type="submit" className="bg-primary shadow-lg shadow-primary/20 h-9 px-6 font-semibold">Guardar</Button>
+                <Button type="submit" className="bg-primary shadow-lg shadow-primary/20 h-9 px-6 font-semibold text-white hover:bg-primary/90">Guardar</Button>
             </div>
           </DialogFooter>
         </form>
