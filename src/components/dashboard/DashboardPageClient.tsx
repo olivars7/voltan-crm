@@ -179,14 +179,15 @@ export default function DashboardPageClient() {
     }
   };
 
-  const handleDeletePago = async () => {
-    if (editingPago && !editingPago.id.startsWith('recurring-')) {
+  const handleDeletePago = async (pagoId?: string) => {
+    const idToDelete = pagoId || editingPago?.id;
+    if (idToDelete && !idToDelete.startsWith('recurring-')) {
         if(window.confirm(`¿Estás seguro de que quieres eliminar este pago? Esta acción es permanente.`)){
-            await deletePago(editingPago.id);
+            await deletePago(idToDelete);
             toast({ title: "Pago eliminado", description: "El pago ha sido eliminado permanentemente." });
             setPagoFormOpen(false);
             setEditingPago(undefined);
-            if (selectedPago?.id === editingPago.id) {
+            if (selectedPago?.id === idToDelete) {
                 setPagoDetailOpen(false);
                 setSelectedPago(undefined);
             }
@@ -609,6 +610,7 @@ export default function DashboardPageClient() {
             onOpenCliente={handleOpenClienteFromPago}
             onToggleStatus={() => handleToggleStatusFromDetail(selectedPago)}
             onEditRequest={() => handleOpenEditPago(selectedPago)}
+            onDeleteRequest={() => handleDeletePago(selectedPago.id)}
             />}
       </Dialog>
       
@@ -630,7 +632,7 @@ export default function DashboardPageClient() {
             pago={editingPago}
             clientes={clientes} 
             onSubmit={handleEditPagoSubmit} 
-            onDelete={handleDeletePago}
+            onDelete={() => handleDeletePago()}
             setOpen={setPagoFormOpen}
         />
       </Dialog>

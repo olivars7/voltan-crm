@@ -8,7 +8,7 @@ import { Pago } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { differenceInDays, formatDistanceStrict, isAfter, isPast, isToday, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Calendar, User, Info, Notebook, ExternalLink, Copy, Pencil, CheckCircle } from 'lucide-react';
+import { Calendar, User, Info, Notebook, ExternalLink, Copy, Pencil, CheckCircle, Trash2 } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
 
 interface PagoDetailProps {
@@ -16,9 +16,10 @@ interface PagoDetailProps {
   onOpenCliente: (clienteId: string) => void;
   onToggleStatus: () => void;
   onEditRequest: () => void;
+  onDeleteRequest?: () => void;
 }
 
-export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest }: PagoDetailProps) {
+export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest, onDeleteRequest }: PagoDetailProps) {
   const { getClienteById } = useClientes();
   const cliente = getClienteById(pago.clienteId);
   const { toast } = useToast();
@@ -65,15 +66,30 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest 
     return 'pendiente';
   }
 
+  const isSynthetic = pago.id.startsWith('recurring-');
+
   return (
     <DialogContent className="sm:max-w-md bg-background/80 backdrop-blur-3xl border-border shadow-2xl rounded-3xl">
       <DialogHeader>
-        <div className="flex items-center justify-start gap-3">
+        <div className="flex items-center justify-between">
           <DialogTitle className="text-xl font-bold tracking-tight">Detalles del Pago</DialogTitle>
-          <Button variant="outline" size="icon" onClick={onEditRequest} className="bg-muted/50 border-border hover:bg-muted h-8 w-8">
-              <Pencil className="h-4 w-4" />
-              <span className="sr-only">Editar Pago</span>
-          </Button>
+          <div className="flex gap-2">
+            {!isSynthetic && onDeleteRequest && (
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={onDeleteRequest} 
+                className="bg-destructive/10 border-destructive/20 hover:bg-destructive/20 text-destructive h-8 w-8"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span className="sr-only">Eliminar Pago</span>
+              </Button>
+            )}
+            <Button variant="outline" size="icon" onClick={onEditRequest} className="bg-muted/50 border-border hover:bg-muted h-8 w-8">
+                <Pencil className="h-4 w-4" />
+                <span className="sr-only">Editar Pago</span>
+            </Button>
+          </div>
         </div>
       </DialogHeader>
 
