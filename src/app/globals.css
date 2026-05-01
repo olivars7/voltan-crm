@@ -42,8 +42,26 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground antialiased;
+    background-color: #020617; /* Fondo marino profundo base */
+    background-image: 
+      radial-gradient(at 0% 0%, hsla(199, 89%, 48%, 0.15) 0, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(187, 92%, 45%, 0.12) 0, transparent 50%),
+      radial-gradient(at 100% 100%, hsla(199, 89%, 48%, 0.15) 0, transparent 50%),
+      radial-gradient(at 0% 100%, hsla(187, 92%, 45%, 0.12) 0, transparent 50%),
+      radial-gradient(at 50% 50%, hsla(217, 91%, 60%, 0.08) 0, transparent 50%);
+    background-attachment: fixed;
+    background-size: 200% 200%;
+    animation: marine-drift 40s ease-in-out infinite alternate;
   }
+}
+
+@keyframes marine-drift {
+  0% { background-position: 0% 0%; }
+  25% { background-position: 10% 20%; }
+  50% { background-position: 30% 15%; }
+  75% { background-position: 15% 35%; }
+  100% { background-position: 0% 0%; }
 }
 
 @layer utilities {
