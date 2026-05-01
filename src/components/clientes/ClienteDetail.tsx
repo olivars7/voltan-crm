@@ -200,15 +200,15 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
 
   return (
     <>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col bg-zinc-950/95 border-white/10">
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col bg-zinc-950/80 backdrop-blur-3xl border-white/10 shadow-2xl rounded-3xl">
         <DialogHeader>
-          <DialogTitle>Expediente del Cliente</DialogTitle>
+          <DialogTitle className="text-xl font-bold tracking-tight">Expediente del Cliente</DialogTitle>
         </DialogHeader>
         <div className="flex-grow overflow-y-auto custom-scrollbar -mr-6 pr-6">
           <div className="grid gap-6 py-4">
             {/* Header Section */}
             <div className="flex flex-col sm:flex-row items-start gap-6">
-                <Avatar className="w-24 h-24 text-xl border-2 border-white/10">
+                <Avatar className="w-24 h-24 text-xl border-2 border-white/20 shadow-xl">
                     <AvatarImage src={`https://ui-avatars.com/api/?name=${cliente.nombre.replace(' ', '+')}&background=random`} />
                     <AvatarFallback>{getInitials(cliente.nombre)}</AvatarFallback>
                 </Avatar>
@@ -229,63 +229,63 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                                     checked={cliente.estado === 'activo'}
                                     onCheckedChange={handleStatusToggle}
                                 />
-                                <Label htmlFor="client-status" className="text-sm font-medium text-muted-foreground">
+                                <Label htmlFor="client-status" className="text-sm font-medium text-muted-foreground/80">
                                     {cliente.estado === 'activo' ? 'Activo' : 'Inactivo'}
                                 </Label>
                             </div>
                         </div>
-                        <Button variant="outline" size="icon" onClick={onEditRequest} className="bg-white/5 border-white/10">
+                        <Button variant="outline" size="icon" onClick={onEditRequest} className="bg-white/5 border-white/10 hover:bg-white/10">
                             <Pencil className="h-4 w-4" />
                             <span className="sr-only">Editar Cliente</span>
                         </Button>
                     </div>
                     
-                    <Separator className="my-4 border-white/10" />
+                    <Separator className="my-4 border-white/5" />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                         <div 
-                            className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors group text-muted-foreground"
+                            className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors group text-muted-foreground/80"
                             onClick={() => copyToClipboard(cliente.email, "Correo")}
                         >
-                            <Mail className="w-4 h-4 text-muted-foreground/60" />
+                            <Mail className="w-4 h-4 text-muted-foreground/40" />
                             <span>{cliente.email}</span>
                             <Copy className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                         <div 
-                            className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors group text-muted-foreground"
+                            className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors group text-muted-foreground/80"
                             onClick={() => copyToClipboard(cliente.telefono, "Teléfono")}
                         >
-                            <Phone className="w-4 h-4 text-muted-foreground/60" />
+                            <Phone className="w-4 h-4 text-muted-foreground/40" />
                             <span>{cliente.telefono}</span>
                             <Copy className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                     </div>
-                    <div className="text-sm text-muted-foreground/60 mt-4">
+                    <div className="text-[10px] text-muted-foreground/40 mt-4 uppercase tracking-widest font-semibold">
                         <span>Cliente desde: </span>
-                        <span className="font-medium">{formatDate(cliente.fechaInicio)}</span>
+                        <span className="text-muted-foreground/60">{formatDate(cliente.fechaInicio)}</span>
                     </div>
                 </div>
             </div>
             
             {/* Recurring Payment Details */}
             {(cliente.diaDePago || cliente.cuotaMensual) && (
-                <Card className="border-white/5 bg-white/5">
+                <Card className="border-white/10 bg-white/5 backdrop-blur-md">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-base">
-                            <CalendarDays className="w-5 h-5 text-muted-foreground/60" />
+                        <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground/60">
+                            <CalendarDays className="w-4 h-4" />
                             Pagos Recurrentes
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="grid gap-4 md:grid-cols-2">
                         {cliente.diaDePago && (
                             <div className="space-y-1">
-                                <p className="font-semibold">Día de Pago Mensual</p>
-                                <p className="text-sm text-muted-foreground/60">El día {cliente.diaDePago} de cada mes</p>
+                                <p className="text-sm font-semibold">Día de Pago Mensual</p>
+                                <p className="text-xs text-muted-foreground/60">El día {cliente.diaDePago} de cada mes</p>
                             </div>
                         )}
                         {cliente.cuotaMensual && cliente.cuotaMensual > 0 && (
                             <div className="space-y-1">
-                                <p className="font-semibold">Cuota Mensual</p>
-                                <p className="text-sm text-muted-foreground/60">{formatCurrency(cliente.cuotaMensual)}</p>
+                                <p className="text-sm font-semibold">Cuota Mensual</p>
+                                <p className="text-xs text-muted-foreground/60">{formatCurrency(cliente.cuotaMensual)}</p>
                             </div>
                         )}
                     </CardContent>
@@ -294,27 +294,27 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
 
             {/* Project Details */}
             {cliente.proyecto && (
-              <Card className="border-white/5 bg-white/5">
+              <Card className="border-white/10 bg-white/5 backdrop-blur-md">
                   <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-base">
-                          <ClipboardCheck className="w-5 h-5 text-muted-foreground/60" />
+                      <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground/60">
+                          <ClipboardCheck className="w-4 h-4" />
                           Detalles del Proyecto
                       </CardTitle>
                   </CardHeader>
                   <CardContent className="grid gap-4 md:grid-cols-3">
                       <div className="space-y-1 md:col-span-3">
-                          <p className="font-semibold">{cliente.proyecto.nombre}</p>
-                          <p className="text-sm text-muted-foreground/60">{cliente.proyecto.descripcion}</p>
+                          <p className="text-base font-bold">{cliente.proyecto.nombre}</p>
+                          <p className="text-xs text-muted-foreground/60">{cliente.proyecto.descripcion}</p>
                       </div>
                       <div className="space-y-1">
-                          <p className="font-semibold">Fecha de Entrega</p>
-                          <p className="text-sm text-muted-foreground/60">{formatDate(cliente.proyecto.fechaEntrega)}</p>
+                          <p className="text-xs font-semibold text-muted-foreground/40 uppercase">Fecha de Entrega</p>
+                          <p className="text-sm font-medium">{formatDate(cliente.proyecto.fechaEntrega)}</p>
                       </div>
                       <div className="space-y-1">
-                          <p className="font-semibold">Estado</p>
+                          <p className="text-xs font-semibold text-muted-foreground/40 uppercase">Estado</p>
                            <Select onValueChange={(value: ProyectoEstado) => handleProjectStatusChange(value)} value={cliente.proyecto.estado}>
-                              <SelectTrigger className={cn("w-[180px] bg-white/5 border-white/10", projectStatusSelectStyles[cliente.proyecto.estado])}>
-                                  <SelectValue placeholder="Estado del proyecto" />
+                              <SelectTrigger className={cn("w-[160px] h-8 bg-white/5 border-white/10 text-xs", projectStatusSelectStyles[cliente.proyecto.estado])}>
+                                  <SelectValue placeholder="Estado" />
                               </SelectTrigger>
                               <SelectContent className="bg-zinc-900 border-white/10">
                                   <SelectItem value="en-progreso">En Progreso</SelectItem>
@@ -326,28 +326,19 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                       </div>
                        {cliente.proyecto.websiteUrl && cliente.proyecto.websiteUrl !== '#' && (
                         <div className="space-y-1">
-                            <p className="font-semibold">Página Web</p>
-                            <a href={cliente.proyecto.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline flex items-center gap-1">
-                                <span>Visitar</span>
-                                <ExternalLink className="w-4 h-4" />
+                            <p className="text-xs font-semibold text-muted-foreground/40 uppercase">Página Web</p>
+                            <a href={cliente.proyecto.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline flex items-center gap-1 font-medium">
+                                <span>Visitar sitio</span>
+                                <ExternalLink className="w-3 h-3" />
                             </a>
                         </div>
-                      )}
-                      {cliente.proyecto.portalUrl && cliente.proyecto.portalUrl !== '#' && (
-                          <div className="space-y-1">
-                              <p className="font-semibold">Portal del Cliente</p>
-                              <a href={cliente.proyecto.portalUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline flex items-center gap-1">
-                                  <span>Acceder</span>
-                                  <ExternalLink className="w-4 h-4" />
-                              </a>
-                          </div>
                       )}
                   </CardContent>
                   {cliente.proyecto.estado !== 'completado' && (
                       <CardFooter>
-                          <Button onClick={handleConfirmDelivery} className="bg-status-success hover:bg-status-success/90">
+                          <Button onClick={handleConfirmDelivery} className="w-full bg-status-success hover:bg-status-success/90 shadow-lg shadow-status-success/20">
                               <CheckCircle className="mr-2 h-4 w-4" />
-                              Confirmar Entrega
+                              Confirmar Entrega del Proyecto
                           </Button>
                       </CardFooter>
                   )}
@@ -355,41 +346,41 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
             )}
 
             {/* History Section */}
-            <div className="grid md:grid-cols-1 gap-6">
-              <Card className="border-white/5 bg-white/5">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <DollarSign className="w-5 h-5 text-muted-foreground/60" />
-                    Historial de Pagos
-                  </CardTitle>
-                  {totalAdeudo > 0 && (
-                    <p className="text-sm text-status-danger pt-1 font-medium">
-                      Adeudo total: {formatCurrency(totalAdeudo)}
-                    </p>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  {pagosLoading ? (
-                     <div className="flex items-center justify-center h-40">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    </div>
-                  ) : allPagos.length > 0 ? (
+            <Card className="border-white/10 bg-white/5 backdrop-blur-md">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground/60">
+                  <DollarSign className="w-4 h-4" />
+                  Historial de Pagos
+                </CardTitle>
+                {totalAdeudo > 0 && (
+                  <p className="text-xs text-status-danger font-bold bg-status-danger/10 px-2 py-1 rounded-full">
+                    Pendiente: {formatCurrency(totalAdeudo)}
+                  </p>
+                )}
+              </CardHeader>
+              <CardContent className="p-0 sm:p-6 sm:pt-0">
+                {pagosLoading ? (
+                   <div className="flex items-center justify-center h-40">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary/60" />
+                  </div>
+                ) : allPagos.length > 0 ? (
+                  <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow className="border-white/5 hover:bg-transparent">
-                          <TableHead className="text-muted-foreground/60">Concepto</TableHead>
-                          <TableHead className="text-right text-muted-foreground/60">Monto</TableHead>
-                          <TableHead className="text-muted-foreground/60">Fecha</TableHead>
-                          <TableHead className="text-muted-foreground/60">Estado</TableHead>
+                          <TableHead className="text-[10px] uppercase font-bold text-muted-foreground/40">Concepto</TableHead>
+                          <TableHead className="text-right text-[10px] uppercase font-bold text-muted-foreground/40">Monto</TableHead>
+                          <TableHead className="text-[10px] uppercase font-bold text-muted-foreground/40">Fecha</TableHead>
+                          <TableHead className="text-[10px] uppercase font-bold text-muted-foreground/40">Estado</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {allPagos.slice(0, visiblePagos).map(pago => (
-                          <TableRow key={pago.id} onClick={() => handlePagoClick(pago)} className="cursor-pointer border-white/5 hover:bg-white/5">
-                            <TableCell className="font-medium">{pago.concepto}</TableCell>
-                            <TableCell className="text-right font-medium">{formatCurrency(pago.monto)}</TableCell>
-                            <TableCell>
-                                <span className={getPagoStatus(pago) === 'vencido' ? 'text-status-danger font-medium' : 'text-muted-foreground/80'}>
+                          <TableRow key={pago.id} onClick={() => handlePagoClick(pago)} className="cursor-pointer border-white/5 hover:bg-white/5 group">
+                            <TableCell className="font-medium text-xs">{pago.concepto}</TableCell>
+                            <TableCell className="text-right font-bold text-xs">{formatCurrency(pago.monto)}</TableCell>
+                            <TableCell className="text-xs">
+                                <span className={getPagoStatus(pago) === 'vencido' ? 'text-status-danger font-bold' : 'text-muted-foreground/60'}>
                                     {formatDate(pago.estado === 'pagado' && pago.fechaPago ? pago.fechaPago : pago.fechaLimite)}
                                 </span>
                             </TableCell>
@@ -398,17 +389,17 @@ export function ClienteDetail({ cliente, clientes, onEditRequest, onUpdateClient
                         ))}
                       </TableBody>
                     </Table>
-                  ) : (
-                    <p className="text-sm text-muted-foreground/40 text-center py-4">No hay pagos registrados.</p>
-                  )}
-                </CardContent>
-                {visiblePagos < allPagos.length && (
-                  <CardFooter className="justify-center pt-4 border-t border-white/5">
-                    <Button variant="ghost" size="sm" onClick={() => setVisiblePagos(v => v + 40)}>Cargar más</Button>
-                  </CardFooter>
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground/40 text-center py-8">No hay pagos registrados.</p>
                 )}
-              </Card>
-            </div>
+              </CardContent>
+              {visiblePagos < allPagos.length && (
+                <CardFooter className="justify-center pt-2 border-t border-white/5">
+                  <Button variant="ghost" size="sm" className="text-[10px] text-muted-foreground/60" onClick={() => setVisiblePagos(v => v + 40)}>Ver más historial</Button>
+                </CardFooter>
+              )}
+            </Card>
           </div>
         </div>
       </DialogContent>
