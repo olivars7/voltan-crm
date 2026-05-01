@@ -101,7 +101,7 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
   const isSynthetic = pago?.id?.startsWith('recurring-');
 
   return (
-    <DialogContent className="sm:max-w-[425px] bg-zinc-950/80 backdrop-blur-3xl border-white/10 shadow-2xl rounded-3xl">
+    <DialogContent className="sm:max-w-md bg-background/80 backdrop-blur-3xl border-border shadow-2xl rounded-3xl">
       <DialogHeader>
         <DialogTitle className="text-xl font-bold tracking-tight">{pago ? 'Editar Pago' : 'Registrar Pago'}</DialogTitle>
       </DialogHeader>
@@ -115,11 +115,11 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
                 <FormLabel>Cliente</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value} disabled={!!pago}>
                   <FormControl>
-                    <SelectTrigger className="bg-white/5 border-white/10">
+                    <SelectTrigger className="bg-background/50 border-border">
                       <SelectValue placeholder="Selecciona un cliente" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="bg-zinc-900 border-white/10">
+                  <SelectContent className="bg-popover border-border">
                     {clientes.map((cliente) => (
                       <SelectItem key={cliente.id} value={cliente.id}>
                         {cliente.nombre}
@@ -138,7 +138,7 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
               <FormItem>
                 <FormLabel>Concepto</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ej. Mensualidad, Adelanto, etc." {...field} className="bg-white/5 border-white/10" />
+                  <Input placeholder="Ej. Mensualidad, Adelanto, etc." {...field} className="bg-background/50 border-border" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -149,9 +149,9 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
             name="monto"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Monto</FormLabel>
+                <FormLabel>Monto (MXN)</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.01" placeholder="15000.00" {...field} className="bg-white/5 border-white/10" />
+                  <Input type="number" step="0.01" placeholder="15000.00" {...field} className="bg-background/50 border-border" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -164,7 +164,7 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
               <FormItem>
                 <FormLabel>Fecha Límite</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} className="bg-white/5 border-white/10" />
+                  <Input type="date" {...field} className="bg-background/50 border-border" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -177,7 +177,7 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
               <FormItem>
                 <FormLabel>Fecha de Pago (opcional)</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} className="bg-white/5 border-white/10" />
+                  <Input type="date" {...field} className="bg-background/50 border-border" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -190,16 +190,16 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
               <FormItem>
                 <FormLabel>Notas (opcional)</FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Detalles adicionales sobre el pago..." {...field} className="bg-white/5 border-white/10" />
+                  <Textarea placeholder="Detalles adicionales sobre el pago..." {...field} className="bg-background/50 border-border min-h-[80px]" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <DialogFooter className="flex justify-between items-center pt-6 border-t border-white/5 mt-4">
+          <DialogFooter className="flex justify-between items-center pt-6 border-t border-border/50 mt-4 gap-2">
             <div>
                 {pago && onDelete && !isSynthetic && (
-                    <Button type="button" variant="destructive" onClick={onDelete} className="bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 border-rose-500/20 h-9">
+                    <Button type="button" variant="destructive" onClick={onDelete} className="bg-status-danger/10 text-status-danger hover:bg-status-danger/20 border-status-danger/20 h-9">
                         <Trash2 className="mr-2 h-4 w-4" />
                         Eliminar
                     </Button>
@@ -207,9 +207,9 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
             </div>
             <div className="flex gap-2">
                 <DialogClose asChild>
-                    <Button type="button" variant="secondary" className="bg-white/5 border-white/5 hover:bg-white/10 h-9">Cancelar</Button>
+                    <Button type="button" variant="secondary" className="bg-muted/50 border-border hover:bg-muted h-9">Cancelar</Button>
                 </DialogClose>
-                <Button type="submit" className="bg-primary shadow-lg shadow-primary/20 h-9">Guardar</Button>
+                <Button type="submit" className="bg-primary shadow-lg shadow-primary/20 h-9 px-6 font-semibold">Guardar</Button>
             </div>
           </DialogFooter>
         </form>
