@@ -33,7 +33,7 @@ type TimelineItem = {
 
 export default function DashboardPageClient() {
   const { clientes, getClienteById, updateCliente, deleteCliente, loading: clientesLoading, deleteAllClientes, resetClientes } = useClientes();
-  const { pagos, addPago, updatePago, deletePago, loading: pagosLoading, deleteAllPagos, resetPagos } = usePagos();
+  const { pagos, updatePago, deletePago, loading: pagosLoading, deleteAllPagos, resetPagos } = usePagos();
   const { llamadas, updateLlamada, loading: llamadasLoading, deleteAllLlamadas } = useAgenda();
 
   const [now, setNow] = useState<Date | null>(null);
@@ -469,7 +469,7 @@ export default function DashboardPageClient() {
   const Comparison = ({ value, isCurrency = false }: { value: number, isCurrency?: boolean }) => {
     const isPositive = value >= 0;
     return (
-        <p className={cn("text-[10px] font-semibold flex items-center mt-0.5", isPositive ? "text-emerald-400" : "text-rose-400")}>
+        <p className={cn("text-[10px] font-semibold flex items-center mt-0.5", isPositive ? "text-emerald-500" : "text-rose-500")}>
             {isPositive ? <ArrowUp className="h-2.5 w-2.5 mr-0.5" /> : <ArrowDown className="h-2.5 w-2.5 mr-0.5" />}
             {isCurrency ? formatCurrency(Math.abs(value)) : Math.abs(value)}
         </p>
@@ -518,7 +518,7 @@ export default function DashboardPageClient() {
         </div>
 
         <div className="grid gap-6 xl:grid-cols-3">
-          <Card className="xl:col-span-1 border-white/5 bg-zinc-950/40">
+          <Card className="xl:col-span-1">
             <CardHeader className="p-4">
               <CardTitle className="text-base font-bold">Consola General</CardTitle>
               <CardDescription className="text-[10px]">Eventos importantes del sistema.</CardDescription>
@@ -530,9 +530,9 @@ export default function DashboardPageClient() {
                           <div 
                             key={`${item.type}-${item.data.id}-${index}`}
                             onClick={() => handleItemClick(item)} 
-                            className="flex items-start gap-3 cursor-pointer hover:bg-white/5 p-2 rounded-lg transition-all duration-300 border border-transparent hover:border-white/5"
+                            className="flex items-start gap-3 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 p-2 rounded-lg transition-all duration-300 border border-transparent hover:border-black/5 dark:hover:border-white/5"
                           >
-                              <div className="mt-0.5 p-1.5 rounded-md bg-white/5">
+                              <div className="mt-0.5 p-1.5 rounded-md bg-black/5 dark:bg-white/5">
                                 <TimelineIcon type={item.type} />
                               </div>
                               <div className="flex-1 space-y-0.5 overflow-hidden">
@@ -545,7 +545,7 @@ export default function DashboardPageClient() {
                                     {item.subType === 'overdue' && <StatusBadge status={getItemStatus(item)} />}
                                   </div>
                                   <p className="text-[10px] text-muted-foreground">
-                                      <span className={item.subType === 'overdue' ? 'text-rose-400 font-medium' : ''}>
+                                      <span className={item.subType === 'overdue' ? 'text-rose-500 font-medium' : ''}>
                                         {formatDate(item.date, "d MMM, yyyy")}
                                       </span>
                                       {' • '}
@@ -563,13 +563,13 @@ export default function DashboardPageClient() {
               </ScrollArea>
             </CardContent>
             {visibleTimeline < sortedTimeline.length && (
-              <CardFooter className="justify-center border-t border-white/5 p-2">
+              <CardFooter className="justify-center border-t border-black/5 dark:border-white/5 p-2">
                 <Button variant="ghost" size="sm" className="h-7 text-[10px]" onClick={() => setVisibleTimeline(v => v + 40)}>Cargar más</Button>
               </CardFooter>
             )}
           </Card>
 
-          <Card className="xl:col-span-2 border-white/5 bg-zinc-950/40">
+          <Card className="xl:col-span-2">
               <CardHeader className="p-4">
                   <CardTitle className="text-base font-bold">Estadísticas</CardTitle>
                   <CardDescription className="text-[10px]">Rendimiento trimestral.</CardDescription>
@@ -579,9 +579,9 @@ export default function DashboardPageClient() {
                       <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 text-center">Ingresos Mensuales</h4>
                       <ChartContainer config={chartConfig} className="w-full h-56">
                           <BarChart accessibilityLayer data={monthlyRevenue} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                              <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={9} stroke="rgba(255,255,255,0.4)" />
-                              <YAxis tickFormatter={(value) => `$${value/1000}k`} tickLine={false} axisLine={false} fontSize={9} width={35} stroke="rgba(255,255,255,0.4)" />
-                              <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" className="bg-zinc-900/90 border-white/10" />} />
+                              <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={9} stroke="hsl(var(--muted-foreground))" />
+                              <YAxis tickFormatter={(value) => `$${value/1000}k`} tickLine={false} axisLine={false} fontSize={9} width={35} stroke="hsl(var(--muted-foreground))" />
+                              <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" className="bg-background/90 border-border" />} />
                               <Bar dataKey="ingresos" fill="var(--color-ingresos)" radius={[3, 3, 0, 0]} barSize={24} />
                           </BarChart>
                       </ChartContainer>
@@ -591,9 +591,9 @@ export default function DashboardPageClient() {
                       <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 text-center">Nuevos Clientes</h4>
                       <ChartContainer config={chartConfig} className="w-full h-56">
                           <BarChart accessibilityLayer data={newClientsByMonth} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                              <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={9} stroke="rgba(255,255,255,0.4)" />
-                              <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={9} width={15} stroke="rgba(255,255,255,0.4)" />
-                              <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" className="bg-zinc-900/90 border-white/10" />} />
+                              <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={9} stroke="hsl(var(--muted-foreground))" />
+                              <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={9} width={15} stroke="hsl(var(--muted-foreground))" />
+                              <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" className="bg-background/90 border-border" />} />
                               <Bar dataKey="clientes" fill="var(--color-clientes)" radius={[3, 3, 0, 0]} barSize={24} />
                           </BarChart>
                       </ChartContainer>
@@ -642,7 +642,7 @@ export default function DashboardPageClient() {
         />}
       </Dialog>
 
-      <Card className="mt-8 border-white/5 bg-zinc-950/40">
+      <Card className="mt-8">
         <CardHeader className="p-4">
           <CardTitle className="text-base font-bold">Zona de Desarrollo</CardTitle>
           <CardDescription className="text-[10px]">
@@ -651,7 +651,7 @@ export default function DashboardPageClient() {
         </CardHeader>
         <CardContent className="relative px-4 pb-4">
           {devZoneLoading && (
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-10 rounded-2xl">
+            <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center z-10 rounded-2xl">
                 <div className="flex items-center gap-3">
                     <Loader2 className="h-4 w-4 animate-spin text-primary" />
                     <span className="text-xs font-medium">{devZoneLoading}</span>
@@ -660,7 +660,7 @@ export default function DashboardPageClient() {
           )}
           <div className="flex flex-wrap items-start gap-8">
             <div>
-              <Button variant="outline" size="sm" className="h-8 text-[10px] border-rose-500/50 hover:bg-rose-500/10 text-rose-400" onClick={handleResetData} disabled={!!devZoneLoading}>
+              <Button variant="outline" size="sm" className="h-8 text-[10px] border-rose-500/50 hover:bg-rose-500/10 text-rose-500" onClick={handleResetData} disabled={!!devZoneLoading}>
                 <RotateCw className="mr-2 h-3 w-3" />
                 Reiniciar Datos de Prueba
               </Button>
@@ -669,7 +669,7 @@ export default function DashboardPageClient() {
               </p>
             </div>
             <div>
-              <Button variant="outline" size="sm" className="h-8 text-[10px] border-rose-900/50 hover:bg-rose-900/10 text-rose-600" onClick={handleDeleteAllData} disabled={!!devZoneLoading}>
+              <Button variant="outline" size="sm" className="h-8 text-[10px] border-rose-900/50 hover:bg-rose-900/10 text-rose-700" onClick={handleDeleteAllData} disabled={!!devZoneLoading}>
                 <Trash2 className="mr-2 h-3 w-3" />
                 Purgar Base de Datos
               </Button>
