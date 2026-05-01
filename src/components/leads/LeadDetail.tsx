@@ -16,50 +16,50 @@ interface LeadDetailProps {
 export function LeadDetail({ lead, onEdit }: LeadDetailProps) {
   
   return (
-    <DialogContent className="sm:max-w-md">
+    <DialogContent className="sm:max-w-md bg-zinc-950/80 backdrop-blur-3xl border-white/10 shadow-2xl rounded-3xl">
       <DialogHeader>
-        <DialogTitle>Detalles del Lead</DialogTitle>
+        <DialogTitle className="text-xl font-bold tracking-tight">Detalles del Lead</DialogTitle>
       </DialogHeader>
 
       <div className="py-2 space-y-6">
-        <div className="text-center">
-            <p className="text-2xl font-bold tracking-tighter">{lead.nombre}</p>
-            <p className="text-muted-foreground">{lead.telefono}</p>
+        <div className="text-center py-4 bg-white/5 rounded-2xl border border-white/5">
+            <p className="text-2xl font-bold tracking-tighter text-white">{lead.nombre}</p>
+            <p className="text-sm text-muted-foreground mt-1">{lead.telefono}</p>
         </div>
 
-        <div className="space-y-4 rounded-lg border bg-muted/50 p-4 text-sm">
+        <div className="space-y-4 rounded-2xl border border-white/5 bg-white/5 p-5 text-sm">
             <div className="flex items-center justify-between">
-                <span className="text-muted-foreground flex items-center gap-2"><Briefcase className="w-4 h-4" /> Nicho</span>
-                <span className="font-medium">{lead.nicho}</span>
+                <span className="text-muted-foreground flex items-center gap-2"><Briefcase className="w-4 h-4 text-primary" /> Nicho</span>
+                <span className="font-medium text-white">{lead.nicho}</span>
             </div>
              <div className="flex items-start justify-between">
-                <span className="text-muted-foreground flex items-center gap-2 pt-1"><CheckSquare className="w-4 h-4" /> Servicios</span>
+                <span className="text-muted-foreground flex items-center gap-2 pt-1"><CheckSquare className="w-4 h-4 text-primary" /> Servicios</span>
                 <div className="flex flex-col items-end gap-1 text-right">
                     {lead.servicios.map(servicio => (
-                        <span key={servicio} className="font-medium capitalize">{serviceDisplayNames[servicio]}</span>
+                        <span key={servicio} className="font-medium capitalize text-zinc-300">{serviceDisplayNames[servicio]}</span>
                     ))}
                 </div>
             </div>
             <div className="flex items-center justify-between">
-                <span className="text-muted-foreground flex items-center gap-2"><User className="w-4 h-4" /> Estado</span>
+                <span className="text-muted-foreground flex items-center gap-2"><User className="w-4 h-4 text-primary" /> Estado</span>
                 <StatusBadge status={lead.estado} />
             </div>
         </div>
         
         {lead.notas && (
-            <div className="space-y-2">
-                <h4 className="font-medium text-sm flex items-center gap-2"><Notebook className="w-4 h-4 text-muted-foreground" /> Notas</h4>
-                <p className="text-sm text-muted-foreground pl-4 border-l-2 ml-2">{lead.notas}</p>
+            <div className="space-y-2 p-4 bg-white/5 rounded-2xl border border-white/5">
+                <h4 className="font-medium text-xs uppercase tracking-widest flex items-center gap-2 text-muted-foreground"><Notebook className="w-3 h-3" /> Notas</h4>
+                <p className="text-sm text-zinc-300 pl-1">{lead.notas}</p>
             </div>
         )}
-         <div className="text-xs text-muted-foreground text-center pt-2">
+         <div className="text-[10px] text-muted-foreground/40 text-center pt-2 uppercase tracking-widest font-semibold">
             Lead creado el {formatDate(lead.fechaCreacion)}
          </div>
       </div>
 
        {onEdit && (
-        <DialogFooter className="pt-4 border-t mt-2">
-            <Button onClick={onEdit} className="w-full">
+        <DialogFooter className="pt-4 border-t border-white/5 mt-2">
+            <Button onClick={onEdit} className="w-full bg-primary shadow-lg shadow-primary/20 h-11">
                 <Pencil className="mr-2 h-4 w-4" />
                 Editar Lead
             </Button>
