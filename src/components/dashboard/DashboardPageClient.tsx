@@ -4,8 +4,8 @@ import { usePagos } from '@/hooks/usePagos';
 import { useAgenda } from '@/hooks/useAgenda';
 import { useLeads } from '@/hooks/useLeads';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Users, DollarSign, ClipboardCheck, RotateCw, Trash2, CalendarDays, Loader2, ArrowUp, ArrowDown, PlusCircle, Target, TrendingUp, HandCoins } from 'lucide-react';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { Users, DollarSign, ClipboardCheck, RotateCw, Trash2, CalendarDays, Loader2, ArrowUp, ArrowDown, PlusCircle, Target, TrendingUp, HandCoins, CheckCircle, Lightbulb } from 'lucide-react';
+import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { BarChart, Bar, XAxis, YAxis } from "recharts"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
@@ -27,8 +27,8 @@ import { cn } from '@/lib/utils';
 
 type TimelineItem = {
   date: Date;
-  type: 'pago' | 'entrega' | 'llamada';
-  subType: 'overdue' | 'upcoming';
+  type: 'pago' | 'entrega' | 'llamada' | 'cierre';
+  subType: 'overdue' | 'upcoming' | 'completed';
   data: any;
   cliente: any;
 }
@@ -299,6 +299,8 @@ export default function DashboardPageClient() {
 
 
   const timelineItems: TimelineItem[] = [];
+  const completedItems: TimelineItem[] = [];
+
   if (now) {
     const getEffectiveStatus = (llamada: LlamadaAgendada): LlamadaEstado => {
       const callDate = parseISO(llamada.fecha);
@@ -308,6 +310,7 @@ export default function DashboardPageClient() {
       return llamada.estado;
     };
 
+    // Procesar llamadas
     llamadas.forEach(l => {
         const effectiveStatus = getEffectiveStatus(l);
         const callDate = parseISO(l.fecha);
@@ -319,34 +322,65 @@ export default function DashboardPageClient() {
                 data: l,
                 cliente: { nombre: l.nombre }
             });
+        } else if (effectiveStatus === 'realizada') {
+          completedItems.push({
+            date: callDate,
+            type: 'llamada',
+            subType: 'completed',
+            data: l,
+            cliente: { nombre: l.nombre }
+          });
         }
     });
 
+    // Procesar pagos
     pagos.forEach(p => {
       const cliente = getClienteById(p.clienteId);
-      if (cliente && cliente.estado === 'activo' && p.estado === 'pendiente') {
-        const dueDate = parseISO(p.fechaLimite);
-        timelineItems.push({
-          date: dueDate,
-          type: 'pago',
-          subType: isBefore(dueDate, now) ? 'overdue' : 'upcoming',
-          data: p,
-          cliente: cliente,
-        });
+      if (cliente && cliente.estado === 'activo') {
+        if (p.estado === 'pendiente') {
+          const dueDate = parseISO(p.fechaLimite);
+          timelineItems.push({
+            date: dueDate,
+            type: 'pago',
+            subType: isBefore(dueDate, now) ? 'overdue' : 'upcoming',
+            data: p,
+            cliente: cliente,
+          });
+        } else if (p.estado === 'pagado' && p.fechaPago) {
+          completedItems.push({
+            date: parseISO(p.fechaPago),
+            type: 'pago',
+            subType: 'completed',
+            data: p,
+            cliente: cliente,
+          });
+        }
       }
     });
 
+    // Procesar proyectos y cierres de leads
     clientes.forEach(cl => {
-      if (cl.estado === 'activo' && cl.proyecto && cl.proyecto.estado === 'en-progreso') {
-        timelineItems.push({
-          date: parseISO(cl.proyecto.fechaEntrega),
-          type: 'entrega',
-          subType: isBefore(parseISO(cl.proyecto.fechaEntrega), now) ? 'overdue' : 'upcoming',
-          data: cl.proyecto,
-          cliente: cl,
-        });
+      if (cl.estado === 'activo' && cl.proyecto) {
+        if (cl.proyecto.estado === 'en-progreso') {
+          timelineItems.push({
+            date: parseISO(cl.proyecto.fechaEntrega),
+            type: 'entrega',
+            subType: isBefore(parseISO(cl.proyecto.fechaEntrega), now) ? 'overdue' : 'upcoming',
+            data: cl.proyecto,
+            cliente: cl,
+          });
+        } else if (cl.proyecto.estado === 'completado' && cl.proyecto.fechaEntrega) {
+          completedItems.push({
+            date: parseISO(cl.proyecto.fechaEntrega),
+            type: 'entrega',
+            subType: 'completed',
+            data: cl.proyecto,
+            cliente: cl,
+          });
+        }
       }
 
+      // Pagos recurrentes sintéticos
       if (cl.estado === 'activo' && cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
         const paymentDay = cl.diaDePago;
         let cursorDate = startOfMonth(parseISO(cl.fechaInicio));
@@ -358,7 +392,7 @@ export default function DashboardPageClient() {
             paymentDay
           );
 
-          if (isBefore(paymentDueDate, addMonths(now, 1))) {
+          if (isWithinInterval(paymentDueDate, { start: startOfMonth(subMonths(now, 1)), end: addMonths(now, 1) })) {
             const existingPayment = pagos.find(
               (p) =>
                 p.clienteId === cl.id &&
@@ -367,7 +401,7 @@ export default function DashboardPageClient() {
                 parseISO(p.fechaLimite).getMonth() === paymentDueDate.getMonth()
             );
 
-            if (!existingPayment) {
+            if (!existingPayment && !isBefore(paymentDueDate, startOfMonth(now))) {
               const syntheticPago: Pago = {
                 id: `recurring-${cl.id}-${paymentDueDate.toISOString()}`,
                 clienteId: cl.id,
@@ -390,6 +424,19 @@ export default function DashboardPageClient() {
         }
       }
     });
+
+    // Procesar leads convertidos
+    leads.forEach(l => {
+      if (l.estado === 'convertido') {
+        completedItems.push({
+          date: parseISO(l.fechaCreacion), // O una fecha de cierre si existiera
+          type: 'cierre',
+          subType: 'completed',
+          data: l,
+          cliente: { nombre: l.nombre }
+        });
+      }
+    });
   }
   
   const uniqueTimelineItems = [...new Map(timelineItems.map(item => [item.data.id || `${item.data.nombre}-${item.cliente.id}`, item])).values()];
@@ -399,6 +446,8 @@ export default function DashboardPageClient() {
     if (a.subType !== 'overdue' && b.subType === 'overdue') return 1;
     return a.date.getTime() - b.date.getTime();
   });
+
+  const sortedCompleted = completedItems.sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 5);
 
   const last4Months = now ? Array.from({ length: 4 }).map((_, i) => subMonths(now, 3 - i)) : [];
   
@@ -443,11 +492,13 @@ export default function DashboardPageClient() {
   
   const selectedCliente = selectedClienteId ? clientes.find(c => c.id === selectedClienteId) : undefined;
 
-  const TimelineIcon = ({ type }: { type: TimelineItem['type'] }) => {
+  const TimelineIcon = ({ type, isCompleted = false }: { type: TimelineItem['type'], isCompleted?: boolean }) => {
+    if (isCompleted) return <CheckCircle className="h-3 w-3 text-status-success" />;
     switch (type) {
       case 'pago': return <DollarSign className="h-3 w-3 text-muted-foreground" />;
       case 'entrega': return <ClipboardCheck className="h-3 w-3 text-muted-foreground" />;
       case 'llamada': return <CalendarDays className="h-3 w-3 text-muted-foreground" />;
+      case 'cierre': return <Target className="h-3 w-3 text-muted-foreground" />;
       default: return null;
     }
   }
@@ -499,7 +550,7 @@ export default function DashboardPageClient() {
 
   return (
     <>
-      <div className="space-y-6 animate-in fade-in duration-1000">
+      <div className="space-y-6 animate-in fade-in duration-1000 pb-2">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Card className="relative overflow-hidden group">
             <div className="absolute top-0 left-0 w-1 h-full bg-status-active/50" />
@@ -540,32 +591,32 @@ export default function DashboardPageClient() {
 
         <div className="grid gap-6 xl:grid-cols-3">
           <Card className="xl:col-span-1">
-            <CardHeader className="p-4">
-              <CardTitle className="text-base font-bold">Consola General</CardTitle>
-              <CardDescription className="text-[10px]">Eventos importantes del sistema.</CardDescription>
+            <CardHeader className="p-4 pb-2">
+              <CardTitle className="text-sm font-bold">Consola: Próximos</CardTitle>
+              <CardDescription className="text-[9px]">Eventos y fechas límites cercanas.</CardDescription>
             </CardHeader>
             <CardContent className="px-4 pb-2">
-              <ScrollArea className="h-[400px] custom-scrollbar">
-                  <div className="space-y-2 pr-3">
+              <ScrollArea className="h-[360px] custom-scrollbar">
+                  <div className="space-y-1.5 pr-3">
                       {now && sortedTimeline.slice(0, visibleTimeline).map((item, index) => (
                           <div 
                             key={`${item.type}-${item.data.id}-${index}`}
                             onClick={() => handleItemClick(item)} 
-                            className="flex items-start gap-3 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 p-2 rounded-lg transition-all duration-300 border border-transparent hover:border-black/5 dark:hover:border-white/5"
+                            className="flex items-start gap-2.5 cursor-pointer hover:bg-white/5 p-1.5 rounded-lg transition-all duration-300 border border-transparent hover:border-white/5"
                           >
-                              <div className="mt-0.5 p-1.5 rounded-md bg-black/5 dark:bg-white/5">
+                              <div className="mt-0.5 p-1.5 rounded-md bg-white/5">
                                 <TimelineIcon type={item.type} />
                               </div>
                               <div className="flex-1 space-y-0.5 overflow-hidden">
                                   <div className="flex flex-wrap items-center justify-between gap-x-2">
-                                    <p className="text-xs font-medium leading-tight truncate pr-2">
+                                    <p className="text-[11px] font-medium leading-tight truncate pr-2">
                                         {item.type === 'pago' && `${item.data.concepto}: ${formatCurrency(item.data.monto)}`}
                                         {item.type === 'entrega' && `Entrega: ${item.data.nombre}`}
                                         {item.type === 'llamada' && `Llamada: ${item.data.nombre}`}
                                     </p>
                                     {item.subType === 'overdue' && <StatusBadge status={getItemStatus(item)} />}
                                   </div>
-                                  <p className="text-[10px] text-muted-foreground">
+                                  <p className="text-[9px] text-muted-foreground">
                                       <span className={item.subType === 'overdue' ? 'text-rose-500 font-medium' : ''}>
                                         {formatDate(item.date, "d MMM, yyyy")}
                                       </span>
@@ -584,39 +635,39 @@ export default function DashboardPageClient() {
               </ScrollArea>
             </CardContent>
             {visibleTimeline < sortedTimeline.length && (
-              <CardFooter className="justify-center border-t border-black/5 dark:border-white/5 p-2">
-                <Button variant="ghost" size="sm" className="h-7 text-[10px]" onClick={() => setVisibleTimeline(v => v + 40)}>Cargar más</Button>
+              <CardFooter className="justify-center border-t border-white/5 p-1.5">
+                <Button variant="ghost" size="sm" className="h-6 text-[9px]" onClick={() => setVisibleTimeline(v => v + 40)}>Cargar más</Button>
               </CardFooter>
             )}
           </Card>
 
           <Card className="xl:col-span-2">
-              <CardHeader className="p-4 text-center">
-                  <CardTitle className="text-base font-bold">Estadísticas</CardTitle>
-                  <CardDescription className="text-[10px]">Rendimiento trimestral.</CardDescription>
+              <CardHeader className="p-4 pb-0 text-center">
+                  <CardTitle className="text-sm font-bold">Estadísticas de Rendimiento</CardTitle>
+                  <CardDescription className="text-[9px]">Comparativa trimestral de ingresos y captación.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6 p-4 pt-0">
-                  <div className="grid gap-6 md:grid-cols-2">
-                      <div className="space-y-3">
-                          <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 text-center">Ingresos Mensuales</h4>
-                          <ChartContainer config={chartConfig} className="w-full h-56">
-                              <BarChart accessibilityLayer data={monthlyRevenue} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                                  <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={9} stroke="hsl(var(--muted-foreground))" />
-                                  <YAxis tickFormatter={(value) => `$${value/1000}k`} tickLine={false} axisLine={false} fontSize={9} width={35} stroke="hsl(var(--muted-foreground))" />
+              <CardContent className="space-y-4 p-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                          <h4 className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/60 text-center">Ingresos Mensuales</h4>
+                          <ChartContainer config={chartConfig} className="w-full h-44">
+                              <BarChart accessibilityLayer data={monthlyRevenue} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                                  <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={5} fontSize={8} stroke="hsl(var(--muted-foreground))" />
+                                  <YAxis tickFormatter={(value) => `$${value/1000}k`} tickLine={false} axisLine={false} fontSize={8} width={30} stroke="hsl(var(--muted-foreground))" />
                                   <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" className="bg-background/90 border-border" />} />
-                                  <Bar dataKey="ingresos" fill="var(--color-ingresos)" radius={[3, 3, 0, 0]} barSize={24} />
+                                  <Bar dataKey="ingresos" fill="var(--color-ingresos)" radius={[2, 2, 0, 0]} barSize={20} />
                               </BarChart>
                           </ChartContainer>
                       </div>
                       
-                      <div className="space-y-3">
-                          <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 text-center">Nuevos Clientes</h4>
-                          <ChartContainer config={chartConfig} className="w-full h-56">
-                              <BarChart accessibilityLayer data={newClientsByMonth} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                                  <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={9} stroke="hsl(var(--muted-foreground))" />
-                                  <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={9} width={15} stroke="hsl(var(--muted-foreground))" />
+                      <div className="space-y-2">
+                          <h4 className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/60 text-center">Nuevos Clientes</h4>
+                          <ChartContainer config={chartConfig} className="w-full h-44">
+                              <BarChart accessibilityLayer data={newClientsByMonth} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                                  <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={5} fontSize={8} stroke="hsl(var(--muted-foreground))" />
+                                  <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={8} width={12} stroke="hsl(var(--muted-foreground))" />
                                   <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" className="bg-background/90 border-border" />} />
-                                  <Bar dataKey="clientes" fill="var(--color-clientes)" radius={[3, 3, 0, 0]} barSize={24} />
+                                  <Bar dataKey="clientes" fill="var(--color-clientes)" radius={[2, 2, 0, 0]} barSize={20} />
                               </BarChart>
                           </ChartContainer>
                       </div>
@@ -624,37 +675,89 @@ export default function DashboardPageClient() {
 
                   <Separator className="bg-white/5" />
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2 text-center">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-1 text-center">
                       <div className="flex flex-col items-center space-y-1">
-                          <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest text-muted-foreground/60 font-bold">
-                              <TrendingUp className="h-3 w-3 text-status-active" /> Ticket Promedio
+                          <div className="flex items-center gap-1.5 text-[8px] uppercase tracking-widest text-muted-foreground/60 font-bold">
+                              <TrendingUp className="h-2.5 w-2.5 text-status-active" /> Ticket Promedio
                           </div>
-                          <p className="text-sm font-bold">{formatCurrency(kpiData.averageTicket)}</p>
+                          <p className="text-xs font-bold">{formatCurrency(kpiData.averageTicket)}</p>
                       </div>
                       <div className="flex flex-col items-center space-y-1">
-                          <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest text-muted-foreground/60 font-bold">
-                              <DollarSign className="h-3 w-3 text-status-success" /> Proyección Anual
+                          <div className="flex items-center gap-1.5 text-[8px] uppercase tracking-widest text-muted-foreground/60 font-bold">
+                              <DollarSign className="h-2.5 w-2.5 text-status-success" /> Proyección Anual
                           </div>
-                          <p className="text-sm font-bold">{formatCurrency(kpiData.projectedRevenue * 12)}</p>
+                          <p className="text-xs font-bold">{formatCurrency(kpiData.projectedRevenue * 12)}</p>
                       </div>
                       <div className="flex flex-col items-center space-y-1">
-                          <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest text-muted-foreground/60 font-bold">
-                              <Target className="h-3 w-3 text-status-warning" /> Conversión Leads
+                          <div className="flex items-center gap-1.5 text-[8px] uppercase tracking-widest text-muted-foreground/60 font-bold">
+                              <Target className="h-2.5 w-2.5 text-status-warning" /> Conversión
                           </div>
-                          <p className="text-sm font-bold">{kpiData.conversionRate.toFixed(1)}%</p>
+                          <p className="text-xs font-bold">{kpiData.conversionRate.toFixed(1)}%</p>
                       </div>
                       <div className="flex flex-col items-center space-y-1">
-                          <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest text-muted-foreground/60 font-bold">
-                              <HandCoins className="h-3 w-3 text-emerald-400" /> Tasa de Cobro
+                          <div className="flex items-center gap-1.5 text-[8px] uppercase tracking-widest text-muted-foreground/60 font-bold">
+                              <HandCoins className="h-2.5 w-2.5 text-emerald-400" /> Tasa de Cobro
                           </div>
-                          <p className="text-sm font-bold">{kpiData.collectionRate.toFixed(1)}%</p>
+                          <p className="text-xs font-bold">{kpiData.collectionRate.toFixed(1)}%</p>
                       </div>
                   </div>
               </CardContent>
           </Card>
         </div>
+
+        {/* Módulo de Actividad Reciente (Horizontal) */}
+        <Card className="w-full">
+          <CardHeader className="p-3 pb-2 border-b border-white/5">
+            <CardTitle className="text-xs font-bold flex items-center gap-2">
+              <RotateCw className="h-3 w-3 text-primary animate-spin-slow" />
+              Actividad Reciente
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0 overflow-hidden">
+            <div className="flex items-stretch min-w-full">
+              {sortedCompleted.length > 0 ? (
+                sortedCompleted.map((item, index) => (
+                  <div 
+                    key={`recent-${item.type}-${index}`} 
+                    className={cn(
+                      "flex-1 p-3 flex flex-col gap-1 transition-colors hover:bg-white/5 cursor-pointer",
+                      index !== sortedCompleted.length - 1 && "border-r border-dashed border-white/10"
+                    )}
+                    onClick={() => handleItemClick(item)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="p-1 rounded-sm bg-white/5">
+                        <TimelineIcon type={item.type} isCompleted />
+                      </div>
+                      <span className="text-[10px] font-bold text-white truncate max-w-[150px]">
+                        {item.type === 'pago' && `Pago: ${item.data.concepto}`}
+                        {item.type === 'entrega' && `Entrega: ${item.data.nombre}`}
+                        {item.type === 'llamada' && `Llamada: ${item.data.nombre}`}
+                        {item.type === 'cierre' && `Cierre: ${item.data.nombre}`}
+                      </span>
+                    </div>
+                    <p className="text-[9px] text-muted-foreground/80 line-clamp-2 leading-relaxed">
+                      {item.type === 'pago' && `${item.cliente?.nombre} liquidó ${formatCurrency(item.data.monto)}.`}
+                      {item.type === 'entrega' && `Se completó satisfactoriamente el proyecto para ${item.cliente?.nombre}.`}
+                      {item.type === 'llamada' && `Llamada finalizada con ${item.data.nombre}.`}
+                      {item.type === 'cierre' && `Nuevo cliente cerrado: ${item.data.nombre} (${item.data.nicho}).`}
+                    </p>
+                    <span className="text-[8px] text-muted-foreground/40 font-semibold uppercase mt-1">
+                      {formatRelativeTime(item.date)}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="w-full py-4 text-center text-[10px] text-muted-foreground/40 uppercase tracking-widest font-bold">
+                  No hay actividad registrada recientemente
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
+      {/* Dialogs */}
       <Dialog open={isPagoDetailOpen} onOpenChange={setPagoDetailOpen}>
         {selectedPago && <PagoDetail 
             pago={selectedPago} 
@@ -695,40 +798,34 @@ export default function DashboardPageClient() {
         />}
       </Dialog>
 
-      <Card className="mt-8">
-        <CardHeader className="p-4">
-          <CardTitle className="text-base font-bold">Zona de Desarrollo</CardTitle>
-          <CardDescription className="text-[10px]">
+      <Card className="mt-4">
+        <CardHeader className="p-3">
+          <CardTitle className="text-xs font-bold">Zona de Desarrollo</CardTitle>
+          <CardDescription className="text-[9px]">
             Acciones administrativas del sistema.
           </CardDescription>
         </CardHeader>
-        <CardContent className="relative px-4 pb-4">
+        <CardContent className="relative px-3 pb-3">
           {devZoneLoading && (
             <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center z-10 rounded-2xl">
                 <div className="flex items-center gap-3">
                     <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                    <span className="text-xs font-medium">{devZoneLoading}</span>
+                    <span className="text-[10px] font-medium">{devZoneLoading}</span>
                 </div>
             </div>
           )}
-          <div className="flex flex-wrap items-start gap-8">
+          <div className="flex flex-wrap items-start gap-6">
             <div>
-              <Button variant="outline" size="sm" className="h-8 text-[10px] border-rose-500/50 hover:bg-rose-500/10 text-rose-500" onClick={handleResetData} disabled={!!devZoneLoading}>
+              <Button variant="outline" size="sm" className="h-7 text-[9px] border-rose-500/30 hover:bg-rose-500/10 text-rose-500/80" onClick={handleResetData} disabled={!!devZoneLoading}>
                 <RotateCw className="mr-2 h-3 w-3" />
-                Reiniciar Datos de Prueba
+                Reiniciar Datos
               </Button>
-              <p className="text-[9px] text-muted-foreground mt-1 max-w-xs uppercase tracking-tight opacity-50">
-                Restaura el sistema a su estado inicial de demostración.
-              </p>
             </div>
             <div>
-              <Button variant="outline" size="sm" className="h-8 text-[10px] border-rose-900/50 hover:bg-rose-900/10 text-rose-700" onClick={handleDeleteAllData} disabled={!!devZoneLoading}>
+              <Button variant="outline" size="sm" className="h-7 text-[9px] border-rose-900/30 hover:bg-rose-900/10 text-rose-700/80" onClick={handleDeleteAllData} disabled={!!devZoneLoading}>
                 <Trash2 className="mr-2 h-3 w-3" />
-                Purgar Base de Datos
+                Purgar BD
               </Button>
-              <p className="text-[9px] text-muted-foreground mt-1 max-w-xs uppercase tracking-tight opacity-50">
-                Elimina permanentemente todos los registros del sistema.
-              </p>
             </div>
           </div>
         </CardContent>
