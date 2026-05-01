@@ -76,50 +76,78 @@ export function AgendaForm({ llamada, isRescheduling = false, onSubmit, onDelete
   const inheritedFieldClass = isRescheduling ? "border-primary ring-2 ring-primary/50" : "";
 
   return (
-    <DialogContent className="sm:max-w-lg">
+    <DialogContent className="sm:max-w-lg bg-zinc-950/80 backdrop-blur-3xl border-white/10 shadow-2xl rounded-3xl">
       <DialogHeader>
-        <DialogTitle>{isRescheduling ? 'Reagendar Llamada' : (llamada ? 'Editar Llamada' : 'Agendar Llamada')}</DialogTitle>
+        <DialogTitle className="text-xl font-bold tracking-tight">
+          {isRescheduling ? 'Reagendar Llamada' : (llamada ? 'Editar Llamada' : 'Agendar Llamada')}
+        </DialogTitle>
       </DialogHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4">
-            <FormField control={form.control} name="nombre" render={({ field }) => (<FormItem><FormLabel>Nombre Cliente/Interesado</FormLabel><FormControl><Input placeholder="John Doe" {...field} className={cn(inheritedFieldClass)} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="telefono" render={({ field }) => (<FormItem><FormLabel>Número WhatsApp</FormLabel><FormControl><Input placeholder="55-1234-5678" {...field} className={cn(inheritedFieldClass)} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="medio" render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Medio</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} >
-                        <FormControl><SelectTrigger className={cn(inheritedFieldClass)}><SelectValue placeholder="Selecciona un medio" /></SelectTrigger></FormControl>
-                        <SelectContent>
-                            <SelectItem value="llamada">Llamada</SelectItem>
-                            <SelectItem value="google-meet">Google Meet</SelectItem>
-                            <SelectItem value="zoom">Zoom</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                </FormItem>
+            <FormField control={form.control} name="nombre" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nombre Cliente/Interesado</FormLabel>
+                <FormControl><Input placeholder="John Doe" {...field} className={cn("bg-white/5 border-white/10", inheritedFieldClass)} /></FormControl>
+                <FormMessage />
+              </FormItem>
             )} />
-            <FormField control={form.control} name="fecha" render={({ field }) => (<FormItem><FormLabel>Fecha y Hora</FormLabel><FormControl><Input type="datetime-local" {...field} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="estado" render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Estado</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl><SelectTrigger><SelectValue placeholder="Selecciona un estado" /></SelectTrigger></FormControl>
-                        <SelectContent>
-                            <SelectItem value="pronto">Pronto</SelectItem>
-                            <SelectItem value="pendiente">Pendiente</SelectItem>
-                            <SelectItem value="realizada">Realizada</SelectItem>
-                            <SelectItem value="cancelada">Cancelada</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                </FormItem>
+            <FormField control={form.control} name="telefono" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Número WhatsApp</FormLabel>
+                <FormControl><Input placeholder="55-1234-5678" {...field} className={cn("bg-white/5 border-white/10", inheritedFieldClass)} /></FormControl>
+                <FormMessage />
+              </FormItem>
             )} />
-            <FormField control={form.control} name="notas" render={({ field }) => (<FormItem><FormLabel>Notas (Opcional)</FormLabel><FormControl><Textarea placeholder="Detalles de la llamada..." {...field} className={cn(inheritedFieldClass)} /></FormControl><FormMessage /></FormItem>)}/>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField control={form.control} name="medio" render={({ field }) => (
+                  <FormItem>
+                      <FormLabel>Medio</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value} >
+                          <FormControl><SelectTrigger className={cn("bg-white/5 border-white/10", inheritedFieldClass)}><SelectValue placeholder="Selecciona un medio" /></SelectTrigger></FormControl>
+                          <SelectContent className="bg-zinc-900 border-white/10">
+                              <SelectItem value="llamada">Llamada</SelectItem>
+                              <SelectItem value="google-meet">Google Meet</SelectItem>
+                              <SelectItem value="zoom">Zoom</SelectItem>
+                          </SelectContent>
+                      </Select>
+                      <FormMessage />
+                  </FormItem>
+              )} />
+              <FormField control={form.control} name="estado" render={({ field }) => (
+                  <FormItem>
+                      <FormLabel>Estado</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl><SelectTrigger className="bg-white/5 border-white/10"><SelectValue placeholder="Selecciona un estado" /></SelectTrigger></FormControl>
+                          <SelectContent className="bg-zinc-900 border-white/10">
+                              <SelectItem value="pronto">Pronto</SelectItem>
+                              <SelectItem value="pendiente">Pendiente</SelectItem>
+                              <SelectItem value="realizada">Realizada</SelectItem>
+                              <SelectItem value="cancelada">Cancelada</SelectItem>
+                          </SelectContent>
+                      </Select>
+                      <FormMessage />
+                  </FormItem>
+              )} />
+            </div>
+            <FormField control={form.control} name="fecha" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Fecha y Hora</FormLabel>
+                <FormControl><Input type="datetime-local" {...field} className="bg-white/5 border-white/10" /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="notas" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Notas (Opcional)</FormLabel>
+                <FormControl><Textarea placeholder="Detalles de la llamada..." {...field} className={cn("bg-white/5 border-white/10 min-h-[100px]", inheritedFieldClass)} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )}/>
             
-            <DialogFooter className="pt-4 flex justify-between items-center">
+            <DialogFooter className="pt-6 flex justify-between items-center border-t border-white/5 mt-4">
                 <div>
                     {llamada && onDelete && !isRescheduling && (
-                        <Button type="button" variant="destructive" onClick={onDelete}>
+                        <Button type="button" variant="destructive" onClick={onDelete} className="bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 border-rose-500/20 h-9">
                             <Trash2 className="mr-2 h-4 w-4" />
                             Eliminar
                         </Button>
@@ -127,9 +155,9 @@ export function AgendaForm({ llamada, isRescheduling = false, onSubmit, onDelete
                 </div>
                 <div className="flex gap-2">
                     <DialogClose asChild>
-                        <Button type="button" variant="secondary">Cancelar</Button>
+                        <Button type="button" variant="secondary" className="bg-white/5 border-white/5 hover:bg-white/10 h-9">Cancelar</Button>
                     </DialogClose>
-                    <Button type="submit">Guardar</Button>
+                    <Button type="submit" className="bg-primary shadow-lg shadow-primary/20 h-9">Guardar Cambios</Button>
                 </div>
             </DialogFooter>
         </form>
