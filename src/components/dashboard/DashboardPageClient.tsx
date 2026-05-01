@@ -591,7 +591,7 @@ export default function DashboardPageClient() {
           </Card>
 
           <Card className="xl:col-span-2">
-              <CardHeader className="p-4">
+              <CardHeader className="p-4 text-center">
                   <CardTitle className="text-base font-bold">Estadísticas</CardTitle>
                   <CardDescription className="text-[10px]">Rendimiento trimestral.</CardDescription>
               </CardHeader>
@@ -624,26 +624,26 @@ export default function DashboardPageClient() {
 
                   <Separator className="bg-white/5" />
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
-                      <div className="space-y-1">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2 text-center">
+                      <div className="flex flex-col items-center space-y-1">
                           <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest text-muted-foreground/60 font-bold">
                               <TrendingUp className="h-3 w-3 text-status-active" /> Ticket Promedio
                           </div>
                           <p className="text-sm font-bold">{formatCurrency(kpiData.averageTicket)}</p>
                       </div>
-                      <div className="space-y-1">
+                      <div className="flex flex-col items-center space-y-1">
                           <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest text-muted-foreground/60 font-bold">
                               <DollarSign className="h-3 w-3 text-status-success" /> Proyección Anual
                           </div>
                           <p className="text-sm font-bold">{formatCurrency(kpiData.projectedRevenue * 12)}</p>
                       </div>
-                      <div className="space-y-1">
+                      <div className="flex flex-col items-center space-y-1">
                           <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest text-muted-foreground/60 font-bold">
                               <Target className="h-3 w-3 text-status-warning" /> Conversión Leads
                           </div>
                           <p className="text-sm font-bold">{kpiData.conversionRate.toFixed(1)}%</p>
                       </div>
-                      <div className="space-y-1">
+                      <div className="flex flex-col items-center space-y-1">
                           <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest text-muted-foreground/60 font-bold">
                               <HandCoins className="h-3 w-3 text-emerald-400" /> Tasa de Cobro
                           </div>

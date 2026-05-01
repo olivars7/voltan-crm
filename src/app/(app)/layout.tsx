@@ -8,11 +8,11 @@ export default function AppLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40">
+    <div className="flex h-screen w-full bg-background overflow-hidden">
       <Sidebar />
-      <div className="flex flex-col sm:gap-2 sm:pl-20">
+      <div className="flex flex-col flex-1 sm:pl-28 sm:pr-8 py-4 h-full">
         <Header />
-        <main className="grid flex-1 items-start gap-4 p-2 py-0 pb-24 sm:px-6 sm:py-0 md:gap-8">
+        <main className="flex-1 overflow-y-auto custom-scrollbar pt-2 pr-2">
           {children}
         </main>
       </div>
