@@ -45,11 +45,15 @@ export function Sidebar() {
     
     let hasOverdue = false;
     let hasTodayEvents = false;
+    let hasTodayMeetings = false;
 
     // Check Calls
     llamadas.forEach(l => {
       const callDate = parseISO(l.fecha);
-      if (isToday(callDate)) hasTodayEvents = true;
+      if (isToday(callDate)) {
+        hasTodayEvents = true;
+        hasTodayMeetings = true;
+      }
     });
 
     // Check Payments
@@ -103,7 +107,7 @@ export function Sidebar() {
       }
     });
 
-    return { hasOverdue, hasTodayEvents };
+    return { hasOverdue, hasTodayEvents, hasTodayMeetings };
   }, [pagos, clientes, llamadas]);
 
   return (
@@ -126,6 +130,7 @@ export function Sidebar() {
               {navItems.map((item) => {
                 const isActive = item.href === '/dashboard' ? pathname === item.href : pathname.startsWith(item.href);
                 const isConsola = item.href === '/console';
+                const isAgenda = item.href === '/agenda';
                 
                 return (
                   <Tooltip key={item.href}>
@@ -153,6 +158,13 @@ export function Sidebar() {
                           </div>
                         )}
 
+                        {/* Notification Dot for Agenda */}
+                        {isAgenda && status.hasTodayMeetings && (
+                          <div className="absolute top-2 right-2">
+                            <span className="flex h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]" />
+                          </div>
+                        )}
+
                         <span className="sr-only">{item.label}</span>
                       </Link>
                     </TooltipTrigger>
@@ -173,6 +185,7 @@ export function Sidebar() {
           {navItems.map((item) => {
             const isActive = item.href === '/dashboard' ? pathname === item.href : pathname.startsWith(item.href);
             const isConsola = item.href === '/console';
+            const isAgenda = item.href === '/agenda';
 
             return (
               <Link
@@ -187,7 +200,7 @@ export function Sidebar() {
               >
                 <item.icon className="h-5 w-5" />
                 
-                {/* Notification Dots for Mobile */}
+                {/* Notification Dots for Mobile Consola */}
                 {isConsola && (
                   <div className="absolute top-1.5 right-1.5 flex gap-0.5">
                     {status.hasOverdue && (
@@ -196,6 +209,13 @@ export function Sidebar() {
                     {status.hasTodayEvents && (
                       <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
                     )}
+                  </div>
+                )}
+
+                {/* Notification Dot for Mobile Agenda */}
+                {isAgenda && status.hasTodayMeetings && (
+                  <div className="absolute top-1.5 right-1.5">
+                    <span className="flex h-1.5 w-1.5 rounded-full bg-amber-400" />
                   </div>
                 )}
 
