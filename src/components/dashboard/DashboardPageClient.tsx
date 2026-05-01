@@ -2,12 +2,14 @@
 import { useClientes } from '@/hooks/useClientes';
 import { usePagos } from '@/hooks/usePagos';
 import { useAgenda } from '@/hooks/useAgenda';
+import { useLeads } from '@/hooks/useLeads';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Users, DollarSign, ClipboardCheck, RotateCw, Trash2, CalendarDays, Loader2, ArrowUp, ArrowDown, PlusCircle } from 'lucide-react';
+import { Users, DollarSign, ClipboardCheck, RotateCw, Trash2, CalendarDays, Loader2, ArrowUp, ArrowDown, PlusCircle, Target, TrendingUp, HandCoins } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis } from "recharts"
+import { BarChart, Bar, XAxis, YAxis } from "recharts"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { Separator } from "@/components/ui/separator"
 import { isBefore, parseISO, subMonths, startOfMonth, endOfMonth, format, isWithinInterval, addMonths, isToday, isPast } from 'date-fns';
 import { es } from 'date-fns/locale';
 import React, { useEffect, useState } from 'react';
@@ -35,6 +37,7 @@ export default function DashboardPageClient() {
   const { clientes, getClienteById, updateCliente, deleteCliente, loading: clientesLoading, deleteAllClientes, resetClientes } = useClientes();
   const { pagos, updatePago, deletePago, loading: pagosLoading, deleteAllPagos, resetPagos } = usePagos();
   const { llamadas, updateLlamada, loading: llamadasLoading, deleteAllLlamadas } = useAgenda();
+  const { leads, loading: leadsLoading, deleteAllLeads } = useLeads();
 
   const [now, setNow] = useState<Date | null>(null);
   const [devZoneLoading, setDevZoneLoading] = useState<string | null>(null);
@@ -69,6 +72,7 @@ export default function DashboardPageClient() {
       await resetClientes();
       await resetPagos();
       await deleteAllLlamadas();
+      await deleteAllLeads();
       setDevZoneLoading(null);
       toast({ title: 'Datos reiniciados', description: 'Los datos de prueba han sido cargados.' });
     }
@@ -83,6 +87,7 @@ export default function DashboardPageClient() {
       await deleteAllClientes();
       await deleteAllPagos();
       await deleteAllLlamadas();
+      await deleteAllLeads();
       setDevZoneLoading(null);
       toast({ title: 'Datos eliminados', description: 'La aplicación está vacía.' });
     }
@@ -215,6 +220,9 @@ export default function DashboardPageClient() {
         projectedRevenue: 0,
         revenueDiff: 0,
         newClientsDiff: 0,
+        averageTicket: 0,
+        conversionRate: 0,
+        collectionRate: 0,
     };
 
     const thisMonthStart = startOfMonth(now);
@@ -226,6 +234,13 @@ export default function DashboardPageClient() {
     const newClientsThisMonth = clientes.filter(c => isWithinInterval(parseISO(c.fechaInicio), { start: thisMonthStart, end: thisMonthEnd })).length;
     const newClientsLastMonth = clientes.filter(c => isWithinInterval(parseISO(c.fechaInicio), { start: lastMonthStart, end: lastMonthEnd })).length;
     
+    const paidPagos = pagos.filter(p => p.estado === 'pagado');
+    const averageTicket = paidPagos.length > 0 ? paidPagos.reduce((sum, p) => sum + p.monto, 0) / paidPagos.length : 0;
+
+    const totalLeads = leads.length;
+    const convertedLeads = leads.filter(l => l.estado === 'convertido').length;
+    const conversionRate = totalLeads > 0 ? (convertedLeads / totalLeads) * 100 : 0;
+
     const calculateProjectedRevenue = (start: Date, end: Date) => {
         const revenue = pagos
             .filter(p => p.estado === 'pagado' && p.fechaPago && isWithinInterval(parseISO(p.fechaPago), { start, end }))
@@ -261,21 +276,26 @@ export default function DashboardPageClient() {
                 }
             }
         });
-        const pendingAmount = [...new Map(pending.map(item => [item.id, item])).values()].reduce((sum, p) => sum + p.monto, 0);
-        return revenue + pendingAmount;
+        const totalProjected = revenue + pending.reduce((sum, p) => sum + p.monto, 0);
+        const collectionRate = totalProjected > 0 ? (revenue / totalProjected) * 100 : 0;
+
+        return { total: totalProjected, collection: collectionRate };
     };
 
-    const projectedRevenue = calculateProjectedRevenue(thisMonthStart, thisMonthEnd);
-    const projectedRevenueLastMonth = calculateProjectedRevenue(lastMonthStart, lastMonthEnd);
+    const currentMonthRevenue = calculateProjectedRevenue(thisMonthStart, thisMonthEnd);
+    const lastMonthRevenue = calculateProjectedRevenue(lastMonthStart, lastMonthEnd);
 
     return {
         activeClients,
         newClientsThisMonth,
-        projectedRevenue,
-        revenueDiff: projectedRevenue - projectedRevenueLastMonth,
+        projectedRevenue: currentMonthRevenue.total,
+        revenueDiff: currentMonthRevenue.total - lastMonthRevenue.total,
         newClientsDiff: newClientsThisMonth - newClientsLastMonth,
+        averageTicket,
+        conversionRate,
+        collectionRate: currentMonthRevenue.collection,
     };
-}, [now, clientes, pagos]);
+}, [now, clientes, pagos, leads]);
 
 
   const timelineItems: TimelineItem[] = [];
@@ -456,7 +476,7 @@ export default function DashboardPageClient() {
       return llamada.estado;
     };
 
-  if (clientesLoading || pagosLoading || llamadasLoading) {
+  if (clientesLoading || pagosLoading || llamadasLoading || leadsLoading) {
     return (
         <div className="flex items-center justify-center h-screen">
             <div className="flex flex-col items-center gap-4">
@@ -575,29 +595,60 @@ export default function DashboardPageClient() {
                   <CardTitle className="text-base font-bold">Estadísticas</CardTitle>
                   <CardDescription className="text-[10px]">Rendimiento trimestral.</CardDescription>
               </CardHeader>
-              <CardContent className="grid gap-6 md:grid-cols-2 p-4 pt-0">
-                  <div className="space-y-3">
-                      <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 text-center">Ingresos Mensuales</h4>
-                      <ChartContainer config={chartConfig} className="w-full h-56">
-                          <BarChart accessibilityLayer data={monthlyRevenue} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                              <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={9} stroke="hsl(var(--muted-foreground))" />
-                              <YAxis tickFormatter={(value) => `$${value/1000}k`} tickLine={false} axisLine={false} fontSize={9} width={35} stroke="hsl(var(--muted-foreground))" />
-                              <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" className="bg-background/90 border-border" />} />
-                              <Bar dataKey="ingresos" fill="var(--color-ingresos)" radius={[3, 3, 0, 0]} barSize={24} />
-                          </BarChart>
-                      </ChartContainer>
+              <CardContent className="space-y-6 p-4 pt-0">
+                  <div className="grid gap-6 md:grid-cols-2">
+                      <div className="space-y-3">
+                          <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 text-center">Ingresos Mensuales</h4>
+                          <ChartContainer config={chartConfig} className="w-full h-56">
+                              <BarChart accessibilityLayer data={monthlyRevenue} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                  <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={9} stroke="hsl(var(--muted-foreground))" />
+                                  <YAxis tickFormatter={(value) => `$${value/1000}k`} tickLine={false} axisLine={false} fontSize={9} width={35} stroke="hsl(var(--muted-foreground))" />
+                                  <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" className="bg-background/90 border-border" />} />
+                                  <Bar dataKey="ingresos" fill="var(--color-ingresos)" radius={[3, 3, 0, 0]} barSize={24} />
+                              </BarChart>
+                          </ChartContainer>
+                      </div>
+                      
+                      <div className="space-y-3">
+                          <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 text-center">Nuevos Clientes</h4>
+                          <ChartContainer config={chartConfig} className="w-full h-56">
+                              <BarChart accessibilityLayer data={newClientsByMonth} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                  <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={9} stroke="hsl(var(--muted-foreground))" />
+                                  <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={9} width={15} stroke="hsl(var(--muted-foreground))" />
+                                  <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" className="bg-background/90 border-border" />} />
+                                  <Bar dataKey="clientes" fill="var(--color-clientes)" radius={[3, 3, 0, 0]} barSize={24} />
+                              </BarChart>
+                          </ChartContainer>
+                      </div>
                   </div>
-                  
-                  <div className="space-y-3">
-                      <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 text-center">Nuevos Clientes</h4>
-                      <ChartContainer config={chartConfig} className="w-full h-56">
-                          <BarChart accessibilityLayer data={newClientsByMonth} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                              <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={9} stroke="hsl(var(--muted-foreground))" />
-                              <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={9} width={15} stroke="hsl(var(--muted-foreground))" />
-                              <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" className="bg-background/90 border-border" />} />
-                              <Bar dataKey="clientes" fill="var(--color-clientes)" radius={[3, 3, 0, 0]} barSize={24} />
-                          </BarChart>
-                      </ChartContainer>
+
+                  <Separator className="bg-white/5" />
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+                      <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest text-muted-foreground/60 font-bold">
+                              <TrendingUp className="h-3 w-3 text-status-active" /> Ticket Promedio
+                          </div>
+                          <p className="text-sm font-bold">{formatCurrency(kpiData.averageTicket)}</p>
+                      </div>
+                      <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest text-muted-foreground/60 font-bold">
+                              <DollarSign className="h-3 w-3 text-status-success" /> Proyección Anual
+                          </div>
+                          <p className="text-sm font-bold">{formatCurrency(kpiData.projectedRevenue * 12)}</p>
+                      </div>
+                      <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest text-muted-foreground/60 font-bold">
+                              <Target className="h-3 w-3 text-status-warning" /> Conversión Leads
+                          </div>
+                          <p className="text-sm font-bold">{kpiData.conversionRate.toFixed(1)}%</p>
+                      </div>
+                      <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest text-muted-foreground/60 font-bold">
+                              <HandCoins className="h-3 w-3 text-emerald-400" /> Tasa de Cobro
+                          </div>
+                          <p className="text-sm font-bold">{kpiData.collectionRate.toFixed(1)}%</p>
+                      </div>
                   </div>
               </CardContent>
           </Card>

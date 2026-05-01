@@ -1,22 +1,14 @@
 'use client';
 
 import React from 'react';
-import { Moon, Sun } from "lucide-react"
-import { useTheme } from "@/components/ThemeProvider"
- 
-import { Button } from "@/components/ui/button"
+import { Package } from "lucide-react"
 
 export function Header() {
-  const { theme, setTheme } = useTheme()
-
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-      <div className="ml-auto">
-        <Button variant="outline" size="icon" onClick={() => setTheme(theme === "light" || theme === 'system' ? "dark" : "light")}>
-          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
+      <div className="flex items-center gap-2 sm:hidden">
+        <Package className="h-6 w-6 text-primary" />
+        <span className="text-lg font-bold tracking-tight">Sistema Voltan</span>
       </div>
     </header>
   );
