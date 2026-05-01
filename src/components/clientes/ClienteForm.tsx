@@ -162,52 +162,52 @@ export function ClienteForm({ cliente, onSubmit, onDelete, setOpen }: ClienteFor
   };
 
   return (
-    <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col">
+    <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col bg-zinc-950/80 backdrop-blur-3xl border-white/10 shadow-2xl rounded-3xl">
       <DialogHeader>
         <DialogTitle>{cliente ? 'Editar Cliente' : 'Añadir Cliente'}</DialogTitle>
       </DialogHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 py-4 flex-grow overflow-y-auto pr-4 custom-scrollbar">
             
-            <div className="p-6 rounded-lg bg-muted/50 space-y-4">
-                <h3 className="text-lg font-medium flex items-center gap-2 text-foreground"><User className="h-5 w-5"/> Información de Contacto</h3>
+            <div className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-4">
+                <h3 className="text-lg font-medium flex items-center gap-2 text-foreground"><User className="h-5 w-5 text-primary"/> Información de Contacto</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="nombre" render={({ field }) => (<FormItem><FormLabel>Nombre</FormLabel><FormControl><Input placeholder="John Doe" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={form.control} name="empresa" render={({ field }) => (<FormItem><FormLabel>Empresa (Opcional)</FormLabel><FormControl><Input placeholder="ACME Inc." {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={form.control} name="email" render={({ field }) => (<FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="john@acme.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={form.control} name="telefono" render={({ field }) => (<FormItem><FormLabel>Teléfono</FormLabel><FormControl><Input placeholder="55-1234-5678" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="nombre" render={({ field }) => (<FormItem><FormLabel>Nombre</FormLabel><FormControl><Input placeholder="John Doe" {...field} className="bg-white/5 border-white/10" /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="empresa" render={({ field }) => (<FormItem><FormLabel>Empresa (Opcional)</FormLabel><FormControl><Input placeholder="ACME Inc." {...field} className="bg-white/5 border-white/10" /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="email" render={({ field }) => (<FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="john@acme.com" {...field} className="bg-white/5 border-white/10" /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="telefono" render={({ field }) => (<FormItem><FormLabel>Teléfono</FormLabel><FormControl><Input placeholder="55-1234-5678" {...field} className="bg-white/5 border-white/10" /></FormControl><FormMessage /></FormItem>)} />
                 </div>
             </div>
 
             {!cliente && (
-                <div className="p-6 rounded-lg bg-muted/50 space-y-4">
-                    <h3 className="text-lg font-medium flex items-center gap-2 text-foreground"><DollarSign className="h-5 w-5"/> Pagos Iniciales</h3>
+                <div className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-4">
+                    <h3 className="text-lg font-medium flex items-center gap-2 text-foreground"><DollarSign className="h-5 w-5 text-primary"/> Pagos Iniciales</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                         <FormField control={form.control} name="montoApertura" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Monto de Apertura (MXN)</FormLabel>
-                                <FormControl><Input type="number" step="0.01" placeholder="2500.00" {...field} value={field.value ?? ''} /></FormControl>
+                                <FormControl><Input type="number" step="0.01" placeholder="2500.00" {...field} value={field.value ?? ''} className="bg-white/5 border-white/10" /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
                         <FormField control={form.control} name="fechaApertura" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Fecha Límite de Apertura</FormLabel>
-                                <FormControl><Input type="date" {...field} value={field.value ?? ''} /></FormControl>
+                                <FormControl><Input type="date" {...field} value={field.value ?? ''} className="bg-white/5 border-white/10" /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
                         <FormField control={form.control} name="montoAdelanto" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Monto de Adelanto (MXN)</FormLabel>
-                                <FormControl><Input type="number" step="0.01" placeholder="1000.00" {...field} value={field.value ?? ''} /></FormControl>
+                                <FormControl><Input type="number" step="0.01" placeholder="1000.00" {...field} value={field.value ?? ''} className="bg-white/5 border-white/10" /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
                         <FormField control={form.control} name="fechaAdelanto" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Fecha Límite de Adelanto</FormLabel>
-                                <FormControl><Input type="date" {...field} value={field.value ?? ''} /></FormControl>
+                                <FormControl><Input type="date" {...field} value={field.value ?? ''} className="bg-white/5 border-white/10" /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
@@ -215,13 +215,13 @@ export function ClienteForm({ cliente, onSubmit, onDelete, setOpen }: ClienteFor
                 </div>
             )}
             
-            <div className="p-6 rounded-lg bg-muted/50 space-y-4">
-                <h3 className="text-lg font-medium flex items-center gap-2 text-foreground"><CalendarDays className="h-5 w-5"/> Pagos Recurrentes</h3>
+            <div className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-4">
+                <h3 className="text-lg font-medium flex items-center gap-2 text-foreground"><CalendarDays className="h-5 w-5 text-primary"/> Pagos Recurrentes</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      <FormField control={form.control} name="cuotaMensual" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Cuota Mensual (MXN)</FormLabel>
-                            <FormControl><Input type="number" step="0.01" placeholder="5000.00" {...field} value={field.value ?? ''} /></FormControl>
+                            <FormControl><Input type="number" step="0.01" placeholder="5000.00" {...field} value={field.value ?? ''} className="bg-white/5 border-white/10" /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
@@ -229,8 +229,8 @@ export function ClienteForm({ cliente, onSubmit, onDelete, setOpen }: ClienteFor
                         <FormItem>
                             <FormLabel>Día de Pago Mensual</FormLabel>
                             <Select onValueChange={field.onChange} value={String(field.value ?? '')}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Selecciona un día" /></SelectTrigger></FormControl>
-                                <SelectContent>
+                                <FormControl><SelectTrigger className="bg-white/5 border-white/10"><SelectValue placeholder="Selecciona un día" /></SelectTrigger></FormControl>
+                                <SelectContent className="bg-zinc-900 border-white/10">
                                     {Array.from({ length: 28 }, (_, i) => i + 1).map(day => (<SelectItem key={day} value={String(day)}>{day}</SelectItem>))}
                                 </SelectContent>
                             </Select>
@@ -240,16 +240,16 @@ export function ClienteForm({ cliente, onSubmit, onDelete, setOpen }: ClienteFor
                 </div>
             </div>
 
-            <div className="p-6 rounded-lg bg-muted/50 space-y-4">
-                 <h3 className="text-lg font-medium flex items-center gap-2 text-foreground"><ClipboardCheck className="h-5 w-5"/> Detalles del Proyecto</h3>
+            <div className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-4">
+                 <h3 className="text-lg font-medium flex items-center gap-2 text-foreground"><ClipboardCheck className="h-5 w-5 text-primary"/> Detalles del Proyecto</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <FormField control={form.control} name="proyecto.nombre" render={({ field }) => (<FormItem><FormLabel>Nombre del Proyecto</FormLabel><FormControl><Input placeholder="Ej. Sitio Web Corporativo" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                     <FormField control={form.control} name="proyecto.nombre" render={({ field }) => (<FormItem><FormLabel>Nombre del Proyecto</FormLabel><FormControl><Input placeholder="Ej. Sitio Web Corporativo" {...field} className="bg-white/5 border-white/10" /></FormControl><FormMessage /></FormItem>)} />
                      <FormField control={form.control} name="proyecto.estado" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Estado del Proyecto</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value ?? 'en-progreso'}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Selecciona un estado" /></SelectTrigger></FormControl>
-                                <SelectContent>
+                                <FormControl><SelectTrigger className="bg-white/5 border-white/10"><SelectValue placeholder="Selecciona un estado" /></SelectTrigger></FormControl>
+                                <SelectContent className="bg-zinc-900 border-white/10">
                                     <SelectItem value="en-progreso">En Progreso</SelectItem>
                                     <SelectItem value="completado">Completado</SelectItem>
                                     <SelectItem value="pausado">Pausado</SelectItem>
@@ -260,17 +260,17 @@ export function ClienteForm({ cliente, onSubmit, onDelete, setOpen }: ClienteFor
                         </FormItem>
                         )}
                     />
-                    <FormField control={form.control} name="proyecto.fechaEntrega" render={({ field }) => (<FormItem><FormLabel>Fecha de Entrega</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={form.control} name="proyecto.websiteUrl" render={({ field }) => (<FormItem><FormLabel>Link a la Página</FormLabel><FormControl><Input placeholder="https://ejemplo.com" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={form.control} name="proyecto.portalUrl" render={({ field }) => (<FormItem><FormLabel>Link al Portal del Cliente</FormLabel><FormControl><Input placeholder="https://admin.ejemplo.com" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={form.control} name="proyecto.descripcion" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Descripción del Proyecto (Opcional)</FormLabel><FormControl><Textarea placeholder="Descripción breve del proyecto..." {...field} /></FormControl><FormMessage /></FormItem>)}/>
+                    <FormField control={form.control} name="proyecto.fechaEntrega" render={({ field }) => (<FormItem><FormLabel>Fecha de Entrega</FormLabel><FormControl><Input type="date" {...field} className="bg-white/5 border-white/10" /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="proyecto.websiteUrl" render={({ field }) => (<FormItem><FormLabel>Link a la Página</FormLabel><FormControl><Input placeholder="https://ejemplo.com" {...field} value={field.value ?? ''} className="bg-white/5 border-white/10" /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="proyecto.portalUrl" render={({ field }) => (<FormItem><FormLabel>Link al Portal del Cliente</FormLabel><FormControl><Input placeholder="https://admin.ejemplo.com" {...field} value={field.value ?? ''} className="bg-white/5 border-white/10" /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="proyecto.descripcion" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Descripción del Proyecto (Opcional)</FormLabel><FormControl><Textarea placeholder="Descripción breve del proyecto..." {...field} className="bg-white/5 border-white/10" /></FormControl><FormMessage /></FormItem>)}/>
                 </div>
             </div>
 
-            <DialogFooter className="pt-4 bg-background sticky bottom-0 flex justify-between items-center">
+            <DialogFooter className="pt-4 flex justify-between items-center bg-transparent border-t border-white/5 mt-4">
                 <div>
                     {cliente && onDelete && (
-                        <Button type="button" variant="destructive" onClick={onDelete}>
+                        <Button type="button" variant="destructive" onClick={onDelete} className="bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 border-rose-500/20">
                             <Trash2 className="mr-2 h-4 w-4" />
                             Eliminar Cliente
                         </Button>
@@ -278,9 +278,9 @@ export function ClienteForm({ cliente, onSubmit, onDelete, setOpen }: ClienteFor
                 </div>
                 <div className="flex gap-2">
                     <DialogClose asChild>
-                        <Button type="button" variant="secondary">Cancelar</Button>
+                        <Button type="button" variant="secondary" className="bg-white/5 border-white/5 hover:bg-white/10">Cancelar</Button>
                     </DialogClose>
-                    <Button type="submit">Guardar Cambios</Button>
+                    <Button type="submit" className="bg-primary shadow-lg shadow-primary/20">Guardar Cambios</Button>
                 </div>
             </DialogFooter>
         </form>

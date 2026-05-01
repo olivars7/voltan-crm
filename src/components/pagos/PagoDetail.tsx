@@ -66,11 +66,11 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest 
   }
 
   return (
-    <DialogContent className="sm:max-w-md">
+    <DialogContent className="sm:max-w-md bg-zinc-950/80 backdrop-blur-3xl border-white/10 shadow-2xl rounded-3xl">
       <DialogHeader>
-        <div className="flex items-center justify-start gap-4">
-          <DialogTitle>Detalles del Pago</DialogTitle>
-          <Button variant="outline" size="icon" onClick={onEditRequest}>
+        <div className="flex items-center justify-start gap-3">
+          <DialogTitle className="text-xl font-bold tracking-tight">Detalles del Pago</DialogTitle>
+          <Button variant="outline" size="icon" onClick={onEditRequest} className="bg-white/5 border-white/10 hover:bg-white/10 h-8 w-8">
               <Pencil className="h-4 w-4" />
               <span className="sr-only">Editar Pago</span>
           </Button>
@@ -78,50 +78,50 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest 
       </DialogHeader>
 
       <div className="py-2 space-y-6">
-        <div className="text-center">
-            <p className="text-4xl font-bold tracking-tighter">{formatCurrency(pago.monto)}</p>
-            <p className="text-muted-foreground">{pago.concepto}</p>
+        <div className="text-center py-4 bg-white/5 rounded-2xl border border-white/5">
+            <p className="text-4xl font-bold tracking-tighter text-white">{formatCurrency(pago.monto)}</p>
+            <p className="text-sm text-muted-foreground uppercase tracking-widest mt-1 font-semibold">{pago.concepto}</p>
         </div>
 
-        <div className="space-y-4 rounded-lg border bg-muted/50 p-4 text-sm">
+        <div className="space-y-4 rounded-2xl border border-white/5 bg-white/5 p-5 text-sm">
             <div className="flex items-center justify-between">
-                <span className="text-muted-foreground flex items-center gap-2"><User className="w-4 h-4" /> Cliente</span>
+                <span className="text-muted-foreground flex items-center gap-2"><User className="w-4 h-4 text-primary" /> Cliente</span>
                 <span className="font-medium text-right">{cliente?.nombre}</span>
             </div>
             <div className="flex items-center justify-between">
-                <span className="text-muted-foreground flex items-center gap-2"><Calendar className="w-4 h-4" /> Fecha Límite</span>
-                <span className={`font-medium ${getPagoStatus(pago) === 'vencido' ? 'text-status-danger' : ''}`}>{formatDate(pago.fechaLimite)}</span>
+                <span className="text-muted-foreground flex items-center gap-2"><Calendar className="w-4 h-4 text-primary" /> Fecha Límite</span>
+                <span className={`font-medium ${getPagoStatus(pago) === 'vencido' ? 'text-rose-400 font-bold' : ''}`}>{formatDate(pago.fechaLimite)}</span>
             </div>
             {pago.estado === 'pagado' && pago.fechaPago && (
                 <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground flex items-center gap-2"><CheckCircle className="w-4 h-4" /> Fecha de Pago</span>
-                    <span className={`font-medium ${wasPaidLate ? 'text-status-danger' : 'text-status-success'}`}>{formatDate(pago.fechaPago)}</span>
+                    <span className="text-muted-foreground flex items-center gap-2"><CheckCircle className="w-4 h-4 text-status-success" /> Fecha de Pago</span>
+                    <span className={`font-medium ${wasPaidLate ? 'text-rose-400' : 'text-emerald-400'}`}>{formatDate(pago.fechaPago)}</span>
                 </div>
             )}
             <div className="flex items-center justify-between">
-                <span className="text-muted-foreground flex items-center gap-2"><Info className="w-4 h-4" /> Estado</span>
+                <span className="text-muted-foreground flex items-center gap-2"><Info className="w-4 h-4 text-primary" /> Estado</span>
                 <StatusBadge status={getPagoStatus(pago)} />
             </div>
         </div>
         
         {pago.notas && (
-            <div className="space-y-2">
-                <h4 className="font-medium text-sm flex items-center gap-2"><Notebook className="w-4 h-4 text-muted-foreground" /> Notas</h4>
-                <p className="text-sm text-muted-foreground pl-4 border-l-2 ml-2">{pago.notas}</p>
+            <div className="space-y-2 p-4 bg-white/5 rounded-2xl border border-white/5">
+                <h4 className="font-medium text-xs uppercase tracking-widest flex items-center gap-2 text-muted-foreground"><Notebook className="w-3 h-3" /> Notas</h4>
+                <p className="text-sm text-zinc-300 pl-1">{pago.notas}</p>
             </div>
         )}
       </div>
 
-      <DialogFooter className="flex-col gap-2 sm:flex-col sm:space-x-0">
-          <Button onClick={onToggleStatus} size="lg" className="w-full">
+      <DialogFooter className="flex-col gap-2 sm:flex-col sm:space-x-0 pt-4 border-t border-white/5">
+          <Button onClick={onToggleStatus} size="lg" className="w-full bg-primary shadow-lg shadow-primary/20">
             {pago.estado === 'pendiente' ? 'Marcar como Pagado' : 'Marcar como Pendiente'}
           </Button>
-          <Button variant="outline" onClick={handleCopyReminder} disabled={pago.estado === 'pagado'} className="w-full">
+          <Button variant="outline" onClick={handleCopyReminder} disabled={pago.estado === 'pagado'} className="w-full bg-white/5 border-white/10 hover:bg-white/10">
               <Copy className="mr-2 h-4 w-4" />
               Copiar Recordatorio
           </Button>
-          <Button variant="ghost" onClick={() => onOpenCliente(pago.clienteId)} className="w-full">
-            <ExternalLink className="mr-2 h-4 w-4" />
+          <Button variant="ghost" onClick={() => onOpenCliente(pago.clienteId)} className="w-full text-xs text-muted-foreground hover:text-white">
+            <ExternalLink className="mr-2 h-3 w-3" />
             Ver Expediente del Cliente
           </Button>
       </DialogFooter>
