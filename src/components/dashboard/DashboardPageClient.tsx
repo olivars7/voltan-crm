@@ -641,65 +641,78 @@ export default function DashboardPageClient() {
             )}
           </Card>
 
-          <Card className="xl:col-span-2">
+          <Card className="xl:col-span-2 flex flex-col">
               <CardHeader className="p-4 pb-0 text-center">
                   <CardTitle className="text-sm font-bold">Estadísticas de Rendimiento</CardTitle>
-                  <CardDescription className="text-[9px]">Comparativa trimestral de ingresos y captación.</CardDescription>
+                  <CardDescription className="text-[9px]">Análisis profundo de crecimiento y eficiencia.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4 p-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-2">
-                          <h4 className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/60 text-center">Ingresos Mensuales</h4>
-                          <ChartContainer config={chartConfig} className="w-full h-44">
+              <CardContent className="flex-1 flex flex-col justify-between p-4 pt-6 space-y-6">
+                  <div className="flex-1 grid gap-6 md:grid-cols-2 items-stretch">
+                      <div className="flex flex-col space-y-3">
+                          <h4 className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40 text-center">Ingresos Mensuales (MXN)</h4>
+                          <ChartContainer config={chartConfig} className="w-full h-56">
                               <BarChart accessibilityLayer data={monthlyRevenue} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                                   <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={5} fontSize={8} stroke="hsl(var(--muted-foreground))" />
                                   <YAxis tickFormatter={(value) => `$${value/1000}k`} tickLine={false} axisLine={false} fontSize={8} width={30} stroke="hsl(var(--muted-foreground))" />
                                   <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" className="bg-background/90 border-border" />} />
-                                  <Bar dataKey="ingresos" fill="var(--color-ingresos)" radius={[2, 2, 0, 0]} barSize={20} />
+                                  <Bar dataKey="ingresos" fill="var(--color-ingresos)" radius={[4, 4, 0, 0]} barSize={32} />
                               </BarChart>
                           </ChartContainer>
                       </div>
                       
-                      <div className="space-y-2">
-                          <h4 className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/60 text-center">Nuevos Clientes</h4>
-                          <ChartContainer config={chartConfig} className="w-full h-44">
+                      <div className="flex flex-col space-y-3">
+                          <h4 className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40 text-center">Nuevos Clientes (Altas)</h4>
+                          <ChartContainer config={chartConfig} className="w-full h-56">
                               <BarChart accessibilityLayer data={newClientsByMonth} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                                   <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={5} fontSize={8} stroke="hsl(var(--muted-foreground))" />
                                   <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={8} width={12} stroke="hsl(var(--muted-foreground))" />
                                   <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" className="bg-background/90 border-border" />} />
-                                  <Bar dataKey="clientes" fill="var(--color-clientes)" radius={[2, 2, 0, 0]} barSize={20} />
+                                  <Bar dataKey="clientes" fill="var(--color-clientes)" radius={[4, 4, 0, 0]} barSize={32} />
                               </BarChart>
                           </ChartContainer>
                       </div>
                   </div>
 
-                  <Separator className="bg-white/5" />
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-1 text-center">
-                      <div className="flex flex-col items-center space-y-1">
-                          <div className="flex items-center gap-1.5 text-[8px] uppercase tracking-widest text-muted-foreground/60 font-bold">
-                              <TrendingUp className="h-2.5 w-2.5 text-status-active" /> Ticket Promedio
-                          </div>
-                          <p className="text-xs font-bold">{formatCurrency(kpiData.averageTicket)}</p>
-                      </div>
-                      <div className="flex flex-col items-center space-y-1">
-                          <div className="flex items-center gap-1.5 text-[8px] uppercase tracking-widest text-muted-foreground/60 font-bold">
-                              <DollarSign className="h-2.5 w-2.5 text-status-success" /> Proyección Anual
-                          </div>
-                          <p className="text-xs font-bold">{formatCurrency(kpiData.projectedRevenue * 12)}</p>
-                      </div>
-                      <div className="flex flex-col items-center space-y-1">
-                          <div className="flex items-center gap-1.5 text-[8px] uppercase tracking-widest text-muted-foreground/60 font-bold">
-                              <Target className="h-2.5 w-2.5 text-status-warning" /> Conversión
-                          </div>
-                          <p className="text-xs font-bold">{kpiData.conversionRate.toFixed(1)}%</p>
-                      </div>
-                      <div className="flex flex-col items-center space-y-1">
-                          <div className="flex items-center gap-1.5 text-[8px] uppercase tracking-widest text-muted-foreground/60 font-bold">
-                              <HandCoins className="h-2.5 w-2.5 text-emerald-400" /> Tasa de Cobro
-                          </div>
-                          <p className="text-xs font-bold">{kpiData.collectionRate.toFixed(1)}%</p>
-                      </div>
+                  <div className="pt-2">
+                    <Separator className="bg-white/5 mb-6" />
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
+                        <div className="flex flex-col items-center space-y-1.5">
+                            <div className="flex items-center gap-1.5 text-[8px] uppercase tracking-[0.15em] text-muted-foreground/50 font-bold">
+                                <TrendingUp className="h-3 w-3 text-status-active" /> Ticket Promedio
+                            </div>
+                            <div className="flex flex-col">
+                              <p className="text-[13px] font-bold text-white tracking-tight">{formatCurrency(kpiData.averageTicket)}</p>
+                              <p className="text-[8px] text-muted-foreground/40 font-medium">valor prom. mensual</p>
+                            </div>
+                        </div>
+                        <div className="flex flex-col items-center space-y-1.5">
+                            <div className="flex items-center gap-1.5 text-[8px] uppercase tracking-[0.15em] text-muted-foreground/50 font-bold">
+                                <DollarSign className="h-3 w-3 text-status-success" /> Proyección Anual
+                            </div>
+                            <div className="flex flex-col">
+                              <p className="text-[13px] font-bold text-white tracking-tight">{formatCurrency(kpiData.projectedRevenue * 12)}</p>
+                              <p className="text-[8px] text-muted-foreground/40 font-medium">estimación 12 meses</p>
+                            </div>
+                        </div>
+                        <div className="flex flex-col items-center space-y-1.5">
+                            <div className="flex items-center gap-1.5 text-[8px] uppercase tracking-[0.15em] text-muted-foreground/50 font-bold">
+                                <Target className="h-3 w-3 text-status-warning" /> Conversión
+                            </div>
+                            <div className="flex flex-col">
+                              <p className="text-[13px] font-bold text-white tracking-tight">{kpiData.conversionRate.toFixed(1)}%</p>
+                              <p className="text-[8px] text-muted-foreground/40 font-medium">efectividad de leads</p>
+                            </div>
+                        </div>
+                        <div className="flex flex-col items-center space-y-1.5">
+                            <div className="flex items-center gap-1.5 text-[8px] uppercase tracking-[0.15em] text-muted-foreground/50 font-bold">
+                                <HandCoins className="h-3 w-3 text-emerald-400" /> Tasa de Cobro
+                            </div>
+                            <div className="flex flex-col">
+                              <p className="text-[13px] font-bold text-white tracking-tight">{kpiData.collectionRate.toFixed(1)}%</p>
+                              <p className="text-[8px] text-muted-foreground/40 font-medium">pagos vs pendientes</p>
+                            </div>
+                        </div>
+                    </div>
                   </div>
               </CardContent>
           </Card>
