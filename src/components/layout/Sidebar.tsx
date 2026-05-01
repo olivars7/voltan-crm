@@ -116,9 +116,9 @@ export function Sidebar() {
         <nav className="flex flex-col items-center gap-6 px-2 py-8">
           <Link
             href="/dashboard"
-            className="group flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-black transition-all duration-200 active:scale-95 hover:shadow-xl hover:shadow-white/5"
+            className="group flex h-12 w-12 shrink-0 items-center justify-center transition-all duration-200 active:scale-90"
           >
-            <img src="/favicon.ico" alt="Logo" className="h-6 w-6" />
+            <img src="/favicon.ico" alt="Logo" className="h-8 w-8 object-contain" />
             <span className="sr-only">Sistema Voltan</span>
           </Link>
           
