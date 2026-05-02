@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
-import { BackgroundGradientAnimation } from '@/components/ui/background-gradient-animation';
+import Aurora from '@/components/ui/aurora';
 
 export default function AppLayout({
   children,
@@ -9,17 +10,16 @@ export default function AppLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative h-screen w-full overflow-hidden no-scrollbar">
-      {/* Background stays fixed */}
-      <BackgroundGradientAnimation
-        firstColor="18, 113, 255"
-        secondColor="0, 255, 255"
-        thirdColor="120, 0, 255"
-        fourthColor="0, 255, 180"
-        fifthColor="0, 100, 255"
-        pointerColor="0, 255, 255"
-        containerClassName="fixed inset-0 z-0"
-      />
+    <div className="relative h-screen w-full overflow-hidden no-scrollbar bg-zinc-950">
+      {/* Background Aurora stays fixed */}
+      <div className="fixed inset-0 z-0">
+        <Aurora
+          colorStops={["#00e5ff", "#2273C3", "#5227FF"]}
+          blend={0.5}
+          amplitude={1.2}
+          speed={0.4}
+        />
+      </div>
       
       {/* Scrollable content container */}
       <div className="relative z-10 flex h-full w-full bg-transparent overflow-y-auto no-scrollbar">
