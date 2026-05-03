@@ -51,8 +51,12 @@ export function Sidebar() {
     // Check Calls - Solo para Agenda
     llamadas.forEach(l => {
       const callDate = parseISO(l.fecha);
-      if (isToday(callDate)) {
-        hasTodayMeetings = true;
+      // Una llamada se considera notificación pendiente si no está finalizada/cancelada
+      // y la fecha es hoy o ya pasó
+      if (['pronto', 'pendiente'].includes(l.estado)) {
+        if (isToday(callDate) || isBefore(callDate, now)) {
+          hasTodayMeetings = true;
+        }
       }
     });
 
@@ -169,7 +173,7 @@ export function Sidebar() {
                         {/* Notification Dot for Agenda */}
                         {isAgenda && status.hasTodayMeetings && (
                           <div className="absolute top-2 right-2">
-                            <span className="flex h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]" />
+                            <span className="flex h-2 w-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)] animate-vibrate" />
                           </div>
                         )}
 
@@ -231,7 +235,7 @@ export function Sidebar() {
                 {/* Notification Dot for Mobile Agenda */}
                 {isAgenda && status.hasTodayMeetings && (
                   <div className="absolute top-1.5 right-1.5">
-                    <span className="flex h-1.5 w-1.5 rounded-full bg-amber-400" />
+                    <span className="flex h-1.5 w-1.5 rounded-full bg-amber-500 animate-vibrate" />
                   </div>
                 )}
 
