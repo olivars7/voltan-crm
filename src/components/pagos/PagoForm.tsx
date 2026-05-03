@@ -67,7 +67,7 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
       pago
         ? { 
             ...pago, 
-            fechaLimite: pago.fechaLimite.split('T')[0],
+            fechaLimite: (pago.fechaLimite || '').split('T')[0],
             fechaPago: pago.fechaPago ? pago.fechaPago.split('T')[0] : ''
           }
         : {

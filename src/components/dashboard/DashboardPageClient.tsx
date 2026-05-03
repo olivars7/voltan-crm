@@ -253,7 +253,18 @@ export default function DashboardPageClient() {
             const existingPayment = pagos.find(p => p.clienteId === cl.id && p.concepto === 'Mensualidad' && parseISO(p.fechaLimite).getFullYear() === paymentDueDate.getFullYear() && parseISO(p.fechaLimite).getMonth() === paymentDueDate.getMonth());
             if (!existingPayment && !isBefore(paymentDueDate, startOfMonth(now))) {
               timelineItems.push({
-                date: paymentDueDate, type: 'pago', subType: isBefore(paymentDueDate, now) ? 'overdue' : 'upcoming', data: { id: `recurring-${cl.id}-${paymentDueDate.toISOString()}`, monto: cl.cuotaMensual, concepto: 'Mensualidad', estado: 'pendiente' }, cliente: cl,
+                date: paymentDueDate, 
+                type: 'pago', 
+                subType: isBefore(paymentDueDate, now) ? 'overdue' : 'upcoming', 
+                data: { 
+                    id: `recurring-${cl.id}-${paymentDueDate.toISOString()}`, 
+                    clienteId: cl.id,
+                    monto: cl.cuotaMensual, 
+                    concepto: 'Mensualidad', 
+                    fechaLimite: paymentDueDate.toISOString(),
+                    estado: 'pendiente' 
+                }, 
+                cliente: cl,
               });
             }
           }
@@ -284,11 +295,11 @@ export default function DashboardPageClient() {
 
   return (
     <>
-      <div className="space-y-6 animate-in fade-in duration-1000 pb-10">
+      <div className="space-y-6 animate-in fade-in duration-1000 pb-20">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Card className="relative overflow-hidden group"><div className="absolute top-0 left-0 w-1 h-full bg-status-active/50" /><CardHeader className="flex flex-row items-center justify-between pb-1 pt-4 px-4"><CardTitle className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Clientes activos</CardTitle><Users className="h-3 w-3 text-status-active" /></CardHeader><CardContent className="px-4 pb-4"><div className="text-2xl font-bold tracking-tight">{kpiData.activeClients}</div><p className="text-[10px] text-muted-foreground flex items-center mt-1 opacity-70"><PlusCircle className="h-2.5 w-2.5 mr-1" />{kpiData.newClientsThisMonth} este mes</p></CardContent></Card>
           <Card className="relative overflow-hidden group"><div className="absolute top-0 left-0 w-1 h-full bg-status-success/50" /><CardHeader className="flex flex-row items-center justify-between pb-1 pt-4 px-4"><CardTitle className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Ingresos de {capitalizedMonthName}</CardTitle><DollarSign className="h-3 w-3 text-status-success" /></CardHeader><CardContent className="px-4 pb-4"><div className="text-2xl font-bold tracking-tight">{formatCurrency(kpiData.projectedRevenue)}</div><p className={cn("text-[10px] font-semibold flex items-center mt-0.5", kpiData.revenueDiff >= 0 ? "text-emerald-500" : "text-rose-500")}>{kpiData.revenueDiff >= 0 ? <ArrowUp className="h-2.5 w-2.5 mr-0.5" /> : <ArrowDown className="h-2.5 w-2.5 mr-0.5" />}{formatCurrency(Math.abs(kpiData.revenueDiff))}</p></CardContent></Card>
-          <Card className="relative overflow-hidden group"><div className="absolute top-0 left-0 w-1 h-full bg-status-warning/50" /><CardHeader className="flex flex-row items-center justify-between pb-1 pt-4 px-4"><CardTitle className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Cierres de {capitalizedMonthName}</CardTitle><ClipboardCheck className="h-3 w-3 text-status-warning" /></CardHeader><CardContent className="px-4 pb-4"><div className="text-2xl font-bold tracking-tight">{kpiData.newClientsThisMonth}</div><p className={cn("text-[10px] font-semibold flex items-center mt-0.5", kpiData.newClientsDiff >= 0 ? "text-emerald-500" : "text-rose-500")}>{kpiData.newClientsDiff >= 0 ? <ArrowUp className="h-2.5 w-2.5 mr-0.5" /> : <ArrowDown className="h-2.5 w-2.5 mr-0.5" />}{Math.abs(kpiData.newClientsDiff)}</p></CardContent></Card>
+          <Card className="relative overflow-hidden group"><div className="absolute top-0 left-0 w-1 h-full bg-status-warning/50" /><CardHeader className="flex flex-row items-center justify-between pb-1 pt-4 px-4"><CardTitle className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Entregas de {capitalizedMonthName}</CardTitle><ClipboardCheck className="h-3 w-3 text-status-warning" /></CardHeader><CardContent className="px-4 pb-4"><div className="text-2xl font-bold tracking-tight">{kpiData.newClientsThisMonth}</div><p className={cn("text-[10px] font-semibold flex items-center mt-0.5", kpiData.newClientsDiff >= 0 ? "text-emerald-500" : "text-rose-500")}>{kpiData.newClientsDiff >= 0 ? <ArrowUp className="h-2.5 w-2.5 mr-0.5" /> : <ArrowDown className="h-2.5 w-2.5 mr-0.5" />}{Math.abs(kpiData.newClientsDiff)}</p></CardContent></Card>
         </div>
 
         <div className="grid gap-6 xl:grid-cols-3">

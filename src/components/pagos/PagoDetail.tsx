@@ -25,7 +25,7 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest,
   const { toast } = useToast();
 
   const handleCopyReminder = () => {
-    if (!cliente) return;
+    if (!cliente || !pago.fechaLimite) return;
 
     const dueDate = parseISO(pago.fechaLimite);
     const clientName = cliente.nombre;
@@ -57,10 +57,12 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest,
     });
   };
   
-  const wasPaidLate = pago.fechaPago && isAfter(parseISO(pago.fechaPago), parseISO(pago.fechaLimite));
+  const wasPaidLate = pago.fechaPago && pago.fechaLimite && isAfter(parseISO(pago.fechaPago), parseISO(pago.fechaLimite));
   const getPagoStatus = (pago: Pago): 'pagado' | 'pendiente' | 'vencido' => {
     if (pago.estado === 'pagado') return 'pagado';
-    if (isPast(parseISO(pago.fechaLimite)) && !isToday(parseISO(pago.fechaLimite))) {
+    if (!pago.fechaLimite) return 'pendiente';
+    const dueDate = parseISO(pago.fechaLimite);
+    if (isPast(dueDate) && !isToday(dueDate)) {
       return 'vencido';
     }
     return 'pendiente';
@@ -106,7 +108,7 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest,
             </div>
             <div className="flex items-center justify-between">
                 <span className="text-zinc-400 flex items-center gap-2"><Calendar className="w-4 h-4 text-primary" /> Fecha Límite</span>
-                <span className={`font-semibold ${getPagoStatus(pago) === 'vencido' ? 'text-status-danger' : 'text-white'}`}>{formatDate(pago.fechaLimite)}</span>
+                <span className={`font-semibold ${getPagoStatus(pago) === 'vencido' ? 'text-status-danger' : 'text-white'}`}>{pago.fechaLimite ? formatDate(pago.fechaLimite) : 'No definida'}</span>
             </div>
             {pago.estado === 'pagado' && pago.fechaPago && (
                 <div className="flex items-center justify-between">
