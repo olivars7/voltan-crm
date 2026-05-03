@@ -413,7 +413,7 @@ export default function ConsolePageClient() {
   const isLoading = clientesLoading || pagosLoading || llamadasLoading;
 
   return (
-    <>
+    <div className="pb-20">
       <PageHeader
         title="Consola"
         description="Un registro cronológico de todos los eventos importantes."
@@ -584,6 +584,6 @@ export default function ConsolePageClient() {
           onSetStatus={(status) => handleSetLlamadaStatus(selectedLlamada, status)}
         />}
       </Dialog>
-    </>
+    </div>
   );
 }

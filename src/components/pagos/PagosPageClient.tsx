@@ -304,7 +304,7 @@ export function PagosPageClient() {
   };
 
   return (
-    <>
+    <div className="pb-20">
       <PageHeader
         title="Pagos"
         description="Gestiona los pagos de tus clientes."
@@ -408,6 +408,6 @@ export function PagosPageClient() {
             setOpen={setClienteFormOpen}
         />
       </Dialog>
-    </>
+    </div>
   );
 }
