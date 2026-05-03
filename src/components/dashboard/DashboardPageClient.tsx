@@ -1,14 +1,15 @@
+
 'use client';
 import { useClientes } from '@/hooks/useClientes';
 import { usePagos } from '@/hooks/usePagos';
 import { useAgenda } from '@/hooks/useAgenda';
 import { useLeads } from '@/hooks/useLeads';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Users, DollarSign, ClipboardCheck, RotateCw, Trash2, CalendarDays, Loader2, ArrowUp, ArrowDown, PlusCircle, Target, TrendingUp, HandCoins, CheckCircle, FlaskConical } from 'lucide-react';
+import { Users, DollarSign, ClipboardCheck, Trash2, Loader2, ArrowUp, ArrowDown, PlusCircle, Target, TrendingUp, HandCoins, CheckCircle, FlaskConical, CalendarDays } from 'lucide-react';
 import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { BarChart, Bar, XAxis, YAxis } from "recharts"
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Separator } from "@/components/ui/separator"
 import { isBefore, parseISO, subMonths, startOfMonth, endOfMonth, format, isWithinInterval, addMonths, isToday, isPast } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -18,9 +19,7 @@ import { Dialog } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { PagoDetail } from '@/components/pagos/PagoDetail';
 import { ClienteDetail } from '@/components/clientes/ClienteDetail';
-import { ClienteForm } from '@/components/clientes/ClienteForm';
 import { Button } from '@/components/ui/button';
-import { PagoForm } from '@/components/pagos/PagoForm';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { AgendaDetail } from '@/components/agenda/AgendaDetail';
 import { cn } from '@/lib/utils';
@@ -34,9 +33,9 @@ type TimelineItem = {
 }
 
 export default function DashboardPageClient() {
-  const { clientes, getClienteById, updateCliente, deleteCliente, loading: clientesLoading, deleteAllClientes, resetClientes } = useClientes();
-  const { pagos, updatePago, deletePago, loading: pagosLoading, deleteAllPagos, resetPagos } = usePagos();
-  const { llamadas, updateLlamada, loading: llamadasLoading, deleteAllLlamadas, resetAgenda } = useAgenda();
+  const { clientes, updateCliente, loading: clientesLoading, deleteAllClientes, resetClientes } = useClientes();
+  const { pagos, loading: pagosLoading, deleteAllPagos, resetPagos } = usePagos();
+  const { llamadas, loading: llamadasLoading, deleteAllLlamadas, resetAgenda } = useAgenda();
   const { leads, loading: leadsLoading, deleteAllLeads, resetLeads } = useLeads();
 
   const [now, setNow] = useState<Date | null>(null);
@@ -45,14 +44,10 @@ export default function DashboardPageClient() {
   const { toast } = useToast();
   
   const [isPagoDetailOpen, setPagoDetailOpen] = useState(false);
-  const [isClienteFormOpen, setClienteFormOpen] = useState(false);
-  const [isPagoFormOpen, setPagoFormOpen] = useState(false);
   const [isAgendaDetailOpen, setAgendaDetailOpen] = useState(false);
 
   const [selectedPago, setSelectedPago] = useState<Pago | undefined>(undefined);
   const [selectedClienteId, setSelectedClienteId] = useState<string | undefined>(undefined);
-  const [editingCliente, setEditingCliente] = useState<Cliente | undefined>(undefined);
-  const [editingPago, setEditingPago] = useState<Pago | undefined>(undefined);
   const [selectedLlamada, setSelectedLlamada] = useState<LlamadaAgendada | undefined>(undefined);
   const [visibleTimeline, setVisibleTimeline] = useState(40);
 
@@ -65,31 +60,41 @@ export default function DashboardPageClient() {
   
   const handleResetData = async () => {
     const isConfirmed = window.confirm(
-      '¿Estás seguro de que quieres cargar el modo de prueba? Esto reiniciará todos los datos a un estado predeterminado.'
+      '¿Estás seguro de que quieres cargar el modo de prueba? Esto reiniciará todos los datos en la base de datos.'
     );
     if (isConfirmed) {
       setDevZoneLoading('Cargando modo de prueba...');
-      await resetClientes();
-      await resetPagos();
-      await resetAgenda();
-      await resetLeads();
-      setDevZoneLoading(null);
-      toast({ title: 'Modo de prueba activado', description: 'Los datos predeterminados han sido cargados con éxito.' });
+      try {
+        await resetClientes();
+        await resetPagos();
+        await resetAgenda();
+        await resetLeads();
+        toast({ title: 'Modo de prueba activado', description: 'Los datos predeterminados han sido cargados con éxito.' });
+      } catch (e) {
+        toast({ title: 'Error', description: 'No se pudieron cargar los datos.' });
+      } finally {
+        setDevZoneLoading(null);
+      }
     }
   };
 
   const handleDeleteAllData = async () => {
     const isConfirmed = window.confirm(
-      '¿Estás seguro de que quieres PURGAR la base de datos? Se eliminarán todos los documentos de clientes, pagos, agenda y leads. Esta acción es irreversible.'
+      '¿Estás seguro de que quieres PURGAR la base de datos? Se eliminarán todos los documentos permanentemente.'
     );
     if (isConfirmed) {
       setDevZoneLoading('Purgando base de datos...');
-      await deleteAllClientes();
-      await deleteAllPagos();
-      await deleteAllLlamadas();
-      await deleteAllLeads();
-      setDevZoneLoading(null);
-      toast({ title: 'Base de datos purgada', description: 'Todos los documentos han sido eliminados.' });
+      try {
+        await deleteAllClientes();
+        await deleteAllPagos();
+        await deleteAllLlamadas();
+        await deleteAllLeads();
+        toast({ title: 'Base de datos purgada', description: 'Todos los documentos han sido eliminados.' });
+      } catch (e) {
+        toast({ title: 'Error', description: 'No se pudo limpiar la base de datos.' });
+      } finally {
+        setDevZoneLoading(null);
+      }
     }
   };
 
@@ -138,39 +143,26 @@ export default function DashboardPageClient() {
             .filter(p => p.estado === 'pagado' && p.fechaPago && isWithinInterval(parseISO(p.fechaPago), { start, end }))
             .reduce((sum, p) => sum + p.monto, 0);
 
-        let pending: Pago[] = [];
-        pagos.forEach(p => {
-            if (p.estado === 'pendiente' && isWithinInterval(parseISO(p.fechaLimite), { start, end })) {
-                pending.push(p);
-            }
-        });
+        let pendingMonto = pagos
+            .filter(p => p.estado === 'pendiente' && isWithinInterval(parseISO(p.fechaLimite), { start, end }))
+            .reduce((sum, p) => sum + p.monto, 0);
+
         clientes.forEach(cl => {
             if (cl.estado === 'activo' && cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
-                const paymentDay = cl.diaDePago;
-                const paymentDate = new Date(start.getFullYear(), start.getMonth(), paymentDay);
+                const paymentDate = new Date(start.getFullYear(), start.getMonth(), cl.diaDePago);
                 if (isWithinInterval(paymentDate, { start, end })) {
-                    const paymentExists = pagos.some(p =>
+                    const exists = pagos.some(p =>
                         p.clienteId === cl.id && p.concepto === 'Mensualidad' &&
-                        parseISO(p.fechaLimite).getFullYear() === paymentDate.getFullYear() &&
-                        parseISO(p.fechaLimite).getMonth() === paymentDate.getMonth()
+                        parseISO(p.fechaLimite).getMonth() === start.getMonth()
                     );
-                    if (!paymentExists) {
-                        pending.push({
-                            id: `recurring-${cl.id}-${paymentDate.toISOString()}`,
-                            clienteId: cl.id,
-                            monto: cl.cuotaMensual,
-                            concepto: 'Mensualidad',
-                            fechaLimite: paymentDate.toISOString(),
-                            estado: 'pendiente',
-                        });
-                    }
+                    if (!exists) pendingMonto += cl.cuotaMensual;
                 }
             }
         });
-        const totalProjected = revenue + pending.reduce((sum, p) => sum + p.monto, 0);
-        const collectionRate = totalProjected > 0 ? (revenue / totalProjected) * 100 : 0;
-
-        return { total: totalProjected, collection: collectionRate };
+        
+        const totalProjected = revenue + pendingMonto;
+        const collection = totalProjected > 0 ? (revenue / totalProjected) * 100 : 0;
+        return { total: totalProjected, collection };
     };
 
     const currentMonthRevenue = calculateProjectedRevenue(thisMonthStart, thisMonthEnd);
@@ -188,45 +180,34 @@ export default function DashboardPageClient() {
     };
 }, [now, clientes, pagos, leads]);
 
-
   const timelineItems: TimelineItem[] = [];
   const completedItems: TimelineItem[] = [];
 
   if (now) {
-    const getEffectiveStatus = (llamada: LlamadaAgendada): LlamadaEstado => {
-      const callDate = parseISO(llamada.fecha);
-      if (llamada.estado === 'pronto' && (isToday(callDate) || isPast(callDate))) {
-        return 'pendiente';
-      }
-      return llamada.estado;
+    const getEffectiveStatus = (l: LlamadaAgendada): LlamadaEstado => {
+      const callDate = parseISO(l.fecha);
+      if (l.estado === 'pronto' && (isToday(callDate) || isPast(callDate))) return 'pendiente';
+      return l.estado;
     };
 
     llamadas.forEach(l => {
         const effectiveStatus = getEffectiveStatus(l);
         const callDate = parseISO(l.fecha);
         if (effectiveStatus === 'pronto' || effectiveStatus === 'pendiente') {
-            timelineItems.push({
-                date: callDate, type: 'llamada', subType: isBefore(callDate, now) ? 'overdue' : 'upcoming', data: l, cliente: { nombre: l.nombre }
-            });
+            timelineItems.push({ date: callDate, type: 'llamada', subType: isBefore(callDate, now) ? 'overdue' : 'upcoming', data: l, cliente: { nombre: l.nombre } });
         } else if (effectiveStatus === 'realizada') {
-          completedItems.push({
-            date: callDate, type: 'llamada', subType: 'completed', data: l, cliente: { nombre: l.nombre }
-          });
+          completedItems.push({ date: callDate, type: 'llamada', subType: 'completed', data: l, cliente: { nombre: l.nombre } });
         }
     });
 
     pagos.forEach(p => {
-      const cliente = getClienteById(p.clienteId);
+      const cliente = clientes.find(c => c.id === p.clienteId);
       if (cliente && cliente.estado === 'activo') {
         if (p.estado === 'pendiente') {
           const dueDate = parseISO(p.fechaLimite);
-          timelineItems.push({
-            date: dueDate, type: 'pago', subType: isBefore(dueDate, now) ? 'overdue' : 'upcoming', data: p, cliente: cliente,
-          });
+          timelineItems.push({ date: dueDate, type: 'pago', subType: isBefore(dueDate, now) ? 'overdue' : 'upcoming', data: p, cliente: cliente });
         } else if (p.estado === 'pagado' && p.fechaPago) {
-          completedItems.push({
-            date: parseISO(p.fechaPago), type: 'pago', subType: 'completed', data: p, cliente: cliente,
-          });
+          completedItems.push({ date: parseISO(p.fechaPago), type: 'pago', subType: 'completed', data: p, cliente: cliente });
         }
       }
     });
@@ -234,50 +215,10 @@ export default function DashboardPageClient() {
     clientes.forEach(cl => {
       if (cl.estado === 'activo' && cl.proyecto) {
         if (cl.proyecto.estado === 'en-progreso') {
-          timelineItems.push({
-            date: parseISO(cl.proyecto.fechaEntrega), type: 'entrega', subType: isBefore(parseISO(cl.proyecto.fechaEntrega), now) ? 'overdue' : 'upcoming', data: cl.proyecto, cliente: cl,
-          });
+          timelineItems.push({ date: parseISO(cl.proyecto.fechaEntrega), type: 'entrega', subType: isBefore(parseISO(cl.proyecto.fechaEntrega), now) ? 'overdue' : 'upcoming', data: cl.proyecto, cliente: cl });
         } else if (cl.proyecto.estado === 'completado' && cl.proyecto.fechaEntrega) {
-          completedItems.push({
-            date: parseISO(cl.proyecto.fechaEntrega), type: 'entrega', subType: 'completed', data: cl.proyecto, cliente: cl,
-          });
+          completedItems.push({ date: parseISO(cl.proyecto.fechaEntrega), type: 'entrega', subType: 'completed', data: cl.proyecto, cliente: cl });
         }
-      }
-
-      if (cl.estado === 'activo' && cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
-        const paymentDay = cl.diaDePago;
-        let cursorDate = startOfMonth(parseISO(cl.fechaInicio));
-        while (isBefore(cursorDate, addMonths(startOfMonth(now), 1))) {
-          const paymentDueDate = new Date(cursorDate.getFullYear(), cursorDate.getMonth(), paymentDay);
-          if (isWithinInterval(paymentDueDate, { start: startOfMonth(subMonths(now, 1)), end: addMonths(now, 1) })) {
-            const existingPayment = pagos.find(p => p.clienteId === cl.id && p.concepto === 'Mensualidad' && parseISO(p.fechaLimite).getFullYear() === paymentDueDate.getFullYear() && parseISO(p.fechaLimite).getMonth() === paymentDueDate.getMonth());
-            if (!existingPayment && !isBefore(paymentDueDate, startOfMonth(now))) {
-              timelineItems.push({
-                date: paymentDueDate, 
-                type: 'pago', 
-                subType: isBefore(paymentDueDate, now) ? 'overdue' : 'upcoming', 
-                data: { 
-                    id: `recurring-${cl.id}-${paymentDueDate.toISOString()}`, 
-                    clienteId: cl.id,
-                    monto: cl.cuotaMensual, 
-                    concepto: 'Mensualidad', 
-                    fechaLimite: paymentDueDate.toISOString(),
-                    estado: 'pendiente' 
-                }, 
-                cliente: cl,
-              });
-            }
-          }
-          cursorDate = addMonths(cursorDate, 1);
-        }
-      }
-    });
-
-    leads.forEach(l => {
-      if (l.estado === 'convertido') {
-        completedItems.push({
-          date: parseISO(l.fechaCreacion), type: 'cierre', subType: 'completed', data: l, cliente: { nombre: l.nombre }
-        });
       }
     });
   }
@@ -286,16 +227,21 @@ export default function DashboardPageClient() {
   const sortedCompleted = completedItems.sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 5);
 
   const last4Months = now ? Array.from({ length: 4 }).map((_, i) => subMonths(now, 3 - i)) : [];
-  const monthlyRevenue = last4Months.map(monthDate => ({ month: format(monthDate, 'MMM', { locale: es }), ingresos: pagos.filter(p => p.estado === 'pagado' && p.fechaPago && isWithinInterval(parseISO(p.fechaPago), { start: startOfMonth(monthDate), end: endOfMonth(monthDate) })).reduce((sum, p) => sum + p.monto, 0) }));
-  const newClientsByMonth = last4Months.map(monthDate => ({ month: format(monthDate, 'MMM', { locale: es }), clientes: clientes.filter(c => c.fechaInicio && isWithinInterval(parseISO(c.fechaInicio), { start: startOfMonth(monthDate), end: endOfMonth(monthDate) })).length }));
+  const monthlyRevenue = last4Months.map(monthDate => ({ 
+    month: format(monthDate, 'MMM', { locale: es }), 
+    ingresos: pagos.filter(p => p.estado === 'pagado' && p.fechaPago && isWithinInterval(parseISO(p.fechaPago), { start: startOfMonth(monthDate), end: endOfMonth(monthDate) })).reduce((sum, p) => sum + p.monto, 0) 
+  }));
+  const newClientsByMonth = last4Months.map(monthDate => ({ 
+    month: format(monthDate, 'MMM', { locale: es }), 
+    clientes: clientes.filter(c => c.fechaInicio && isWithinInterval(parseISO(c.fechaInicio), { start: startOfMonth(monthDate), end: endOfMonth(monthDate) })).length 
+  }));
 
   if (clientesLoading || pagosLoading || llamadasLoading || leadsLoading) {
     return <div className="flex items-center justify-center h-screen"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>
   }
 
   return (
-    <>
-      <div className="space-y-6 animate-in fade-in duration-1000 pb-20">
+    <div className="space-y-6 animate-in fade-in duration-1000 pb-20">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Card className="relative overflow-hidden group"><div className="absolute top-0 left-0 w-1 h-full bg-status-active/50" /><CardHeader className="flex flex-row items-center justify-between pb-1 pt-4 px-4"><CardTitle className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Clientes activos</CardTitle><Users className="h-3 w-3 text-status-active" /></CardHeader><CardContent className="px-4 pb-4"><div className="text-2xl font-bold tracking-tight">{kpiData.activeClients}</div><p className="text-[10px] text-muted-foreground flex items-center mt-1 opacity-70"><PlusCircle className="h-2.5 w-2.5 mr-1" />{kpiData.newClientsThisMonth} este mes</p></CardContent></Card>
           <Card className="relative overflow-hidden group"><div className="absolute top-0 left-0 w-1 h-full bg-status-success/50" /><CardHeader className="flex flex-row items-center justify-between pb-1 pt-4 px-4"><CardTitle className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Ingresos de {capitalizedMonthName}</CardTitle><DollarSign className="h-3 w-3 text-status-success" /></CardHeader><CardContent className="px-4 pb-4"><div className="text-2xl font-bold tracking-tight">{formatCurrency(kpiData.projectedRevenue)}</div><p className={cn("text-[10px] font-semibold flex items-center mt-0.5", kpiData.revenueDiff >= 0 ? "text-emerald-500" : "text-rose-500")}>{kpiData.revenueDiff >= 0 ? <ArrowUp className="h-2.5 w-2.5 mr-0.5" /> : <ArrowDown className="h-2.5 w-2.5 mr-0.5" />}{formatCurrency(Math.abs(kpiData.revenueDiff))}</p></CardContent></Card>
@@ -309,35 +255,30 @@ export default function DashboardPageClient() {
         </div>
 
         <Card className="w-full"><CardHeader className="p-3 pb-2 border-b border-white/5"><CardTitle className="text-xs font-bold flex items-center gap-2">Actividad Reciente</CardTitle></CardHeader><CardContent className="p-0 overflow-hidden"><div className="flex items-stretch min-w-full">{sortedCompleted.length > 0 ? sortedCompleted.map((item, index) => (<div key={index} className={cn("flex-1 p-3 flex flex-col gap-1 transition-colors hover:bg-white/5 cursor-pointer", index !== sortedCompleted.length - 1 && "border-r border-dashed border-white/10")} onClick={() => handleItemClick(item)}><div className="flex items-center gap-2 text-white"><CheckCircle className="h-3 w-3 text-status-success" /><span className="text-[10px] font-bold truncate max-w-[150px]">{item.type === 'pago' ? `Pago: ${item.data.concepto}` : item.type === 'entrega' ? `Entrega: ${item.data.nombre}` : `Llamada: ${item.data.nombre}`}</span></div><p className="text-[9px] text-muted-foreground/80 line-clamp-2 leading-relaxed">{item.type === 'pago' ? `${item.cliente?.nombre} liquidó ${formatCurrency(item.data.monto)}.` : item.type === 'entrega' ? `Se completó satisfactoriamente el proyecto para ${item.cliente?.nombre}.` : `Llamada finalizada con ${item.data.nombre}.`}</p><span className="text-[8px] text-muted-foreground/40 font-semibold uppercase mt-1">{formatRelativeTime(item.date)}</span></div>)) : (<div className="w-full py-4 text-center text-[10px] text-muted-foreground/40 uppercase tracking-widest font-bold">No hay actividad registrada recientemente</div>)}</div></CardContent></Card>
-      </div>
 
-      <Card className="mt-4 mb-8">
-        <CardHeader className="p-3">
-          <CardTitle className="text-xs font-bold">Zona de Desarrollo</CardTitle>
-          <CardDescription className="text-[9px]">Acciones administrativas del sistema.</CardDescription>
-        </CardHeader>
-        <CardContent className="relative px-3 pb-3">
-          {devZoneLoading && (<div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center z-10 rounded-2xl"><div className="flex items-center gap-3"><Loader2 className="h-4 w-4 animate-spin text-primary" /><span className="text-[10px] font-medium">{devZoneLoading}</span></div></div>)}
-          <div className="flex flex-wrap items-start gap-6">
-            <div>
+        <Card className="mt-4">
+          <CardHeader className="p-3">
+            <CardTitle className="text-xs font-bold">Zona de Desarrollo</CardTitle>
+            <CardDescription className="text-[9px]">Acciones administrativas directas sobre la base de datos.</CardDescription>
+          </CardHeader>
+          <CardContent className="relative px-3 pb-3">
+            {devZoneLoading && (<div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center z-10 rounded-2xl"><div className="flex items-center gap-3"><Loader2 className="h-4 w-4 animate-spin text-primary" /><span className="text-[10px] font-medium">{devZoneLoading}</span></div></div>)}
+            <div className="flex flex-wrap items-start gap-6">
               <Button variant="outline" size="sm" className="h-7 text-[9px] border-primary/30 hover:bg-primary/10 text-primary/80" onClick={handleResetData} disabled={!!devZoneLoading}>
                 <FlaskConical className="mr-2 h-3 w-3" />
                 Modo de prueba
               </Button>
-            </div>
-            <div>
               <Button variant="outline" size="sm" className="h-7 text-[9px] border-rose-900/30 hover:bg-rose-900/10 text-rose-700/80" onClick={handleDeleteAllData} disabled={!!devZoneLoading}>
                 <Trash2 className="mr-2 h-3 w-3" />
                 Purgar BD
               </Button>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <Dialog open={isPagoDetailOpen} onOpenChange={setPagoDetailOpen}>{selectedPago && <PagoDetail pago={selectedPago} onOpenCliente={(id) => { setSelectedClienteId(id); setPagoDetailOpen(false); }} onToggleStatus={() => setPagoDetailOpen(false)} onEditRequest={() => setPagoDetailOpen(false)} />}</Dialog>
-      <Dialog open={!!selectedClienteId} onOpenChange={(o) => !o && setSelectedClienteId(undefined)}>{selectedClienteId && <ClienteDetail cliente={clientes.find(c => c.id === selectedClienteId)!} clientes={clientes} onEditRequest={() => setSelectedClienteId(undefined)} onUpdateCliente={updateCliente} />}</Dialog>
-      <Dialog open={isAgendaDetailOpen} onOpenChange={setAgendaDetailOpen}>{selectedLlamada && <AgendaDetail llamada={selectedLlamada} onSetStatus={() => setAgendaDetailOpen(false)} />}</Dialog>
-    </>
+        <Dialog open={isPagoDetailOpen} onOpenChange={setPagoDetailOpen}>{selectedPago && <PagoDetail pago={selectedPago} onOpenCliente={(id) => { setSelectedClienteId(id); setPagoDetailOpen(false); }} onToggleStatus={() => setPagoDetailOpen(false)} onEditRequest={() => setPagoDetailOpen(false)} />}</Dialog>
+        <Dialog open={!!selectedClienteId} onOpenChange={(o) => !o && setSelectedClienteId(undefined)}>{selectedClienteId && <ClienteDetail cliente={clientes.find(c => c.id === selectedClienteId)!} clientes={clientes} onEditRequest={() => setSelectedClienteId(undefined)} onUpdateCliente={updateCliente} />}</Dialog>
+        <Dialog open={isAgendaDetailOpen} onOpenChange={setAgendaDetailOpen}>{selectedLlamada && <AgendaDetail llamada={selectedLlamada} onSetStatus={() => setAgendaDetailOpen(false)} />}</Dialog>
+    </div>
   );
 }

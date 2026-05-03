@@ -1,0 +1,107 @@
+
+{
+  "entities": {
+    "Cliente": {
+      "title": "Cliente",
+      "description": "Información del cliente y su proyecto.",
+      "type": "object",
+      "properties": {
+        "nombre": { "type": "string" },
+        "empresa": { "type": "string" },
+        "telefono": { "type": "string" },
+        "email": { "type": "string" },
+        "fechaInicio": { "type": "string", "format": "date-time" },
+        "estado": { "type": "string", "enum": ["activo", "inactivo"] },
+        "diaDePago": { "type": "number" },
+        "cuotaMensual": { "type": "number" },
+        "proyecto": { "$ref": "#/entities/Proyecto" }
+      },
+      "required": ["nombre", "email", "telefono", "estado"]
+    },
+    "Proyecto": {
+      "title": "Proyecto",
+      "description": "Detalles del proyecto asociado al cliente.",
+      "type": "object",
+      "properties": {
+        "nombre": { "type": "string" },
+        "descripcion": { "type": "string" },
+        "fechaEntrega": { "type": "string", "format": "date-time" },
+        "estado": { "type": "string", "enum": ["en-progreso", "completado", "pausado", "cancelado"] },
+        "portalUrl": { "type": "string" },
+        "websiteUrl": { "type": "string" }
+      }
+    },
+    "Pago": {
+      "title": "Pago",
+      "description": "Registro de pagos realizados o pendientes.",
+      "type": "object",
+      "properties": {
+        "clienteId": { "type": "string" },
+        "monto": { "type": "number" },
+        "concepto": { "type": "string" },
+        "fechaPago": { "type": "string", "format": "date-time" },
+        "fechaLimite": { "type": "string", "format": "date-time" },
+        "estado": { "type": "string", "enum": ["pagado", "pendiente"] },
+        "metodo": { "type": "string", "enum": ["transferencia", "tarjeta", "efectivo"] },
+        "notas": { "type": "string" }
+      }
+    },
+    "Lead": {
+      "title": "Lead",
+      "description": "Cliente potencial en el embudo de ventas.",
+      "type": "object",
+      "properties": {
+        "nombre": { "type": "string" },
+        "telefono": { "type": "string" },
+        "nicho": { "type": "string" },
+        "servicios": { "type": "array", "items": { "type": "string" } },
+        "estado": { "type": "string", "enum": ["por-contactar", "contactado", "demo-agendada", "convertido", "no-interesado"] },
+        "fechaCreacion": { "type": "string", "format": "date-time" },
+        "notas": { "type": "string" },
+        "historial": { "type": "array", "items": { "$ref": "#/entities/LeadHistoryEntry" } }
+      }
+    },
+    "LeadHistoryEntry": {
+      "title": "Entrada de Historial de Lead",
+      "type": "object",
+      "properties": {
+        "estado": { "type": "string" },
+        "fecha": { "type": "string", "format": "date-time" }
+      }
+    },
+    "LlamadaAgendada": {
+      "title": "Llamada Agendada",
+      "description": "Cita o reunión programada.",
+      "type": "object",
+      "properties": {
+        "nombre": { "type": "string" },
+        "telefono": { "type": "string" },
+        "medio": { "type": "string", "enum": ["llamada", "google-meet", "zoom"] },
+        "fecha": { "type": "string", "format": "date-time" },
+        "estado": { "type": "string", "enum": ["pronto", "pendiente", "realizada", "cancelada"] },
+        "notas": { "type": "string" }
+      }
+    }
+  },
+  "auth": {
+    "providers": ["password"]
+  },
+  "firestore": {
+    "/clientes/{clienteId}": {
+      "schema": { "$ref": "#/entities/Cliente" },
+      "description": "Colección de clientes."
+    },
+    "/pagos/{pagoId}": {
+      "schema": { "$ref": "#/entities/Pago" },
+      "description": "Colección de pagos."
+    },
+    "/leads/{leadId}": {
+      "schema": { "$ref": "#/entities/Lead" },
+      "description": "Colección de prospectos."
+    },
+    "/agenda/{agendaId}": {
+      "schema": { "$ref": "#/entities/LlamadaAgendada" },
+      "description": "Colección de citas y llamadas."
+    }
+  }
+}

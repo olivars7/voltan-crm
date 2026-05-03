@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -50,20 +51,20 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest,
     }
 
     navigator.clipboard.writeText(reminderText).then(() => {
-        toast({
-            title: "Recordatorio copiado",
-            description: "El mensaje de recordatorio se ha copiado al portapapeles.",
-        });
+        toast({ title: "Recordatorio copiado", description: "El mensaje de recordatorio se ha copiado al portapapeles." });
     });
   };
   
   const wasPaidLate = pago.fechaPago && pago.fechaLimite && isAfter(parseISO(pago.fechaPago), parseISO(pago.fechaLimite));
+  
   const getPagoStatus = (pago: Pago): 'pagado' | 'pendiente' | 'vencido' => {
     if (pago.estado === 'pagado') return 'pagado';
     if (!pago.fechaLimite) return 'pendiente';
-    const dueDate = parseISO(pago.fechaLimite);
-    if (isPast(dueDate) && !isToday(dueDate)) {
-      return 'vencido';
+    try {
+        const dueDate = parseISO(pago.fechaLimite);
+        if (isPast(dueDate) && !isToday(dueDate)) return 'vencido';
+    } catch (e) {
+        return 'pendiente';
     }
     return 'pendiente';
   }
@@ -77,12 +78,7 @@ export function PagoDetail({ pago, onOpenCliente, onToggleStatus, onEditRequest,
           <DialogTitle className="text-xl font-bold tracking-tight text-white">Detalles del Pago</DialogTitle>
           <div className="flex gap-2">
             {!isSynthetic && onDeleteRequest && (
-              <Button 
-                variant="outline" 
-                size="icon" 
-                onClick={onDeleteRequest} 
-                className="bg-rose-500/10 border-rose-500/20 hover:bg-rose-500/20 text-rose-500 h-8 w-8"
-              >
+              <Button variant="outline" size="icon" onClick={onDeleteRequest} className="bg-rose-500/10 border-rose-500/20 hover:bg-rose-500/20 text-rose-500 h-8 w-8">
                 <Trash2 className="h-4 w-4" />
                 <span className="sr-only">Eliminar Pago</span>
               </Button>
