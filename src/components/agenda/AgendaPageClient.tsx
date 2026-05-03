@@ -39,15 +39,23 @@ export function AgendaPageClient() {
 
   const handleEditSubmit = async (values: any) => {
     if(selectedLlamada) {
-        const updatedLlamada = { ...selectedLlamada, ...values };
-        await updateLlamada(updatedLlamada);
-        toast({ title: "Llamada actualizada", description: "La llamada ha sido actualizada." });
+        if (isRescheduling) {
+            // Crear una NUEVA llamada heredando los datos pero sin tocar la original
+            await addLlamada(values);
+            toast({ 
+                title: "Llamada reagendada", 
+                description: "Se ha creado una nueva cita a partir de los datos heredados." 
+            });
+        } else {
+            // Actualizar la llamada existente
+            const updatedLlamada = { ...selectedLlamada, ...values };
+            await updateLlamada(updatedLlamada);
+            toast({ title: "Llamada actualizada", description: "La llamada ha sido actualizada." });
+        }
+        
         setFormOpen(false);
         setSelectedLlamada(undefined);
         setIsRescheduling(false);
-        if (isDetailOpen) {
-            setSelectedLlamada(updatedLlamada);
-        }
     }
   }
   
@@ -56,9 +64,9 @@ export function AgendaPageClient() {
       if(window.confirm(`¿Estás seguro de que quieres eliminar la llamada con ${selectedLlamada.nombre}?`)){
           await deleteLlamada(selectedLlamada.id);
           toast({ title: "Llamada eliminada" });
-          setFormOpen(false); // Close the edit form
-          setDetailOpen(false); // Close the detail view if open
-          setSelectedLlamada(undefined); // Clear selection
+          setFormOpen(false); 
+          setDetailOpen(false);
+          setSelectedLlamada(undefined);
       }
     }
   };
