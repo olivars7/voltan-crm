@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useMemo } from 'react';
@@ -111,8 +112,8 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Desktop Sidebar - Floating Style */}
-      <aside className="fixed inset-y-4 left-4 z-50 hidden w-20 flex-col rounded-2xl border border-white/10 bg-zinc-950/80 shadow-2xl backdrop-blur-xl sm:flex transition-all duration-300">
+      {/* Desktop Sidebar - Floating Style with Balanced Margin */}
+      <aside className="fixed inset-y-8 left-4 z-50 hidden w-20 flex-col rounded-2xl border border-white/10 bg-zinc-950/80 shadow-2xl backdrop-blur-xl sm:flex transition-all duration-300">
         <nav className="flex flex-col items-center gap-6 px-2 py-8">
           <Link
             href="/dashboard"
