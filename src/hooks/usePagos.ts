@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, addDoc, doc, updateDoc, writeBatch, getDocs, query, limit, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, updateDoc, writeBatch, getDocs, query, deleteDoc } from 'firebase/firestore';
 import type { Pago } from '@/lib/types';
 import { mockPagos } from '@/data/mockData';
 
@@ -19,19 +19,6 @@ export const usePagos = () => {
     }, (error) => {
       console.error("Error fetching pagos: ", error);
       setLoading(false);
-    });
-
-    getDocs(query(pagosCollection, limit(1))).then(snapshot => {
-        if (snapshot.empty) {
-            console.log("Pagos collection is empty, seeding data...");
-            const batch = writeBatch(db);
-            mockPagos.forEach((pago) => {
-                const {id, ...pagoData} = pago;
-                const docRef = doc(collection(db, 'pagos'));
-                batch.set(docRef, pagoData);
-            });
-            batch.commit();
-        }
     });
 
     return () => unsubscribe();

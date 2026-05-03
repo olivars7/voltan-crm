@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, addDoc, doc, updateDoc, writeBatch, getDocs, deleteDoc } from 'firebase/firestore';
 import type { LlamadaAgendada } from '@/lib/types';
+import { mockLlamadas } from '@/data/mockData';
 
 export const useAgenda = () => {
   const [llamadas, setLlamadas] = useState<LlamadaAgendada[]>([]);
@@ -56,5 +57,16 @@ export const useAgenda = () => {
       await batch.commit();
   }, []);
 
-  return { llamadas, loading, addLlamada, updateLlamada, getLlamadaById, deleteAllLlamadas, deleteLlamada };
+  const resetAgenda = useCallback(async () => {
+      await deleteAllLlamadas();
+      const batch = writeBatch(db);
+      mockLlamadas.forEach((call) => {
+          const { id, ...callData } = call;
+          const docRef = doc(collection(db, 'agenda'));
+          batch.set(docRef, callData);
+      });
+      await batch.commit();
+  }, [deleteAllLlamadas]);
+
+  return { llamadas, loading, addLlamada, updateLlamada, getLlamadaById, deleteAllLlamadas, deleteLlamada, resetAgenda };
 };

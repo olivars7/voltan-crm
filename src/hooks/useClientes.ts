@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, addDoc, doc, updateDoc, writeBatch, getDocs, query, limit, where, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, updateDoc, writeBatch, getDocs, query, where, deleteDoc } from 'firebase/firestore';
 import type { Cliente } from '@/lib/types';
 import { mockClientes } from '@/data/mockData';
 
@@ -19,20 +19,6 @@ export const useClientes = () => {
     }, (error) => {
       console.error("Error fetching clientes: ", error);
       setLoading(false);
-    });
-
-    // Seed data if empty
-    getDocs(query(clientesCollection, limit(1))).then(snapshot => {
-        if (snapshot.empty) {
-            console.log("Clientes collection is empty, seeding data...");
-            const batch = writeBatch(db);
-            mockClientes.forEach((cliente) => {
-                const {id, ...clientData} = cliente;
-                const docRef = doc(collection(db, 'clientes'));
-                batch.set(docRef, clientData);
-            });
-            batch.commit();
-        }
     });
 
     return () => unsubscribe();

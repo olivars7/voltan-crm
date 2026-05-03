@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, addDoc, doc, updateDoc, writeBatch, getDocs, query, orderBy, deleteDoc } from 'firebase/firestore';
 import type { Lead } from '@/lib/types';
+import { mockLeads } from '@/data/mockData';
 
 export const useLeads = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -56,5 +57,16 @@ export const useLeads = () => {
       await batch.commit();
   }, []);
 
-  return { leads, loading, addLead, updateLead, deleteLead, deleteAllLeads };
+  const resetLeads = useCallback(async () => {
+      await deleteAllLeads();
+      const batch = writeBatch(db);
+      mockLeads.forEach((lead) => {
+          const { id, ...leadData } = lead;
+          const docRef = doc(collection(db, 'leads'));
+          batch.set(docRef, leadData);
+      });
+      await batch.commit();
+  }, [deleteAllLeads]);
+
+  return { leads, loading, addLead, updateLead, deleteLead, deleteAllLeads, resetLeads };
 };
