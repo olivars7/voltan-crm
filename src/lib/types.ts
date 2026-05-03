@@ -66,6 +66,11 @@ export const leadEstados = [
 ] as const;
 export type LeadEstado = typeof leadEstados[number];
 
+export type LeadHistoryEntry = {
+  estado: LeadEstado;
+  fecha: string;
+};
+
 export type Lead = {
   id: string;
   nombre: string;
@@ -75,4 +80,5 @@ export type Lead = {
   estado: LeadEstado;
   notas?: string;
   fechaCreacion: string;
+  historial: LeadHistoryEntry[];
 };

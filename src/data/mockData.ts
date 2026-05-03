@@ -79,7 +79,10 @@ export const mockLeads: Lead[] = [
         servicios: ['crm', 'panel-administrativo'],
         estado: 'por-contactar',
         fechaCreacion: formatISO(new Date('2026-04-01T10:00:00Z')),
-        notas: 'Interesado en automatizar ventas de su marketplace local.'
+        notas: 'Interesado en automatizar ventas de su marketplace local.',
+        historial: [
+            { estado: 'por-contactar', fecha: formatISO(new Date('2026-04-01T10:00:00Z')) }
+        ]
     },
     {
         id: 'lead-2',
@@ -89,7 +92,11 @@ export const mockLeads: Lead[] = [
         servicios: ['landing-page'],
         estado: 'contactado',
         fechaCreacion: formatISO(new Date('2026-04-05T14:30:00Z')),
-        notas: 'Quiere una página para promocionar su nuevo libro.'
+        notas: 'Quiere una página para promocionar su nuevo libro.',
+        historial: [
+            { estado: 'por-contactar', fecha: formatISO(new Date('2026-04-05T14:30:00Z')) },
+            { estado: 'contactado', fecha: formatISO(new Date('2026-04-06T09:15:00Z')) }
+        ]
     }
 ];
 

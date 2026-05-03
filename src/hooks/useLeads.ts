@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, addDoc, doc, updateDoc, writeBatch, getDocs, query, orderBy, deleteDoc } from 'firebase/firestore';
-import type { Lead } from '@/lib/types';
+import type { Lead, LeadEstado } from '@/lib/types';
 import { mockLeads } from '@/data/mockData';
 
 export const useLeads = () => {
@@ -27,10 +27,12 @@ export const useLeads = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const addLead = useCallback(async (lead: Omit<Lead, 'id' | 'fechaCreacion'>) => {
+  const addLead = useCallback(async (lead: Omit<Lead, 'id' | 'fechaCreacion' | 'historial'>) => {
+    const now = new Date().toISOString();
     const newLeadData = {
       ...lead,
-      fechaCreacion: new Date().toISOString(),
+      fechaCreacion: now,
+      historial: [{ estado: lead.estado, fecha: now }]
     };
     const docRef = await addDoc(collection(db, 'leads'), newLeadData);
     return { ...newLeadData, id: docRef.id };
@@ -39,8 +41,18 @@ export const useLeads = () => {
   const updateLead = useCallback(async (updatedLead: Lead) => {
     const { id, ...leadData } = updatedLead;
     const leadDoc = doc(db, 'leads', id);
+    
+    // Check if status changed to update history
+    const existingLead = leads.find(l => l.id === id);
+    if (existingLead && existingLead.estado !== updatedLead.estado) {
+        leadData.historial = [
+            ...(updatedLead.historial || []),
+            { estado: updatedLead.estado, fecha: new Date().toISOString() }
+        ];
+    }
+    
     await updateDoc(leadDoc, leadData as any);
-  }, []);
+  }, [leads]);
   
   const deleteLead = useCallback(async (leadId: string) => {
     const leadDoc = doc(db, 'leads', leadId);

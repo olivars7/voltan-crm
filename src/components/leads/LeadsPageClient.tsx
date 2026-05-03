@@ -133,10 +133,11 @@ export function LeadsPageClient() {
     'no-interesado': 'No Interesado',
   }
 
+  // KPIs now include no-interesado leads that reached those stages in their history
   const kpi = {
-    total: leads.filter(l => l.estado !== 'no-interesado').length,
-    contactados: leads.filter(l => ['contactado', 'demo-agendada', 'convertido'].includes(l.estado)).length,
-    demos: leads.filter(l => ['demo-agendada', 'convertido'].includes(l.estado)).length,
+    total: leads.length,
+    contactados: leads.filter(l => l.historial?.some(h => ['contactado', 'demo-agendada', 'convertido'].includes(h.estado))).length,
+    demos: leads.filter(l => l.historial?.some(h => ['demo-agendada', 'convertido'].includes(h.estado))).length,
     cierres: leads.filter(l => l.estado === 'convertido').length,
   }
 
@@ -165,7 +166,7 @@ export function LeadsPageClient() {
                   {lead.servicios.map(s => serviceDisplayNames[s]).join(', ')}
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
+                  <div className="flex justify-end gap-2 text-white">
                     {lead.estado !== 'convertido' && lead.estado !== 'no-interesado' && (
                         <Button 
                             size="sm" 
