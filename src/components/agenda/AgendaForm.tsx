@@ -50,6 +50,7 @@ export function AgendaForm({ llamada, isRescheduling = false, onSubmit, onDelete
       const defaultValues = {
         ...llamada,
         fecha: isRescheduling ? '' : format(new Date(llamada.fecha), "yyyy-MM-dd'T'HH:mm"),
+        estado: isRescheduling ? ('pronto' as const) : llamada.estado, // Force "pronto" on reschedule
       };
       form.reset(defaultValues);
     } else {
@@ -78,7 +79,7 @@ export function AgendaForm({ llamada, isRescheduling = false, onSubmit, onDelete
   return (
     <DialogContent className="sm:max-w-lg bg-zinc-950/80 backdrop-blur-3xl border-white/10 shadow-2xl rounded-3xl">
       <DialogHeader>
-        <DialogTitle className="text-xl font-bold tracking-tight">
+        <DialogTitle className="text-xl font-bold tracking-tight text-white">
           {isRescheduling ? 'Reagendar Llamada' : (llamada ? 'Editar Llamada' : 'Agendar Llamada')}
         </DialogTitle>
       </DialogHeader>
@@ -86,25 +87,25 @@ export function AgendaForm({ llamada, isRescheduling = false, onSubmit, onDelete
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4">
             <FormField control={form.control} name="nombre" render={({ field }) => (
               <FormItem>
-                <FormLabel>Nombre Cliente/Interesado</FormLabel>
-                <FormControl><Input placeholder="John Doe" {...field} className={cn("bg-white/5 border-white/10", inheritedFieldClass)} /></FormControl>
+                <FormLabel className="text-zinc-300">Nombre Cliente/Interesado</FormLabel>
+                <FormControl><Input placeholder="John Doe" {...field} className={cn("bg-white/5 border-white/10 text-white", inheritedFieldClass)} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
             <FormField control={form.control} name="telefono" render={({ field }) => (
               <FormItem>
-                <FormLabel>Número WhatsApp</FormLabel>
-                <FormControl><Input placeholder="55-1234-5678" {...field} className={cn("bg-white/5 border-white/10", inheritedFieldClass)} /></FormControl>
+                <FormLabel className="text-zinc-300">Número WhatsApp</FormLabel>
+                <FormControl><Input placeholder="55-1234-5678" {...field} className={cn("bg-white/5 border-white/10 text-white", inheritedFieldClass)} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField control={form.control} name="medio" render={({ field }) => (
                   <FormItem>
-                      <FormLabel>Medio</FormLabel>
+                      <FormLabel className="text-zinc-300">Medio</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value} >
-                          <FormControl><SelectTrigger className={cn("bg-white/5 border-white/10", inheritedFieldClass)}><SelectValue placeholder="Selecciona un medio" /></SelectTrigger></FormControl>
-                          <SelectContent className="bg-zinc-900 border-white/10">
+                          <FormControl><SelectTrigger className={cn("bg-white/5 border-white/10 text-white", inheritedFieldClass)}><SelectValue placeholder="Selecciona un medio" /></SelectTrigger></FormControl>
+                          <SelectContent className="bg-zinc-900 border-white/10 text-white">
                               <SelectItem value="llamada">Llamada</SelectItem>
                               <SelectItem value="google-meet">Google Meet</SelectItem>
                               <SelectItem value="zoom">Zoom</SelectItem>
@@ -115,10 +116,10 @@ export function AgendaForm({ llamada, isRescheduling = false, onSubmit, onDelete
               )} />
               <FormField control={form.control} name="estado" render={({ field }) => (
                   <FormItem>
-                      <FormLabel>Estado</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl><SelectTrigger className="bg-white/5 border-white/10"><SelectValue placeholder="Selecciona un estado" /></SelectTrigger></FormControl>
-                          <SelectContent className="bg-zinc-900 border-white/10">
+                      <FormLabel className="text-zinc-300">Estado</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={isRescheduling}>
+                          <FormControl><SelectTrigger className="bg-white/5 border-white/10 text-white"><SelectValue placeholder="Selecciona un estado" /></SelectTrigger></FormControl>
+                          <SelectContent className="bg-zinc-900 border-white/10 text-white">
                               <SelectItem value="pronto">Pronto</SelectItem>
                               <SelectItem value="pendiente">Pendiente</SelectItem>
                               <SelectItem value="realizada">Realizada</SelectItem>
@@ -131,15 +132,15 @@ export function AgendaForm({ llamada, isRescheduling = false, onSubmit, onDelete
             </div>
             <FormField control={form.control} name="fecha" render={({ field }) => (
               <FormItem>
-                <FormLabel>Fecha y Hora</FormLabel>
-                <FormControl><Input type="datetime-local" {...field} className="bg-white/5 border-white/10" /></FormControl>
+                <FormLabel className="text-zinc-300">Fecha y Hora</FormLabel>
+                <FormControl><Input type="datetime-local" {...field} className="bg-white/5 border-white/10 text-white" /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
             <FormField control={form.control} name="notas" render={({ field }) => (
               <FormItem>
-                <FormLabel>Notas (Opcional)</FormLabel>
-                <FormControl><Textarea placeholder="Detalles de la llamada..." {...field} className={cn("bg-white/5 border-white/10 min-h-[100px]", inheritedFieldClass)} /></FormControl>
+                <FormLabel className="text-zinc-300">Notas (Opcional)</FormLabel>
+                <FormControl><Textarea placeholder="Detalles de la llamada..." {...field} className={cn("bg-white/5 border-white/10 min-h-[100px] text-white", inheritedFieldClass)} /></FormControl>
                 <FormMessage />
               </FormItem>
             )}/>
@@ -155,9 +156,9 @@ export function AgendaForm({ llamada, isRescheduling = false, onSubmit, onDelete
                 </div>
                 <div className="flex gap-2">
                     <DialogClose asChild>
-                        <Button type="button" variant="secondary" className="bg-white/5 border-white/5 hover:bg-white/10 h-9">Cancelar</Button>
+                        <Button type="button" variant="secondary" className="bg-white/5 border-white/5 hover:bg-white/10 h-9 text-white">Cancelar</Button>
                     </DialogClose>
-                    <Button type="submit" className="bg-primary shadow-lg shadow-primary/20 h-9">Guardar Cambios</Button>
+                    <Button type="submit" className="bg-primary shadow-lg shadow-primary/20 h-9 text-white">Guardar Cambios</Button>
                 </div>
             </DialogFooter>
         </form>

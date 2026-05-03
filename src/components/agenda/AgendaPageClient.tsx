@@ -72,7 +72,13 @@ export function AgendaPageClient() {
   };
 
   const handleSetStatus = async (llamada: LlamadaAgendada, status: 'realizada' | 'cancelada') => {
-    const updatedLlamada = { ...llamada, estado: status };
+    const now = new Date().toISOString();
+    const updatedLlamada = { 
+      ...llamada, 
+      estado: status,
+      // Actualizamos la fecha al momento real de la acción si se marca como realizada
+      fecha: status === 'realizada' ? now : llamada.fecha 
+    };
     await updateLlamada(updatedLlamada);
     toast({ title: `Llamada ${status}`, description: "El estado de la llamada ha sido actualizado." });
     setDetailOpen(false);
@@ -146,7 +152,7 @@ export function AgendaPageClient() {
           <TableBody>
             {calls.slice(0, visibleCount).map((llamada) => (
               <TableRow key={llamada.id} onClick={() => openDetailDialog(llamada)} className="cursor-pointer border-white/5 hover:bg-white/5">
-                <TableCell className="font-medium">{llamada.nombre}</TableCell>
+                <TableCell className="font-medium text-white">{llamada.nombre}</TableCell>
                 <TableCell className="text-muted-foreground/80">{llamada.telefono}</TableCell>
                 <TableCell className="text-muted-foreground/80">{formatDate(llamada.fecha, "d MMM, yyyy h:mm a")}</TableCell>
                 <TableCell className="capitalize text-muted-foreground/80">{llamada.medio.replace('-', ' ')}</TableCell>
@@ -165,7 +171,7 @@ export function AgendaPageClient() {
         title="Agenda"
         description="Gestiona tus llamadas agendadas."
       >
-        <Button onClick={openNewDialog}>
+        <Button onClick={openNewDialog} className="text-white">
           <PlusCircle className="mr-2 h-4 w-4" />
           Agendar Llamada
         </Button>
@@ -177,7 +183,7 @@ export function AgendaPageClient() {
             <Input
                 type="search"
                 placeholder="Buscar por nombre, número o estado..."
-                className="w-full pl-8 md:w-1/2 lg:w-1/3 bg-white/5 border-white/10"
+                className="w-full pl-8 md:w-1/2 lg:w-1/3 bg-white/5 border-white/10 text-white"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -191,20 +197,20 @@ export function AgendaPageClient() {
       ) : (
       <Tabs defaultValue="proximas">
         <TabsList className="bg-white/5 border border-white/10">
-            <TabsTrigger value="proximas" className="data-[state=active]:bg-white/10">Próximas</TabsTrigger>
-            <TabsTrigger value="pasadas" className="data-[state=active]:bg-white/10">Pasadas</TabsTrigger>
+            <TabsTrigger value="proximas" className="data-[state=active]:bg-white/10 text-zinc-400 data-[state=active]:text-white">Próximas</TabsTrigger>
+            <TabsTrigger value="pasadas" className="data-[state=active]:bg-white/10 text-zinc-400 data-[state=active]:text-white">Pasadas</TabsTrigger>
         </TabsList>
         <TabsContent value="proximas">
             <Card className="border-white/5 bg-zinc-950/40">
                 <CardHeader>
-                  <CardTitle>Llamadas Próximas</CardTitle>
+                  <CardTitle className="text-white">Llamadas Próximas</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <CallsTable calls={llamadasProximas} visibleCount={visibleUpcoming} type="proximas" />
                 </CardContent>
                 {visibleUpcoming < llamadasProximas.length && (
                     <CardFooter className="justify-center border-t border-white/5 pt-4">
-                        <Button variant="ghost" size="sm" onClick={() => setVisibleUpcoming(v => v + 40)}>Cargar más</Button>
+                        <Button variant="ghost" size="sm" onClick={() => setVisibleUpcoming(v => v + 40)} className="text-zinc-400">Cargar más</Button>
                     </CardFooter>
                 )}
             </Card>
@@ -212,14 +218,14 @@ export function AgendaPageClient() {
         <TabsContent value="pasadas">
             <Card className="border-white/5 bg-zinc-950/40">
                 <CardHeader>
-                  <CardTitle>Llamadas Pasadas</CardTitle>
+                  <CardTitle className="text-white">Llamadas Pasadas</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <CallsTable calls={llamadasPasadas} visibleCount={visiblePast} type="pasadas" />
                 </CardContent>
                  {visiblePast < llamadasPasadas.length && (
                     <CardFooter className="justify-center border-t border-white/5 pt-4">
-                        <Button variant="ghost" size="sm" onClick={() => setVisiblePast(v => v + 40)}>Cargar más</Button>
+                        <Button variant="ghost" size="sm" onClick={() => setVisiblePast(v => v + 40)} className="text-zinc-400">Cargar más</Button>
                     </CardFooter>
                 )}
             </Card>
