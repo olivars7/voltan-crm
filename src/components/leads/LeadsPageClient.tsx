@@ -211,40 +211,40 @@ export function LeadsPageClient() {
       </PageHeader>
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-        <Card className="border-white/5 bg-zinc-950/40">
+        <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium uppercase tracking-widest text-muted-foreground/60">Total Leads</CardTitle>
+            <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Total Leads</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground/40" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{kpi.total}</div>
+            <div className="text-2xl font-bold text-white">{kpi.total}</div>
           </CardContent>
         </Card>
-        <Card className="border-white/5 bg-zinc-950/40">
+        <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium uppercase tracking-widest text-muted-foreground/60">Contactados</CardTitle>
+            <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Contactados</CardTitle>
             <Phone className="h-4 w-4 text-muted-foreground/40" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{kpi.contactados}</div>
+            <div className="text-2xl font-bold text-white">{kpi.contactados}</div>
           </CardContent>
         </Card>
-        <Card className="border-white/5 bg-zinc-950/40">
+        <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium uppercase tracking-widest text-muted-foreground/60">Demos</CardTitle>
+            <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Demos</CardTitle>
             <Presentation className="h-4 w-4 text-muted-foreground/40" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{kpi.demos}</div>
+            <div className="text-2xl font-bold text-white">{kpi.demos}</div>
           </CardContent>
         </Card>
-        <Card className="border-white/5 bg-zinc-950/40">
+        <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium uppercase tracking-widest text-muted-foreground/60">Cierres</CardTitle>
+            <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Cierres</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground/40" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{kpi.cierres}</div>
+            <div className="text-2xl font-bold text-white">{kpi.cierres}</div>
           </CardContent>
         </Card>
       </div>
@@ -256,7 +256,7 @@ export function LeadsPageClient() {
             <Input
                 type="search"
                 placeholder="Buscar por nombre, número o nicho..."
-                className="w-full pl-8 md:w-1/2 lg:w-1/3 bg-white/5 border-white/10"
+                className="w-full pl-8 md:w-1/2 lg:w-1/3 bg-white/5 border-white/10 text-white"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -278,9 +278,9 @@ export function LeadsPageClient() {
         </TabsList>
         {(Object.keys(leadsByStatus) as LeadEstado[]).map(status => (
             <TabsContent key={status} value={status}>
-                <Card className="border-white/5 bg-zinc-950/40">
+                <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">
                     <CardHeader>
-                      <CardTitle>Leads: {tabTitles[status]}</CardTitle>
+                      <CardTitle className="text-white">Leads: {tabTitles[status]}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <LeadsTable data={leadsByStatus[status]} />
