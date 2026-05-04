@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useRef } from 'react';
@@ -96,13 +95,15 @@ void main() {
   vec3 rampColor;
   COLOR_RAMP(colors, uv.x, rampColor);
   
-  float height = snoise(vec2(uv.x * 2.0 + uTime * 0.1, uTime * 0.25)) * 0.5 * uAmplitude;
+  float height = snoise(vec2(uv.x * 1.5 + uTime * 0.08, uTime * 0.2)) * 0.5 * uAmplitude;
   height = exp(height);
-  height = (uv.y * 2.0 - height + 0.2);
-  float intensity = 0.6 * height;
+  // Reducimos el offset para que el color empiece más abajo y cubra más pantalla
+  height = (uv.y * 2.2 - height + 0.05);
+  float intensity = 0.7 * height;
   
-  float midPoint = 0.20;
-  float auroraAlpha = smoothstep(midPoint - uBlend * 0.5, midPoint + uBlend * 0.5, intensity);
+  // Bajamos el midPoint para que la transparencia abarque más área de color
+  float midPoint = 0.05; 
+  float auroraAlpha = smoothstep(midPoint - uBlend * 0.7, midPoint + uBlend * 0.7, intensity);
   
   vec3 auroraColor = intensity * rampColor;
   
