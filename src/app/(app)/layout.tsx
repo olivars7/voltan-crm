@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -6,8 +5,11 @@ import dynamic from 'next/dynamic';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 
-// Dynamic import with SSR disabled to prevent WebGL/Server errors
-const Aurora = dynamic(() => import('@/components/ui/aurora'), { ssr: false });
+// Use a client-side only import for the Aurora component
+const Aurora = dynamic(() => import('@/components/ui/aurora'), { 
+  ssr: false,
+  loading: () => <div className="fixed inset-0 bg-zinc-950 z-0" />
+});
 
 export default function AppLayout({
   children,
@@ -29,7 +31,6 @@ export default function AppLayout({
       {/* Scrollable content container */}
       <div className="relative z-10 flex h-full w-full bg-transparent overflow-y-auto no-scrollbar">
         <Sidebar />
-        {/* Adjusted padding left to accommodate wider sidebar (w-64 = 256px + gap) */}
         <div className="flex flex-col flex-1 sm:pl-72 sm:pr-8 py-8 min-h-full">
           <Header />
           <main className="flex-1">
