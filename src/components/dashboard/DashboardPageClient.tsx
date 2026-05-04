@@ -4,13 +4,13 @@ import { usePagos } from '@/hooks/usePagos';
 import { useAgenda } from '@/hooks/useAgenda';
 import { useLeads } from '@/hooks/useLeads';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Users, DollarSign, ClipboardCheck, Trash2, Loader2, ArrowUp, ArrowDown, PlusCircle, Target, TrendingUp, HandCoins, CheckCircle, FlaskConical, CalendarDays } from 'lucide-react';
+import { Users, DollarSign, ClipboardCheck, ArrowUp, ArrowDown, Target, CheckCircle, CalendarDays, TrendingUp, HandCoins, Loader2 } from 'lucide-react';
 import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { BarChart, Bar, XAxis, YAxis } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Separator } from "@/components/ui/separator"
-import { isBefore, parseISO, subMonths, startOfMonth, endOfMonth, format, isWithinInterval, addMonths, isToday, isPast } from 'date-fns';
+import { isBefore, parseISO, subMonths, startOfMonth, endOfMonth, format, isWithinInterval, isToday, isPast } from 'date-fns';
 import { es } from 'date-fns/locale';
 import React, { useEffect, useState } from 'react';
 import { type Cliente, type Pago, type LlamadaAgendada, type LlamadaEstado } from '@/lib/types';
@@ -38,7 +38,6 @@ export default function DashboardPageClient() {
   const { leads, loading: leadsLoading } = useLeads();
 
   const [now, setNow] = useState<Date | null>(null);
-  
   const { toast } = useToast();
   
   const [isPagoDetailOpen, setPagoDetailOpen] = useState(false);
@@ -52,9 +51,6 @@ export default function DashboardPageClient() {
   useEffect(() => {
     setNow(new Date());
   }, []);
-
-  const monthName = now ? format(now, 'MMMM', { locale: es }) : '';
-  const capitalizedMonthName = monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
   const handleItemClick = (item: TimelineItem) => {
     if (item.type === 'pago') {
@@ -78,6 +74,8 @@ export default function DashboardPageClient() {
         averageTicket: 0,
         conversionRate: 0,
         collectionRate: 0,
+        newLeadsThisMonth: 0,
+        leadsDiff: 0
     };
 
     const thisMonthStart = startOfMonth(now);
@@ -89,6 +87,9 @@ export default function DashboardPageClient() {
     const newClientsThisMonth = clientes.filter(c => isWithinInterval(parseISO(c.fechaInicio), { start: thisMonthStart, end: thisMonthEnd })).length;
     const newClientsLastMonth = clientes.filter(c => isWithinInterval(parseISO(c.fechaInicio), { start: lastMonthStart, end: lastMonthEnd })).length;
     
+    const newLeadsThisMonth = leads.filter(l => isWithinInterval(parseISO(l.fechaCreacion), { start: thisMonthStart, end: thisMonthEnd })).length;
+    const newLeadsLastMonth = leads.filter(l => isWithinInterval(parseISO(l.fechaCreacion), { start: lastMonthStart, end: lastMonthEnd })).length;
+
     const paidPagos = pagos.filter(p => p.estado === 'pagado');
     const averageTicket = paidPagos.length > 0 ? paidPagos.reduce((sum, p) => sum + p.monto, 0) / paidPagos.length : 0;
 
@@ -135,8 +136,10 @@ export default function DashboardPageClient() {
         averageTicket,
         conversionRate,
         collectionRate: currentMonthRevenue.collection,
+        newLeadsThisMonth,
+        leadsDiff: newLeadsThisMonth - newLeadsLastMonth
     };
-}, [now, clientes, pagos, leads]);
+  }, [now, clientes, pagos, leads]);
 
   const timelineItems: TimelineItem[] = [];
   const completedItems: TimelineItem[] = [];
@@ -198,12 +201,78 @@ export default function DashboardPageClient() {
     return <div className="flex items-center justify-center h-screen"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>
   }
 
+  const capitalizedMonthName = now ? format(now, 'MMMM', { locale: es }).replace(/^\w/, (c) => c.toUpperCase()) : '';
+
   return (
     <div className="space-y-6 animate-in fade-in duration-1000 pb-20">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <Card className="relative overflow-hidden group"><div className="absolute top-0 left-0 w-1 h-full bg-status-active/50" /><CardHeader className="flex flex-row items-center justify-between pb-1 pt-4 px-4"><CardTitle className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Clientes activos</CardTitle><Users className="h-3 w-3 text-status-active" /></CardHeader><CardContent className="px-4 pb-4"><div className="text-2xl font-bold tracking-tight text-white">{kpiData.activeClients}</div><p className="text-[10px] text-muted-foreground flex items-center mt-1 opacity-70"><PlusCircle className="h-2.5 w-2.5 mr-1" />{kpiData.newClientsThisMonth} este mes</p></CardContent></Card>
-          <Card className="relative overflow-hidden group"><div className="absolute top-0 left-0 w-1 h-full bg-status-success/50" /><CardHeader className="flex flex-row items-center justify-between pb-1 pt-4 px-4"><CardTitle className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Ingresos de {capitalizedMonthName}</CardTitle><DollarSign className="h-3 w-3 text-status-success" /></CardHeader><CardContent className="px-4 pb-4"><div className="text-2xl font-bold tracking-tight text-white">{formatCurrency(kpiData.projectedRevenue)}</div><p className={cn("text-[10px] font-semibold flex items-center mt-0.5", kpiData.revenueDiff >= 0 ? "text-emerald-500" : "text-rose-500")}>{kpiData.revenueDiff >= 0 ? <ArrowUp className="h-2.5 w-2.5 mr-0.5" /> : <ArrowDown className="h-2.5 w-2.5 mr-0.5" />}{formatCurrency(Math.abs(kpiData.revenueDiff))}</p></CardContent></Card>
-          <Card className="relative overflow-hidden group"><div className="absolute top-0 left-0 w-1 h-full bg-status-warning/50" /><CardHeader className="flex flex-row items-center justify-between pb-1 pt-4 px-4"><CardTitle className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Entregas de {capitalizedMonthName}</CardTitle><ClipboardCheck className="h-3 w-3 text-status-warning" /></CardHeader><CardContent className="px-4 pb-4"><div className="text-2xl font-bold tracking-tight text-white">{kpiData.newClientsThisMonth}</div><p className={cn("text-[10px] font-semibold flex items-center mt-0.5", kpiData.newClientsDiff >= 0 ? "text-emerald-500" : "text-rose-500")}>{kpiData.newClientsDiff >= 0 ? <ArrowUp className="h-2.5 w-2.5 mr-0.5" /> : <ArrowDown className="h-2.5 w-2.5 mr-0.5" />}{Math.abs(kpiData.newClientsDiff)}</p></CardContent></Card>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="relative overflow-hidden group border-white/5">
+            <Users className="absolute -right-4 -bottom-4 h-24 w-24 text-white opacity-[0.03] transition-transform duration-500 group-hover:scale-110" />
+            <CardHeader className="flex flex-row items-center justify-between pb-1 pt-4 px-4">
+              <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">Clientes Activos</CardTitle>
+              <div className="p-1.5 rounded-full bg-white/5 border border-white/5">
+                <Users className="h-3 w-3 text-status-active" />
+              </div>
+            </CardHeader>
+            <CardContent className="px-4 pb-4 pt-2">
+              <div className="text-3xl font-bold tracking-tighter text-white">{kpiData.activeClients}</div>
+              <p className="text-[10px] text-muted-foreground/60 flex items-center mt-1 font-medium">
+                <StatusBadge status="activo" />
+                <span className="ml-2">en operación</span>
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="relative overflow-hidden group border-white/5">
+            <DollarSign className="absolute -right-4 -bottom-4 h-24 w-24 text-white opacity-[0.03] transition-transform duration-500 group-hover:scale-110" />
+            <CardHeader className="flex flex-row items-center justify-between pb-1 pt-4 px-4">
+              <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">Ingresos {capitalizedMonthName}</CardTitle>
+              <div className="p-1.5 rounded-full bg-white/5 border border-white/5">
+                <DollarSign className="h-3 w-3 text-status-success" />
+              </div>
+            </CardHeader>
+            <CardContent className="px-4 pb-4 pt-2">
+              <div className="text-3xl font-bold tracking-tighter text-white">{formatCurrency(kpiData.projectedRevenue)}</div>
+              <p className={cn("text-[10px] font-bold flex items-center mt-1", kpiData.revenueDiff >= 0 ? "text-emerald-500" : "text-rose-500")}>
+                {kpiData.revenueDiff >= 0 ? <ArrowUp className="h-2.5 w-2.5 mr-0.5" /> : <ArrowDown className="h-2.5 w-2.5 mr-0.5" />}
+                {formatCurrency(Math.abs(kpiData.revenueDiff))} vs mes anterior
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="relative overflow-hidden group border-white/5">
+            <ClipboardCheck className="absolute -right-4 -bottom-4 h-24 w-24 text-white opacity-[0.03] transition-transform duration-500 group-hover:scale-110" />
+            <CardHeader className="flex flex-row items-center justify-between pb-1 pt-4 px-4">
+              <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">Entregas de {capitalizedMonthName}</CardTitle>
+              <div className="p-1.5 rounded-full bg-white/5 border border-white/5">
+                <ClipboardCheck className="h-3 w-3 text-status-warning" />
+              </div>
+            </CardHeader>
+            <CardContent className="px-4 pb-4 pt-2">
+              <div className="text-3xl font-bold tracking-tighter text-white">{kpiData.newClientsThisMonth}</div>
+              <p className={cn("text-[10px] font-bold flex items-center mt-1", kpiData.newClientsDiff >= 0 ? "text-emerald-500" : "text-rose-500")}>
+                {kpiData.newClientsDiff >= 0 ? <ArrowUp className="h-2.5 w-2.5 mr-0.5" /> : <ArrowDown className="h-2.5 w-2.5 mr-0.5" />}
+                {Math.abs(kpiData.newClientsDiff)} nuevos proyectos
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="relative overflow-hidden group border-white/5">
+            <Target className="absolute -right-4 -bottom-4 h-24 w-24 text-white opacity-[0.03] transition-transform duration-500 group-hover:scale-110" />
+            <CardHeader className="flex flex-row items-center justify-between pb-1 pt-4 px-4">
+              <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">Leads del Mes</CardTitle>
+              <div className="p-1.5 rounded-full bg-white/5 border border-white/5">
+                <Target className="h-3 w-3 text-primary" />
+              </div>
+            </CardHeader>
+            <CardContent className="px-4 pb-4 pt-2">
+              <div className="text-3xl font-bold tracking-tighter text-white">{kpiData.newLeadsThisMonth}</div>
+              <p className={cn("text-[10px] font-bold flex items-center mt-1", kpiData.leadsDiff >= 0 ? "text-emerald-500" : "text-rose-500")}>
+                {kpiData.leadsDiff >= 0 ? <ArrowUp className="h-2.5 w-2.5 mr-0.5" /> : <ArrowDown className="h-2.5 w-2.5 mr-0.5" />}
+                {Math.abs(kpiData.leadsDiff)} prospectos nuevos
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid gap-6 xl:grid-cols-3">
