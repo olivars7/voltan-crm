@@ -3,6 +3,7 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import {
   Home,
   Users,
@@ -99,7 +100,7 @@ export function Sidebar() {
               paymentDay
             );
 
-            if (isBefore(paymentDueDate, addMonths(now, 1))) {
+            if (isBefore(paymentDueDate, now)) {
               const existingPayment = pagos.find(
                 (p) =>
                   p.clienteId === cl.id &&
@@ -138,10 +139,10 @@ export function Sidebar() {
             left: 8px;
             right: 8px;
             background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(16px);
+            backdrop-filter: blur(24px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
-            transition: all 0.45s cubic-bezier(0.23, 1, 0.32, 1);
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
           }
           .nav-link {
             position: relative;
@@ -178,10 +179,15 @@ export function Sidebar() {
         <nav className="flex flex-col gap-6 px-4 py-8">
           <Link
             href="/dashboard"
-            className="flex items-center gap-3 px-2 mb-4 transition-all duration-200 active:scale-95"
+            className="flex items-center gap-2 px-2 mb-1.5 transition-all duration-200 active:scale-95"
           >
-            <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/10">
-              <span className="text-sm font-bold text-white">V</span>
+            <div className="relative h-6 w-6 shrink-0">
+               <Image 
+                src="/favicon.ico" 
+                alt="Voltan Logo" 
+                fill 
+                className="object-contain"
+               />
             </div>
             <span className="text-lg font-bold tracking-tight text-white uppercase">Voltan</span>
           </Link>
