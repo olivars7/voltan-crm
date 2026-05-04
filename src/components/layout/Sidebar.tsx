@@ -136,8 +136,8 @@ export function Sidebar() {
           }
           .gooey-indicator {
             position: absolute;
-            left: 8px;
-            right: 8px;
+            left: 0;
+            right: 0;
             background: rgba(255, 255, 255, 0.12);
             backdrop-filter: blur(24px);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -194,7 +194,7 @@ export function Sidebar() {
           
           <div className="h-px w-full bg-white/5 mx-auto" />
 
-          <div className="relative flex flex-col gap-2" ref={containerRef}>
+          <div className="relative flex flex-col gap-2 px-2" ref={containerRef}>
             <div className="gooey-filter" style={{ height: '100%' }}>
               <div 
                 className="gooey-indicator" 
