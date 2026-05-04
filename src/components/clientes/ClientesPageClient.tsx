@@ -152,7 +152,7 @@ export function ClientesPageClient() {
   const isLoading = clientesLoading || pagosLoading;
 
   return (
-    <>
+    <div className="pb-20">
       <PageHeader
         title="Clientes"
         description="Gestiona tus clientes activos e inactivos."
@@ -242,6 +242,6 @@ export function ClientesPageClient() {
       <Dialog open={!!selectedClienteId} onOpenChange={(isOpen) => !isOpen && setSelectedClienteId(undefined)}>
         {selectedCliente && <ClienteDetail cliente={selectedCliente} clientes={clientes} onEditRequest={() => openEditDialog(selectedCliente)} onUpdateCliente={updateCliente} />}
       </Dialog>
-    </>
+    </div>
   );
 }

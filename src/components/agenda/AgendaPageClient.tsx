@@ -166,7 +166,7 @@ export function AgendaPageClient() {
   );
 
   return (
-    <>
+    <div className="pb-20">
       <PageHeader
         title="Agenda"
         description="Gestiona tus llamadas agendadas."
@@ -251,6 +251,6 @@ export function AgendaPageClient() {
             onSetStatus={(status) => handleSetStatus(selectedLlamada, status)}
              />}
       </Dialog>
-    </>
+    </div>
   );
 }

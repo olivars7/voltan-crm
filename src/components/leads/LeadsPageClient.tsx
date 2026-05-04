@@ -5,7 +5,7 @@ import { PlusCircle, Search, Loader2, Users, Phone, Presentation, Target, ArrowR
 import { useLeads } from '@/hooks/useLeads';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog } from '@/components/ui/dialog';
@@ -199,7 +199,7 @@ export function LeadsPageClient() {
   );
 
   return (
-    <>
+    <div className="pb-20">
       <PageHeader
         title="Leads"
         description="Gestiona tus clientes potenciales."
@@ -306,6 +306,6 @@ export function LeadsPageClient() {
             onEdit={openEditDialog} 
         />}
       </Dialog>
-    </>
+    </div>
   );
 }
