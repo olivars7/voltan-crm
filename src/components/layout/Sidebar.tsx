@@ -47,7 +47,7 @@ export function Sidebar() {
   }, [pathname]);
 
   useEffect(() => {
-    const activeEl = containerRef.current?.querySelectorAll('a')[activeIndex] as HTMLElement;
+    const activeEl = containerRef.current?.querySelectorAll('.nav-link')[activeIndex] as HTMLElement;
     if (activeEl) {
       setIndicatorStyle({
         top: activeEl.offsetTop,
@@ -129,8 +129,9 @@ export function Sidebar() {
         {`
           .gooey-filter {
             position: absolute;
+            left: 0;
+            right: 0;
             filter: url('#gooey');
-            width: 100%;
             pointer-events: none;
             z-index: 0;
           }
