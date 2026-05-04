@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useMemo, useState, useEffect, useRef } from 'react';
@@ -138,17 +137,28 @@ export function Sidebar() {
             position: absolute;
             left: 8px;
             right: 8px;
-            background: white;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
-            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: all 0.45s cubic-bezier(0.23, 1, 0.32, 1);
           }
           .nav-link {
             position: relative;
             z-index: 10;
-            transition: color 0.3s ease;
+            transition: all 0.3s ease;
           }
           .nav-link.active {
-            color: black;
+            color: white;
+            font-weight: 600;
+          }
+          @keyframes vibrate {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-0.5px); }
+            75% { transform: translateX(0.5px); }
+          }
+          .animate-vibrate {
+            animation: vibrate 0.3s ease-in-out infinite;
           }
         `}
       </style>
@@ -164,13 +174,15 @@ export function Sidebar() {
       </svg>
 
       {/* Desktop Sidebar */}
-      <aside className="fixed inset-y-8 left-4 z-50 hidden w-64 flex-col rounded-2xl border border-white/10 bg-zinc-950/20 shadow-2xl backdrop-blur-3xl sm:flex">
+      <aside className="fixed inset-y-6 left-4 z-50 hidden w-64 flex-col rounded-2xl border border-white/10 bg-zinc-950/20 shadow-2xl backdrop-blur-3xl sm:flex">
         <nav className="flex flex-col gap-6 px-4 py-8">
           <Link
             href="/dashboard"
             className="flex items-center gap-3 px-2 mb-4 transition-all duration-200 active:scale-95"
           >
-            <img src="/favicon.ico" alt="Logo" className="h-8 w-8 object-contain" />
+            <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/10">
+              <span className="text-sm font-bold text-white">V</span>
+            </div>
             <span className="text-lg font-bold tracking-tight text-white uppercase">Voltan</span>
           </Link>
           
@@ -199,10 +211,10 @@ export function Sidebar() {
                   href={item.href}
                   className={cn(
                     'nav-link flex h-12 w-full items-center gap-3 px-4 rounded-xl font-medium text-sm transition-all duration-300',
-                    isActive ? 'active text-black' : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                    isActive ? 'active' : 'text-zinc-400 hover:text-white hover:bg-white/5'
                   )}
                 >
-                  <item.icon className="h-4 w-4 shrink-0" />
+                  <item.icon className="h-[14px] w-[14px] shrink-0" />
                   <span>{item.label}</span>
                   
                   <div className="ml-auto flex gap-1">
@@ -241,7 +253,7 @@ export function Sidebar() {
                 href={item.href}
                 className={cn(
                   'relative flex flex-col items-center justify-center gap-1 rounded-lg p-2 transition-all duration-200 active:scale-90',
-                  isActive ? 'bg-white text-black' : 'text-zinc-500'
+                  isActive ? 'bg-white/10 backdrop-blur-md text-white border border-white/10' : 'text-zinc-500'
                 )}
               >
                 <item.icon className="h-3.5 w-3.5" />

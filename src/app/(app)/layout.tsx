@@ -31,7 +31,7 @@ export default function AppLayout({
       {/* Scrollable content container */}
       <div className="relative z-10 flex h-full w-full bg-transparent overflow-y-auto no-scrollbar">
         <Sidebar />
-        <div className="flex flex-col flex-1 sm:pl-72 sm:pr-8 py-8 min-h-full">
+        <div className="flex flex-col flex-1 sm:pl-72 sm:pr-8 py-6 min-h-full">
           <Header />
           <main className="flex-1">
             {children}
