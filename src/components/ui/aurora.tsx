@@ -95,19 +95,20 @@ void main() {
   vec3 rampColor;
   COLOR_RAMP(colors, uv.x, rampColor);
   
-  float height = snoise(vec2(uv.x * 1.5 + uTime * 0.08, uTime * 0.2)) * 0.5 * uAmplitude;
-  height = exp(height);
-  // Reducimos el offset para que el color empiece más abajo y cubra más pantalla
-  height = (uv.y * 2.2 - height + 0.05);
-  float intensity = 0.7 * height;
+  float noise = snoise(vec2(uv.x * 1.2 + uTime * 0.05, uTime * 0.12));
+  float height = exp(noise * 0.4 * uAmplitude);
   
-  // Bajamos el midPoint para que la transparencia abarque más área de color
-  float midPoint = 0.05; 
-  float auroraAlpha = smoothstep(midPoint - uBlend * 0.7, midPoint + uBlend * 0.7, intensity);
+  // Ajustamos el height para que cubra toda la pantalla (menos negro)
+  float intensity = (uv.y * 1.5 - height + 1.2) * 0.4;
+  
+  // Suavizamos la transición de alfa para que no haya huecos negros
+  float auroraAlpha = smoothstep(-0.2, 1.2, intensity * uBlend);
   
   vec3 auroraColor = intensity * rampColor;
   
-  fragColor = vec4(auroraColor * auroraAlpha, auroraAlpha);
+  // Mezclamos con un color base muy oscuro para eliminar el negro puro
+  vec3 baseColor = uColorStops[0] * 0.05;
+  fragColor = vec4(mix(baseColor, auroraColor, auroraAlpha), 1.0);
 }
 `;
 
@@ -136,7 +137,7 @@ export default function Aurora(props: AuroraProps) {
       antialias: true
     });
     const gl = renderer.gl;
-    gl.clearColor(0, 0, 0, 0);
+    gl.clearColor(0.01, 0.02, 0.05, 1.0); // Fondo base muy oscuro en lugar de negro puro
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.canvas.style.backgroundColor = 'transparent';

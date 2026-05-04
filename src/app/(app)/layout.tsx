@@ -22,9 +22,9 @@ export default function AppLayout({
       <div className="fixed inset-0 z-0">
         <Aurora
           colorStops={["#00e5ff", "#2273C3", "#5227FF"]}
-          blend={0.8}
-          amplitude={1.8}
-          speed={0.4}
+          blend={1.2}
+          amplitude={1.1}
+          speed={0.3}
         />
       </div>
       
