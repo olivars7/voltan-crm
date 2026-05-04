@@ -32,13 +32,12 @@ type TimelineItem = {
 }
 
 export default function DashboardPageClient() {
-  const { clientes, updateCliente, loading: clientesLoading, deleteAllClientes, resetClientes } = useClientes();
-  const { pagos, loading: pagosLoading, deleteAllPagos, resetPagos } = usePagos();
-  const { llamadas, loading: llamadasLoading, deleteAllLlamadas, resetAgenda } = useAgenda();
-  const { leads, loading: leadsLoading, deleteAllLeads, resetLeads } = useLeads();
+  const { clientes, updateCliente, loading: clientesLoading } = useClientes();
+  const { pagos, loading: pagosLoading } = usePagos();
+  const { llamadas, loading: llamadasLoading } = useAgenda();
+  const { leads, loading: leadsLoading } = useLeads();
 
   const [now, setNow] = useState<Date | null>(null);
-  const [devZoneLoading, setDevZoneLoading] = useState<string | null>(null);
   
   const { toast } = useToast();
   
@@ -56,46 +55,6 @@ export default function DashboardPageClient() {
 
   const monthName = now ? format(now, 'MMMM', { locale: es }) : '';
   const capitalizedMonthName = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-  
-  const handleResetData = async () => {
-    const isConfirmed = window.confirm(
-      '¿Estás seguro de que quieres cargar el modo de prueba? Esto reiniciará todos los datos en la base de datos.'
-    );
-    if (isConfirmed) {
-      setDevZoneLoading('Cargando modo de prueba...');
-      try {
-        await resetClientes();
-        await resetPagos();
-        await resetAgenda();
-        await resetLeads();
-        toast({ title: 'Modo de prueba activado', description: 'Los datos predeterminados han sido cargados con éxito.' });
-      } catch (e) {
-        toast({ title: 'Error', description: 'No se pudieron cargar los datos.' });
-      } finally {
-        setDevZoneLoading(null);
-      }
-    }
-  };
-
-  const handleDeleteAllData = async () => {
-    const isConfirmed = window.confirm(
-      '¿Estás seguro de que quieres PURGAR la base de datos? Se eliminarán todos los documentos permanentemente.'
-    );
-    if (isConfirmed) {
-      setDevZoneLoading('Purgando base de datos...');
-      try {
-        await deleteAllClientes();
-        await deleteAllPagos();
-        await deleteAllLlamadas();
-        await deleteAllLeads();
-        toast({ title: 'Base de datos purgada', description: 'Todos los documentos han sido eliminados.' });
-      } catch (e) {
-        toast({ title: 'Error', description: 'No se pudo limpiar la base de datos.' });
-      } finally {
-        setDevZoneLoading(null);
-      }
-    }
-  };
 
   const handleItemClick = (item: TimelineItem) => {
     if (item.type === 'pago') {
@@ -277,26 +236,6 @@ export default function DashboardPageClient() {
             <span className="text-[8px] text-muted-foreground/40 font-semibold uppercase mt-1">{formatRelativeTime(item.date)}</span>
           </div>
         )) : (<div className="w-full py-4 text-center text-[10px] text-muted-foreground/40 uppercase tracking-widest font-bold">No hay actividad registrada recientemente</div>)}</div></CardContent></Card>
-
-        <Card className="mt-4">
-          <CardHeader className="p-3">
-            <CardTitle className="text-xs font-bold">Zona de Desarrollo</CardTitle>
-            <CardDescription className="text-[9px]">Acciones administrativas directas sobre la base de datos.</CardDescription>
-          </CardHeader>
-          <CardContent className="relative px-3 pb-3">
-            {devZoneLoading && (<div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center z-10 rounded-2xl"><div className="flex items-center gap-3"><Loader2 className="h-4 w-4 animate-spin text-primary" /><span className="text-[10px] font-medium">{devZoneLoading}</span></div></div>)}
-            <div className="flex flex-wrap items-start gap-6">
-              <Button variant="outline" size="sm" className="h-7 text-[9px] border-primary/30 hover:bg-primary/10 text-primary/80" onClick={handleResetData} disabled={!!devZoneLoading}>
-                <FlaskConical className="mr-2 h-3 w-3" />
-                Modo de prueba
-              </Button>
-              <Button variant="outline" size="sm" className="h-7 text-[9px] border-rose-900/30 hover:bg-rose-900/10 text-rose-700/80" onClick={handleDeleteAllData} disabled={!!devZoneLoading}>
-                <Trash2 className="mr-2 h-3 w-3" />
-                Purgar BD
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
 
         <Dialog open={isPagoDetailOpen} onOpenChange={setPagoDetailOpen}>{selectedPago && <PagoDetail pago={selectedPago} onOpenCliente={(id) => { setSelectedClienteId(id); setPagoDetailOpen(false); }} onToggleStatus={() => setPagoDetailOpen(false)} onEditRequest={() => setPagoDetailOpen(false)} />}</Dialog>
         <Dialog open={!!selectedClienteId} onOpenChange={(o) => !o && setSelectedClienteId(undefined)}>{selectedClienteId && <ClienteDetail cliente={clientes.find(c => c.id === selectedClienteId)!} clientes={clientes} onEditRequest={() => setSelectedClienteId(undefined)} onUpdateCliente={updateCliente} />}</Dialog>
