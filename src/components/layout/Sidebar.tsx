@@ -1,25 +1,18 @@
 
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Home,
   Users,
   DollarSign,
-  Package,
   History,
   CalendarDays,
   Lightbulb,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { usePagos } from '@/hooks/usePagos';
 import { useClientes } from '@/hooks/useClientes';
 import { useAgenda } from '@/hooks/useAgenda';
@@ -39,6 +32,29 @@ export function Sidebar() {
   const { pagos } = usePagos();
   const { clientes } = useClientes();
   const { llamadas } = useAgenda();
+  
+  const [activeIndex, setActiveIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [indicatorStyle, setIndicatorStyle] = useState({ top: 0, height: 0 });
+
+  useEffect(() => {
+    const index = navItems.findIndex(item => 
+      item.href === '/dashboard' ? pathname === item.href : pathname.startsWith(item.href)
+    );
+    if (index !== -1) {
+      setActiveIndex(index);
+    }
+  }, [pathname]);
+
+  useEffect(() => {
+    const activeEl = containerRef.current?.querySelectorAll('a')[activeIndex] as HTMLElement;
+    if (activeEl) {
+      setIndicatorStyle({
+        top: activeEl.offsetTop,
+        height: activeEl.offsetHeight,
+      });
+    }
+  }, [activeIndex]);
 
   const status = useMemo(() => {
     const now = new Date();
@@ -48,11 +64,8 @@ export function Sidebar() {
     let hasTodayEvents = false;
     let hasTodayMeetings = false;
 
-    // Check Calls - Solo para Agenda
     llamadas.forEach(l => {
       const callDate = parseISO(l.fecha);
-      // Una llamada se considera notificación pendiente si no está finalizada/cancelada
-      // y la fecha es hoy o ya pasó
       if (['pronto', 'pendiente'].includes(l.estado)) {
         if (isToday(callDate) || isBefore(callDate, now)) {
           hasTodayMeetings = true;
@@ -60,7 +73,6 @@ export function Sidebar() {
       }
     });
 
-    // Check Payments - Para Consola y Pagos
     pagos.forEach(p => {
       const dueDate = parseISO(p.fechaLimite);
       if (p.estado === 'pendiente') {
@@ -69,17 +81,14 @@ export function Sidebar() {
       }
     });
 
-    // Check Clients (Projects and Recurring)
     clientes.forEach(cl => {
       if (cl.estado === 'activo') {
-        // Project delivery
         if (cl.proyecto && cl.proyecto.estado === 'en-progreso') {
           const deliveryDate = parseISO(cl.proyecto.fechaEntrega);
           if (isBefore(deliveryDate, today)) hasOverdue = true;
           if (isToday(deliveryDate)) hasTodayEvents = true;
         }
 
-        // Recurring payments logic
         if (cl.diaDePago && cl.cuotaMensual && cl.cuotaMensual > 0) {
           const paymentDay = cl.diaDePago;
           let cursorDate = startOfMonth(parseISO(cl.fechaInicio));
@@ -116,86 +125,112 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Desktop Sidebar - Floating Style with Balanced Margin */}
-      <aside className="fixed inset-y-8 left-4 z-50 hidden w-20 flex-col rounded-2xl border border-white/10 bg-zinc-950/80 shadow-2xl backdrop-blur-xl sm:flex transition-all duration-300">
-        <nav className="flex flex-col items-center gap-6 px-2 py-8">
+      <style>
+        {`
+          .gooey-filter {
+            position: absolute;
+            filter: url('#gooey');
+            width: 100%;
+            pointer-events: none;
+            z-index: 0;
+          }
+          .gooey-indicator {
+            position: absolute;
+            left: 8px;
+            right: 8px;
+            background: white;
+            border-radius: 12px;
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+          }
+          .nav-link {
+            position: relative;
+            z-index: 10;
+            transition: color 0.3s ease;
+          }
+          .nav-link.active {
+            color: black;
+          }
+        `}
+      </style>
+      
+      <svg className="hidden">
+        <defs>
+          <filter id="gooey">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
+            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
+            <feBlend in="SourceGraphic" in2="goo" />
+          </filter>
+        </defs>
+      </svg>
+
+      {/* Desktop Sidebar */}
+      <aside className="fixed inset-y-8 left-4 z-50 hidden w-64 flex-col rounded-2xl border border-white/10 bg-zinc-950/20 shadow-2xl backdrop-blur-3xl sm:flex">
+        <nav className="flex flex-col gap-6 px-4 py-8">
           <Link
             href="/dashboard"
-            className="group flex h-12 w-12 shrink-0 items-center justify-center transition-all duration-200 active:scale-90"
+            className="flex items-center gap-3 px-2 mb-4 transition-all duration-200 active:scale-95"
           >
             <img src="/favicon.ico" alt="Logo" className="h-8 w-8 object-contain" />
-            <span className="sr-only">Sistema Voltan</span>
+            <span className="text-lg font-bold tracking-tight text-white uppercase">Voltan</span>
           </Link>
           
-          <div className="h-px w-8 bg-white/10" />
+          <div className="h-px w-full bg-white/5 mx-auto" />
 
-          <TooltipProvider delayDuration={0}>
-            <div className="flex flex-col gap-4">
-              {navItems.map((item) => {
-                const isActive = item.href === '/dashboard' ? pathname === item.href : pathname.startsWith(item.href);
-                const isPagos = item.href === '/pagos';
-                const isConsola = item.href === '/console';
-                const isAgenda = item.href === '/agenda';
-                
-                return (
-                  <Tooltip key={item.href}>
-                    <TooltipTrigger asChild>
-                      <Link
-                        href={item.href}
-                        className={cn(
-                          'relative flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-200 ease-in-out hover:bg-white/10 active:scale-90',
-                          isActive 
-                            ? 'bg-white text-black shadow-lg shadow-white/10' 
-                            : 'text-zinc-400 hover:text-white'
-                        )}
-                      >
-                        <item.icon className="h-5 w-5" />
-                        
-                        {/* Notification Dot for Pagos (Vencidos) */}
-                        {isPagos && status.hasOverdue && (
-                          <div className="absolute top-2 right-2">
-                            <span className="flex h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)] animate-vibrate" />
-                          </div>
-                        )}
-
-                        {/* Notification Dots for Consola */}
-                        {isConsola && (
-                          <div className="absolute top-2 right-2 flex gap-0.5">
-                            {status.hasOverdue && (
-                              <span className="flex h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)] animate-vibrate" />
-                            )}
-                            {status.hasTodayEvents && (
-                              <span className="flex h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-                            )}
-                          </div>
-                        )}
-
-                        {/* Notification Dot for Agenda */}
-                        {isAgenda && status.hasTodayMeetings && (
-                          <div className="absolute top-2 right-2">
-                            <span className="flex h-2 w-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)] animate-vibrate" />
-                          </div>
-                        )}
-
-                        <span className="sr-only">{item.label}</span>
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent side="right" className="border-white/10 bg-zinc-900 text-white backdrop-blur-md">
-                      {item.label}
-                    </TooltipContent>
-                  </Tooltip>
-                )
-              })}
+          <div className="relative flex flex-col gap-2" ref={containerRef}>
+            <div className="gooey-filter" style={{ height: '100%' }}>
+              <div 
+                className="gooey-indicator" 
+                style={{ 
+                  top: indicatorStyle.top, 
+                  height: indicatorStyle.height 
+                }} 
+              />
             </div>
-          </TooltipProvider>
+
+            {navItems.map((item, index) => {
+              const isActive = activeIndex === index;
+              const isPagos = item.href === '/pagos';
+              const isConsola = item.href === '/console';
+              const isAgenda = item.href === '/agenda';
+              
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    'nav-link flex h-12 w-full items-center gap-3 px-4 rounded-xl font-medium text-sm transition-all duration-300',
+                    isActive ? 'active text-black' : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                  )}
+                >
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  <span>{item.label}</span>
+                  
+                  <div className="ml-auto flex gap-1">
+                    {isPagos && status.hasOverdue && (
+                      <span className="flex h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)] animate-vibrate" />
+                    )}
+                    {isConsola && (
+                      <>
+                        {status.hasOverdue && <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-vibrate" />}
+                        {status.hasTodayEvents && <span className="flex h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />}
+                      </>
+                    )}
+                    {isAgenda && status.hasTodayMeetings && (
+                      <span className="flex h-2 w-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)] animate-vibrate" />
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         </nav>
       </aside>
       
-      {/* Mobile Bottom Bar - Floating Style */}
-      <nav className="fixed bottom-4 left-4 right-4 z-50 rounded-2xl border border-white/10 bg-zinc-950/80 p-2 shadow-2xl backdrop-blur-xl sm:hidden transition-all duration-300">
+      {/* Mobile Bottom Bar */}
+      <nav className="fixed bottom-4 left-4 right-4 z-50 rounded-2xl border border-white/10 bg-zinc-950/40 p-1.5 shadow-2xl backdrop-blur-2xl sm:hidden">
         <div className="grid grid-cols-6 items-center justify-around gap-1">
-          {navItems.map((item) => {
-            const isActive = item.href === '/dashboard' ? pathname === item.href : pathname.startsWith(item.href);
+          {navItems.map((item, index) => {
+            const isActive = activeIndex === index;
             const isPagos = item.href === '/pagos';
             const isConsola = item.href === '/console';
             const isAgenda = item.href === '/agenda';
@@ -205,41 +240,30 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'relative flex flex-col items-center justify-center gap-1.5 rounded-xl p-2.5 transition-all duration-200 active:scale-90',
-                  isActive 
-                    ? 'bg-white text-black' 
-                    : 'text-zinc-500 hover:text-white hover:bg-white/5'
+                  'relative flex flex-col items-center justify-center gap-1 rounded-lg p-2 transition-all duration-200 active:scale-90',
+                  isActive ? 'bg-white text-black' : 'text-zinc-500'
                 )}
               >
-                <item.icon className="h-5 w-5" />
+                <item.icon className="h-3.5 w-3.5" />
                 
-                {/* Notification Dot for Mobile Pagos */}
                 {isPagos && status.hasOverdue && (
-                  <div className="absolute top-1.5 right-1.5">
+                  <div className="absolute top-1 right-1">
                     <span className="flex h-1.5 w-1.5 rounded-full bg-rose-500 animate-vibrate" />
                   </div>
                 )}
-
-                {/* Notification Dots for Mobile Consola */}
-                {isConsola && (
-                  <div className="absolute top-1.5 right-1.5 flex gap-0.5">
-                    {status.hasOverdue && (
-                      <span className="flex h-1.5 w-1.5 rounded-full bg-rose-500 animate-vibrate" />
-                    )}
-                    {status.hasTodayEvents && (
-                      <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    )}
+                {isConsola && (status.hasOverdue || status.hasTodayEvents) && (
+                  <div className="absolute top-1 right-1 flex gap-0.5">
+                    {status.hasOverdue && <span className="flex h-1 w-1 rounded-full bg-rose-500" />}
+                    {status.hasTodayEvents && <span className="flex h-1 w-1 rounded-full bg-emerald-500" />}
                   </div>
                 )}
-
-                {/* Notification Dot for Mobile Agenda */}
                 {isAgenda && status.hasTodayMeetings && (
-                  <div className="absolute top-1.5 right-1.5">
+                  <div className="absolute top-1 right-1">
                     <span className="flex h-1.5 w-1.5 rounded-full bg-amber-500 animate-vibrate" />
                   </div>
                 )}
 
-                <span className="text-[10px] font-semibold uppercase tracking-wider hidden xs:block">{item.label}</span>
+                <span className="text-[8px] font-bold uppercase tracking-tight hidden xs:block">{item.label}</span>
               </Link>
             )
           })}

@@ -29,8 +29,8 @@ export default function AppLayout({
       {/* Scrollable content container */}
       <div className="relative z-10 flex h-full w-full bg-transparent overflow-y-auto no-scrollbar">
         <Sidebar />
-        {/* py-8 ensures equal top and bottom margin (32px) */}
-        <div className="flex flex-col flex-1 sm:pl-28 sm:pr-8 py-8 min-h-full">
+        {/* Adjusted padding left to accommodate wider sidebar (w-64 = 256px + gap) */}
+        <div className="flex flex-col flex-1 sm:pl-72 sm:pr-8 py-8 min-h-full">
           <Header />
           <main className="flex-1">
             {children}
