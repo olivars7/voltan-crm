@@ -107,7 +107,7 @@ void main() {
   vec3 auroraColor = intensity * rampColor;
   
   // Mezclamos con un color base muy oscuro pero no negro absoluto
-  vec3 baseColor = uColorStops[0] * 0.1;
+  vec3 baseColor = uColorStops[0] * 0.2;
   fragColor = vec4(mix(baseColor, auroraColor, auroraAlpha), 1.0);
 }
 `;
@@ -186,7 +186,7 @@ export default function Aurora(props: AuroraProps) {
       const { time = t * 0.01, speed = 1.0 } = propsRef.current;
       if (program) {
         program.uniforms.uTime.value = time * speed * 0.1;
-        program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? 1.0;
+        program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? 1.1;
         program.uniforms.uBlend.value = propsRef.current.blend ?? blend;
         const stops = propsRef.current.colorStops ?? colorStops;
         program.uniforms.uColorStops.value = stops.map((hex: string) => {
