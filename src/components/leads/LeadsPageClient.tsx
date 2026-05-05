@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { PlusCircle, Search, Loader2, Users, Phone, Presentation, Target, ArrowRight, XCircle, ArrowUp, ArrowDown } from 'lucide-react';
+import { PlusCircle, Search, Loader2, Users, Phone, Presentation, Target, ArrowRight, XCircle, ArrowUp, ArrowDown, ChevronRight } from 'lucide-react';
 import { useLeads } from '@/hooks/useLeads';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -235,20 +235,29 @@ export function LeadsPageClient() {
     </>
   );
 
-  const KpiCard = ({ title, value, diff, icon: Icon }: { title: string, value: number, diff: number, icon: any }) => (
-    <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl relative overflow-hidden group">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-3 px-4">
-        <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{title}</CardTitle>
-        <Icon className="h-3.5 w-3.5 text-muted-foreground/40" />
-      </CardHeader>
-      <CardContent className="px-4 pb-3 pt-0">
-        <div className="text-xl font-bold text-white">{value}</div>
-        <div className={cn("text-[9px] font-bold flex items-center mt-0.5", diff >= 0 ? "text-emerald-500" : "text-rose-500")}>
-          {diff >= 0 ? <ArrowUp className="h-2 w-2 mr-0.5" /> : <ArrowDown className="h-2 w-2 mr-0.5" />}
-          {Math.abs(diff)} vs mes anterior
+  const KpiCard = ({ title, value, diff, icon: Icon, isLast = false }: { title: string, value: number, diff: number, icon: any, isLast?: boolean }) => (
+    <div className="flex-1 flex items-center gap-2">
+      <Card className="flex-1 border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-xl transition-all hover:bg-white/5 group relative overflow-hidden h-20">
+        <div className="p-3 flex items-start gap-3 h-full">
+          <div className="p-2 rounded-lg bg-white/5 shrink-0">
+            <Icon className="h-3.5 w-3.5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+          </div>
+          <div className="flex flex-col justify-between h-full py-0.5">
+            <div className="space-y-0.5">
+              <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/40 leading-none">{title}</p>
+              <p className="text-lg font-bold text-white leading-none tracking-tight">{value}</p>
+            </div>
+            <div className={cn("text-[8px] font-bold flex items-center", diff >= 0 ? "text-emerald-500" : "text-rose-500")}>
+              {diff >= 0 ? <ArrowUp className="h-2 w-2 mr-0.5" /> : <ArrowDown className="h-2 w-2 mr-0.5" />}
+              {Math.abs(diff)} <span className="text-muted-foreground/40 font-normal ml-1">este mes</span>
+            </div>
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      </Card>
+      {!isLast && (
+        <ChevronRight className="h-4 w-4 text-white/10 shrink-0" />
+      )}
+    </div>
   );
 
   return (
@@ -263,11 +272,11 @@ export function LeadsPageClient() {
         </Button>
       </PageHeader>
       
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-        <KpiCard title="Nuevos Leads" value={kpiData.current.total} diff={kpiData.diff.total} icon={Users} />
-        <KpiCard title="Contactados" value={kpiData.current.contactados} diff={kpiData.diff.contactados} icon={Phone} />
+      <div className="flex items-center justify-between gap-2 mb-6 w-full">
+        <KpiCard title="Nuevos" value={kpiData.current.total} diff={kpiData.diff.total} icon={Users} />
+        <KpiCard title="Contactos" value={kpiData.current.contactados} diff={kpiData.diff.contactados} icon={Phone} />
         <KpiCard title="Demos" value={kpiData.current.demos} diff={kpiData.diff.demos} icon={Presentation} />
-        <KpiCard title="Cierres" value={kpiData.current.cierres} diff={kpiData.diff.cierres} icon={Target} />
+        <KpiCard title="Cierres" value={kpiData.current.cierres} diff={kpiData.diff.cierres} icon={Target} isLast />
       </div>
 
       {loading ? (
