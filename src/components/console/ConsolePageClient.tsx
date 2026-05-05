@@ -323,7 +323,7 @@ export default function ConsolePageClient() {
             paymentDay
           );
 
-          if (isBefore(paymentDueDate, addMonths(now, 1))) {
+          if (isBefore(paymentDueDate, now)) {
             const existingPayment = pagos.find(
               (p) =>
                 p.clienteId === cl.id &&
@@ -371,9 +371,9 @@ export default function ConsolePageClient() {
       return <CheckCircle className="h-4 w-4 text-status-success" />;
     }
     switch (type) {
-      case 'pago': return <DollarSign className="h-4 w-4 text-muted-foreground/60" />;
-      case 'entrega': return <ClipboardCheck className="h-4 w-4 text-muted-foreground/60" />;
-      case 'llamada': return <CalendarDays className="h-4 w-4 text-muted-foreground/60" />;
+      case 'pago': return <DollarSign className="h-4 w-4 text-primary/80" />;
+      case 'entrega': return <ClipboardCheck className="h-4 w-4 text-primary/80" />;
+      case 'llamada': return <CalendarDays className="h-4 w-4 text-primary/80" />;
       default: return null;
     }
   }
@@ -382,29 +382,29 @@ export default function ConsolePageClient() {
       <div 
         key={`${item.type}-${item.data.id}-${index}`}
         onClick={() => handleItemClick(item)} 
-        className="flex items-start gap-4 cursor-pointer hover:bg-white/5 p-3 rounded-xl transition-all duration-300 border border-transparent hover:border-white/5"
+        className="flex items-start gap-4 cursor-pointer hover:bg-white/10 p-3 rounded-xl transition-all duration-300 border border-transparent hover:border-white/10"
       >
-          <div className="mt-1 p-2 rounded-lg bg-white/5">
+          <div className="mt-1 p-2 rounded-lg bg-white/10 backdrop-blur-xl">
             <TimelineIcon type={item.type} subType={item.subType} />
           </div>
           <div className="flex-1 space-y-1 overflow-hidden">
             <div className="flex flex-wrap items-center justify-between gap-x-2">
-                <p className="text-sm font-medium leading-none truncate pr-2">
+                <p className="text-sm font-semibold leading-none truncate pr-2 text-white">
                     {item.type === 'pago' && `${item.data.concepto}: ${formatCurrency(item.data.monto)}`}
                     {item.type === 'entrega' && `Entrega: ${item.data.nombre}`}
                     {item.type === 'llamada' && `Llamada: ${item.data.nombre}`}
                 </p>
                 {item.subType === 'overdue' && <StatusBadge status="vencido" />}
               </div>
-              <p className="text-xs text-muted-foreground/60">
-                  <span className={item.subType === 'overdue' ? 'text-rose-400 font-medium' : ''}>
+              <p className="text-xs text-zinc-400">
+                  <span className={item.subType === 'overdue' ? 'text-rose-400 font-bold' : ''}>
                     {item.subType === 'completed' 
                       ? `Completado ${formatRelativeTime(item.date)}`
                       : formatDate(item.date, "d MMM, yyyy")
                     }
                   </span>
                   {' • '}
-                  {item.cliente?.nombre}
+                  <span className="text-zinc-300">{item.cliente?.nombre}</span>
               </p>
           </div>
       </div>
@@ -428,88 +428,89 @@ export default function ConsolePageClient() {
             </div>
         ) : (
       <div className="space-y-6">
-        {/* KPI Micro Modules */}
+        {/* KPI Micro Modules - Brighter/Clearer Style */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="border-white/5 bg-zinc-950/40 relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-1 h-full bg-primary/50" />
+            <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-1 h-full bg-primary/60" />
                 <CardHeader className="p-4 pb-0 flex flex-row items-center justify-between">
-                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Entregas Pendientes</CardTitle>
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Entregas Pendientes</CardTitle>
                     <Info className="h-3 w-3 text-muted-foreground/40" />
                 </CardHeader>
                 <CardContent className="p-4 pt-2">
                     <div className="flex flex-col">
                         <div className="flex items-center gap-2">
                             <ClipboardCheck className="h-4 w-4 text-primary" />
-                            <span className="text-xl font-bold">{stats.deliveriesPending}</span>
+                            <span className="text-xl font-bold text-white">{stats.deliveriesPending}</span>
                         </div>
-                        <p className="text-[10px] text-muted-foreground/40 font-medium mt-1">Proyectos actualmente activos</p>
+                        <p className="text-[10px] text-muted-foreground/60 font-medium mt-1">Proyectos actualmente activos</p>
                     </div>
                 </CardContent>
             </Card>
 
-            <Card className="border-white/5 bg-zinc-950/40 relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-1 h-full bg-status-active/50" />
+            <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-1 h-full bg-status-active/60" />
                 <CardHeader className="p-4 pb-0 flex flex-row items-center justify-between">
-                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Proyección Mensual</CardTitle>
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Proyección Mensual</CardTitle>
                     <TrendingUp className="h-3 w-3 text-muted-foreground/40" />
                 </CardHeader>
                 <CardContent className="p-4 pt-2">
                     <div className="flex flex-col">
                         <div className="flex items-center gap-2">
                             <DollarSign className="h-4 w-4 text-status-active" />
-                            <span className="text-xl font-bold">{formatCurrency(stats.estimatedRevenue)}</span>
+                            <span className="text-xl font-bold text-white">{formatCurrency(stats.estimatedRevenue)}</span>
                         </div>
-                        <p className="text-[10px] text-muted-foreground/40 font-medium mt-1">Estimación cobrado + pendiente</p>
+                        <p className="text-[10px] text-muted-foreground/60 font-medium mt-1">Estimación cobrado + pendiente</p>
                     </div>
                 </CardContent>
             </Card>
 
-            <Card className="border-white/5 bg-zinc-950/40 relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-1 h-full bg-status-success/50" />
+            <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-1 h-full bg-status-success/60" />
                 <CardHeader className="p-4 pb-0 flex flex-row items-center justify-between">
-                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Entregas {capitalizedMonthName}</CardTitle>
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Entregas {capitalizedMonthName}</CardTitle>
                     <Target className="h-3 w-3 text-muted-foreground/40" />
                 </CardHeader>
                 <CardContent className="p-4 pt-2">
                     <div className="flex flex-col">
                         <div className="flex items-center gap-2">
                             <CheckCircle className="h-4 w-4 text-status-success" />
-                            <span className="text-xl font-bold">{stats.deliveriesCompleted}</span>
+                            <span className="text-xl font-bold text-white">{stats.deliveriesCompleted}</span>
                         </div>
-                        <p className="text-[10px] text-muted-foreground/40 font-medium mt-1">Proyectos finalizados con éxito</p>
+                        <p className="text-[10px] text-muted-foreground/60 font-medium mt-1">Proyectos finalizados con éxito</p>
                     </div>
                 </CardContent>
             </Card>
 
-            <Card className="border-white/5 bg-zinc-950/40 relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500/50" />
+            <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500/60" />
                 <CardHeader className="p-4 pb-0 flex flex-row items-center justify-between">
-                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Ingresos Reales</CardTitle>
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Ingresos Reales</CardTitle>
                     <HandCoins className="h-3 w-3 text-muted-foreground/40" />
                 </CardHeader>
                 <CardContent className="p-4 pt-2">
                     <div className="flex flex-col">
                         <div className="flex items-center gap-2">
                             <DollarSign className="h-4 w-4 text-emerald-400" />
-                            <span className="text-xl font-bold">{formatCurrency(stats.currentRevenue)}</span>
+                            <span className="text-xl font-bold text-white">{formatCurrency(stats.currentRevenue)}</span>
                         </div>
-                        <p className="text-[10px] text-muted-foreground/40 font-medium mt-1">Dinero efectivamente en cuenta</p>
+                        <p className="text-[10px] text-muted-foreground/60 font-medium mt-1">Dinero efectivamente en cuenta</p>
                     </div>
                 </CardContent>
             </Card>
         </div>
 
+        {/* Console Lists - Brighter/Clearer Style */}
         <div className="grid gap-6 md:grid-cols-2">
-            <Card className="border-white/5 bg-zinc-950/40">
+            <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">
                 <CardHeader>
-                <CardTitle>Eventos Próximos y Vencidos</CardTitle>
+                <CardTitle className="text-white font-bold">Eventos Próximos y Vencidos</CardTitle>
                 </CardHeader>
                 <CardContent>
                 <ScrollArea className="h-[55vh] custom-scrollbar">
                     <div className="space-y-2 pr-4">
                         {now && sortedUpcoming.slice(0, visibleUpcoming).map(renderTimelineItem)}
                         {(!now || (now && sortedUpcoming.length === 0)) && (
-                            <p className="text-sm text-muted-foreground/40 text-center py-20">
+                            <p className="text-sm text-zinc-500 text-center py-20">
                                 {now ? 'No hay eventos próximos.' : 'Cargando eventos...'}
                             </p>
                         )}
@@ -517,21 +518,21 @@ export default function ConsolePageClient() {
                 </ScrollArea>
                 </CardContent>
                 {visibleUpcoming < sortedUpcoming.length && (
-                <CardFooter className="justify-center border-t border-white/5 pt-4">
-                    <Button variant="ghost" size="sm" onClick={() => setVisibleUpcoming(v => v + 40)}>Cargar más</Button>
+                <CardFooter className="justify-center border-t border-white/10 pt-4">
+                    <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white" onClick={() => setVisibleUpcoming(v => v + 40)}>Cargar más</Button>
                 </CardFooter>
                 )}
             </Card>
-            <Card className="border-white/5 bg-zinc-950/40">
+            <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">
                 <CardHeader>
-                <CardTitle>Registro de Actividad</CardTitle>
+                <CardTitle className="text-white font-bold">Registro de Actividad</CardTitle>
                 </CardHeader>
                 <CardContent>
                 <ScrollArea className="h-[55vh] custom-scrollbar">
                     <div className="space-y-2 pr-4">
                         {now && sortedCompleted.slice(0, visibleCompleted).map(renderTimelineItem)}
                         {(!now || (now && sortedCompleted.length === 0)) && (
-                            <p className="text-sm text-muted-foreground/40 text-center py-20">
+                            <p className="text-sm text-zinc-500 text-center py-20">
                                 {now ? 'No hay eventos completados.' : 'Cargando eventos...'}
                             </p>
                         )}
@@ -539,8 +540,8 @@ export default function ConsolePageClient() {
                 </ScrollArea>
                 </CardContent>
                 {visibleCompleted < sortedCompleted.length && (
-                <CardFooter className="justify-center border-t border-white/5 pt-4">
-                    <Button variant="ghost" size="sm" onClick={() => setVisibleCompleted(v => v + 40)}>Cargar más</Button>
+                <CardFooter className="justify-center border-t border-white/10 pt-4">
+                    <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white" onClick={() => setVisibleCompleted(v => v + 40)}>Cargar más</Button>
                 </CardFooter>
                 )}
             </Card>
