@@ -168,7 +168,7 @@ export function AgendaPageClient() {
         title="Agenda"
         description="Gestiona tus llamadas agendadas."
       >
-        <Button onClick={openNewDialog} className="bg-white/10 border-white/20 hover:bg-white/20 backdrop-blur-xl">
+        <Button onClick={openNewDialog} className="bg-white/80 backdrop-blur-xl border-white/10 hover:bg-white/90 text-zinc-950">
           <PlusCircle className="mr-2 h-4 w-4" />
           Agendar Llamada
         </Button>
@@ -185,12 +185,12 @@ export function AgendaPageClient() {
                 <TabsTrigger value="proximas" className="data-[state=active]:bg-white/15 data-[state=active]:text-white px-5 py-0 h-full text-xs font-bold transition-all hover:bg-white/10">Próximas ({llamadasProximas.length})</TabsTrigger>
                 <TabsTrigger value="pasadas" className="data-[state=active]:bg-white/15 data-[state=active]:text-white px-5 py-0 h-full text-xs font-bold transition-all hover:bg-white/10">Pasadas ({llamadasPasadas.length})</TabsTrigger>
             </TabsList>
-            <div className="relative w-full md:w-72">
+            <div className="relative w-full md:w-72 h-10">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60 z-10" />
                 <Input
                     type="search"
                     placeholder="Buscar en la agenda..."
-                    className="w-full pl-10 bg-zinc-950/20 border-white/10 text-white text-xs h-10 backdrop-blur-3xl"
+                    className="w-full h-full pl-10 bg-zinc-950/20 border-white/10 text-white text-xs backdrop-blur-3xl"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />

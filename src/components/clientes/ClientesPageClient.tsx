@@ -157,7 +157,7 @@ export function ClientesPageClient() {
         title="Clientes"
         description="Gestiona tus clientes activos e inactivos."
       >
-        <Button onClick={openNewDialog}>
+        <Button onClick={openNewDialog} className="bg-white/80 backdrop-blur-xl border-white/10 hover:bg-white/90 text-zinc-950">
           <PlusCircle className="mr-2 h-4 w-4" />
           Añadir Cliente
         </Button>

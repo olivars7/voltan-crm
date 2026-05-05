@@ -266,7 +266,7 @@ export function LeadsPageClient() {
         title="Leads"
         description="Gestiona tus clientes potenciales."
       >
-        <Button onClick={openNewDialog} className="bg-white/10 border-white/20 hover:bg-white/20 backdrop-blur-xl">
+        <Button onClick={openNewDialog} className="bg-white/80 backdrop-blur-xl border-white/10 hover:bg-white/90 text-zinc-950">
           <PlusCircle className="mr-2 h-4 w-4" />
           Añadir Lead
         </Button>
