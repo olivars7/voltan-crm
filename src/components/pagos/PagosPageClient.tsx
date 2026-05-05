@@ -275,21 +275,21 @@ export function PagosPageClient() {
             <Table>
             <TableHeader>
                 <TableRow className="border-white/10 hover:bg-transparent">
-                <TableHead className="text-white/70 text-[10px] uppercase font-bold tracking-wider">Cliente</TableHead>
-                <TableHead className="text-white/70 text-[10px] uppercase font-bold tracking-wider">Concepto</TableHead>
-                <TableHead className="text-right text-white/70 text-[10px] uppercase font-bold tracking-wider">Monto</TableHead>
-                <TableHead className="text-white/70 text-[10px] uppercase font-bold tracking-wider">{isPending ? 'Fecha Límite' : 'Fecha de Pago'}</TableHead>
-                <TableHead className="text-white/70 text-[10px] uppercase font-bold tracking-wider">Estado</TableHead>
+                <TableHead className="text-white/80 text-[10px] uppercase font-bold tracking-wider">Cliente</TableHead>
+                <TableHead className="text-white/80 text-[10px] uppercase font-bold tracking-wider">Concepto</TableHead>
+                <TableHead className="text-right text-white/80 text-[10px] uppercase font-bold tracking-wider">Monto</TableHead>
+                <TableHead className="text-white/80 text-[10px] uppercase font-bold tracking-wider">{isPending ? 'Fecha Límite' : 'Fecha de Pago'}</TableHead>
+                <TableHead className="text-white/80 text-[10px] uppercase font-bold tracking-wider">Estado</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
                 {data.slice(0, visibleCount).map((pago) => (
                     <TableRow key={pago.id} onClick={() => handleOpenPagoDetail(pago)} className="cursor-pointer border-white/5 hover:bg-white/10 group">
                         <TableCell className="font-medium text-xs text-white">{getClienteById(pago.clienteId)?.nombre}</TableCell>
-                        <TableCell className="text-zinc-300 text-xs">{pago.concepto}</TableCell>
+                        <TableCell className="text-zinc-200 text-xs">{pago.concepto}</TableCell>
                         <TableCell className="text-right font-bold text-xs text-white">{formatCurrency(pago.monto)}</TableCell>
                         <TableCell className="text-xs">
-                        <span className={tableType === 'vencidos' ? 'text-status-danger font-bold' : 'text-zinc-400'}>
+                        <span className={tableType === 'vencidos' ? 'text-status-danger font-bold' : 'text-zinc-300'}>
                             {formatDate(isPending ? pago.fechaLimite : pago.fechaPago!)}
                         </span>
                         </TableCell>
@@ -321,13 +321,13 @@ export function PagosPageClient() {
             </div>
         ) : (
       <Tabs defaultValue="proximos">
-        <TabsList className="bg-white/5 border border-white/10 p-1 mb-2 h-auto backdrop-blur-2xl">
-          <TabsTrigger value="proximos" className="data-[state=active]:bg-white/20 data-[state=active]:text-white px-4 py-2 text-xs font-bold transition-all">Próximos ({pagosProximos.length})</TabsTrigger>
-          <TabsTrigger value="pendientes" className="data-[state=active]:bg-white/20 data-[state=active]:text-white px-4 py-2 text-xs font-bold transition-all">Vencidos ({pagosVencidos.length})</TabsTrigger>
-          <TabsTrigger value="historial" className="data-[state=active]:bg-white/20 data-[state=active]:text-white px-4 py-2 text-xs font-bold transition-all">Historial ({historialPagos.length})</TabsTrigger>
+        <TabsList className="bg-zinc-950/20 border border-white/10 p-1 mb-1.5 h-auto backdrop-blur-3xl">
+          <TabsTrigger value="proximos" className="data-[state=active]:bg-white/15 data-[state=active]:text-white px-5 py-2 text-xs font-bold transition-all hover:bg-white/10">Próximos ({pagosProximos.length})</TabsTrigger>
+          <TabsTrigger value="pendientes" className="data-[state=active]:bg-white/15 data-[state=active]:text-white px-5 py-2 text-xs font-bold transition-all hover:bg-white/10">Vencidos ({pagosVencidos.length})</TabsTrigger>
+          <TabsTrigger value="historial" className="data-[state=active]:bg-white/15 data-[state=active]:text-white px-5 py-2 text-xs font-bold transition-all hover:bg-white/10">Historial ({historialPagos.length})</TabsTrigger>
         </TabsList>
-        <TabsContent value="proximos">
-            <Card className="border-white/10 bg-white/[0.08] backdrop-blur-3xl shadow-2xl">
+        <TabsContent value="proximos" className="mt-0">
+            <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">
                 <CardHeader className="pb-4">
                     <CardTitle className="text-lg text-white">Pagos Próximos</CardTitle>
                     <CardDescription className="text-zinc-400">Pagos programados y recurrentes que aún no han vencido.</CardDescription>
@@ -342,8 +342,8 @@ export function PagosPageClient() {
                 )}
             </Card>
         </TabsContent>
-        <TabsContent value="pendientes">
-            <Card className="border-white/10 bg-white/[0.08] backdrop-blur-3xl shadow-2xl">
+        <TabsContent value="pendientes" className="mt-0">
+            <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">
                 <CardHeader className="pb-4">
                     <CardTitle className="text-lg text-white">Pagos Vencidos</CardTitle>
                     <CardDescription className="text-zinc-400">Pagos que no se han cubierto y su fecha límite ya pasó.</CardDescription>
@@ -358,8 +358,8 @@ export function PagosPageClient() {
                 )}
             </Card>
         </TabsContent>
-        <TabsContent value="historial">
-            <Card className="border-white/10 bg-white/[0.08] backdrop-blur-3xl shadow-2xl">
+        <TabsContent value="historial" className="mt-0">
+            <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">
                 <CardHeader className="pb-4">
                     <CardTitle className="text-lg text-white">Historial de Pagos</CardTitle>
                     <CardDescription className="text-zinc-400">Un registro de todos los pagos realizados.</CardDescription>
