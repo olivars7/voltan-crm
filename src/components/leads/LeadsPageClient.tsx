@@ -237,7 +237,7 @@ export function LeadsPageClient() {
 
   const KpiCard = ({ title, value, diff, icon: Icon, isLast = false }: { title: string, value: number, diff: number, icon: any, isLast?: boolean }) => (
     <div className="flex-1 flex items-center gap-2">
-      <Card className="flex-1 border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-xl transition-all hover:bg-white/5 group relative overflow-hidden h-20">
+      <Card className="flex-1 border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-xl transition-all hover:bg-white/[0.03] group relative overflow-hidden h-20">
         <div className="p-3 flex items-start gap-3 h-full">
           <div className="p-2 rounded-lg bg-white/5 shrink-0">
             <Icon className="h-3.5 w-3.5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
