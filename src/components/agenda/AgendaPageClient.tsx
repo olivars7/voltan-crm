@@ -181,16 +181,16 @@ export function AgendaPageClient() {
       ) : (
       <Tabs defaultValue="proximas">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-2">
-            <TabsList className="bg-zinc-950/20 border border-white/10 p-1 h-auto backdrop-blur-3xl">
-                <TabsTrigger value="proximas" className="data-[state=active]:bg-white/15 data-[state=active]:text-white px-5 py-2 text-xs font-bold transition-all hover:bg-white/10">Próximas ({llamadasProximas.length})</TabsTrigger>
-                <TabsTrigger value="pasadas" className="data-[state=active]:bg-white/15 data-[state=active]:text-white px-5 py-2 text-xs font-bold transition-all hover:bg-white/10">Pasadas ({llamadasPasadas.length})</TabsTrigger>
+            <TabsList className="bg-zinc-950/20 border border-white/10 p-1 h-10 backdrop-blur-3xl shrink-0">
+                <TabsTrigger value="proximas" className="data-[state=active]:bg-white/15 data-[state=active]:text-white px-5 py-0 h-full text-xs font-bold transition-all hover:bg-white/10">Próximas ({llamadasProximas.length})</TabsTrigger>
+                <TabsTrigger value="pasadas" className="data-[state=active]:bg-white/15 data-[state=active]:text-white px-5 py-0 h-full text-xs font-bold transition-all hover:bg-white/10">Pasadas ({llamadasPasadas.length})</TabsTrigger>
             </TabsList>
             <div className="relative w-full md:w-72">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground/60" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60 z-10" />
                 <Input
                     type="search"
                     placeholder="Buscar en la agenda..."
-                    className="w-full pl-8 bg-zinc-950/20 border-white/10 text-white text-xs h-9 backdrop-blur-3xl"
+                    className="w-full pl-10 bg-zinc-950/20 border-white/10 text-white text-xs h-10 backdrop-blur-3xl"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
