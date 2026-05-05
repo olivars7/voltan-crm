@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { PlusCircle, Search, Loader2, Users, Phone, Presentation, Target, ArrowRight, XCircle } from 'lucide-react';
+import { PlusCircle, Search, Loader2, Users, Phone, Presentation, Target, ArrowRight, XCircle, ArrowUp, ArrowDown } from 'lucide-react';
 import { useLeads } from '@/hooks/useLeads';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,8 @@ import { LeadDetail } from './LeadDetail';
 import type { Lead, LeadEstado } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { serviceDisplayNames } from './ServiciosCheckboxes';
+import { cn } from '@/lib/utils';
+import { startOfMonth, endOfMonth, subMonths, isWithinInterval, parseISO } from 'date-fns';
 
 export function LeadsPageClient() {
   const { leads, addLead, updateLead, deleteLead, loading } = useLeads();
@@ -25,9 +27,52 @@ export function LeadsPageClient() {
   const [selectedLead, setSelectedLead] = React.useState<Lead | undefined>(undefined);
   
   const { toast } = useToast();
-  
   const [searchTerm, setSearchTerm] = React.useState('');
-  
+
+  const now = new Date();
+  const currentMonth = { start: startOfMonth(now), end: endOfMonth(now) };
+  const lastMonth = { start: startOfMonth(subMonths(now, 1)), end: endOfMonth(subMonths(now, 1)) };
+
+  const getKpiStats = () => {
+    const calculateStats = (interval: { start: Date; end: Date }) => {
+      const filteredLeads = leads.filter(l => isWithinInterval(parseISO(l.fechaCreacion), interval));
+      const reachedContactado = leads.filter(l => 
+        l.historial?.some(h => ['contactado', 'demo-agendada', 'convertido'].includes(h.estado) && 
+        isWithinInterval(parseISO(h.fecha), interval))
+      ).length;
+      const reachedDemo = leads.filter(l => 
+        l.historial?.some(h => ['demo-agendada', 'convertido'].includes(h.estado) && 
+        isWithinInterval(parseISO(h.fecha), interval))
+      ).length;
+      const reachedCierre = leads.filter(l => 
+        l.historial?.some(h => h.estado === 'convertido' && 
+        isWithinInterval(parseISO(h.fecha), interval))
+      ).length;
+
+      return {
+        total: filteredLeads.length,
+        contactados: reachedContactado,
+        demos: reachedDemo,
+        cierres: reachedCierre
+      };
+    };
+
+    const current = calculateStats(currentMonth);
+    const prev = calculateStats(lastMonth);
+
+    return {
+      current,
+      diff: {
+        total: current.total - prev.total,
+        contactados: current.contactados - prev.contactados,
+        demos: current.demos - prev.demos,
+        cierres: current.cierres - prev.cierres
+      }
+    };
+  };
+
+  const kpiData = getKpiStats();
+
   const handleAddSubmit = async (values: any) => {
     await addLead(values);
     toast({ title: "Lead añadido", description: "El nuevo lead ha sido guardado." });
@@ -133,14 +178,6 @@ export function LeadsPageClient() {
     'no-interesado': 'No Interesado',
   }
 
-  // KPIs now include no-interesado leads that reached those stages in their history
-  const kpi = {
-    total: leads.length,
-    contactados: leads.filter(l => l.historial?.some(h => ['contactado', 'demo-agendada', 'convertido'].includes(h.estado))).length,
-    demos: leads.filter(l => l.historial?.some(h => ['demo-agendada', 'convertido'].includes(h.estado))).length,
-    cierres: leads.filter(l => l.estado === 'convertido').length,
-  }
-
   const LeadsTable = ({ data }: { data: Lead[] }) => (
     <>
       {data.length === 0 && !loading ? (
@@ -198,6 +235,22 @@ export function LeadsPageClient() {
     </>
   );
 
+  const KpiCard = ({ title, value, diff, icon: Icon }: { title: string, value: number, diff: number, icon: any }) => (
+    <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl relative overflow-hidden group">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-3 px-4">
+        <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{title}</CardTitle>
+        <Icon className="h-3.5 w-3.5 text-muted-foreground/40" />
+      </CardHeader>
+      <CardContent className="px-4 pb-3 pt-0">
+        <div className="text-xl font-bold text-white">{value}</div>
+        <div className={cn("text-[9px] font-bold flex items-center mt-0.5", diff >= 0 ? "text-emerald-500" : "text-rose-500")}>
+          {diff >= 0 ? <ArrowUp className="h-2 w-2 mr-0.5" /> : <ArrowDown className="h-2 w-2 mr-0.5" />}
+          {Math.abs(diff)} vs mes anterior
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="pb-20">
       <PageHeader
@@ -211,42 +264,10 @@ export function LeadsPageClient() {
       </PageHeader>
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-        <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Total Leads</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground/40" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">{kpi.total}</div>
-          </CardContent>
-        </Card>
-        <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Contactados</CardTitle>
-            <Phone className="h-4 w-4 text-muted-foreground/40" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">{kpi.contactados}</div>
-          </CardContent>
-        </Card>
-        <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Demos</CardTitle>
-            <Presentation className="h-4 w-4 text-muted-foreground/40" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">{kpi.demos}</div>
-          </CardContent>
-        </Card>
-        <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Cierres</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground/40" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">{kpi.cierres}</div>
-          </CardContent>
-        </Card>
+        <KpiCard title="Nuevos Leads" value={kpiData.current.total} diff={kpiData.diff.total} icon={Users} />
+        <KpiCard title="Contactados" value={kpiData.current.contactados} diff={kpiData.diff.contactados} icon={Phone} />
+        <KpiCard title="Demos" value={kpiData.current.demos} diff={kpiData.diff.demos} icon={Presentation} />
+        <KpiCard title="Cierres" value={kpiData.current.cierres} diff={kpiData.diff.cierres} icon={Target} />
       </div>
 
 
