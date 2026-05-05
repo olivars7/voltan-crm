@@ -40,14 +40,12 @@ export function AgendaPageClient() {
   const handleEditSubmit = async (values: any) => {
     if(selectedLlamada) {
         if (isRescheduling) {
-            // Crear una NUEVA llamada heredando los datos pero sin tocar la original
             await addLlamada(values);
             toast({ 
                 title: "Llamada reagendada", 
                 description: "Se ha creado una nueva cita a partir de los datos heredados." 
             });
         } else {
-            // Actualizar la llamada existente
             const updatedLlamada = { ...selectedLlamada, ...values };
             await updateLlamada(updatedLlamada);
             toast({ title: "Llamada actualizada", description: "La llamada ha sido actualizada." });
@@ -76,7 +74,6 @@ export function AgendaPageClient() {
     const updatedLlamada = { 
       ...llamada, 
       estado: status,
-      // Actualizamos la fecha al momento real de la acción si se marca como realizada
       fecha: status === 'realizada' ? now : llamada.fecha 
     };
     await updateLlamada(updatedLlamada);
@@ -137,25 +134,25 @@ export function AgendaPageClient() {
   const CallsTable = ({ calls, visibleCount, type }: { calls: LlamadaAgendada[], visibleCount: number, type: 'proximas' | 'pasadas' }) => (
     <>
       {calls.length === 0 && !loading ? (
-        <p className="text-center text-muted-foreground/40 py-8">No hay llamadas {type}.</p>
+        <p className="text-center text-muted-foreground/40 py-8 text-sm font-medium">No hay llamadas {type}.</p>
       ) : (
         <Table>
           <TableHeader>
-            <TableRow className="border-white/5 hover:bg-transparent">
-              <TableHead className="text-muted-foreground/60">Cliente/Interesado</TableHead>
-              <TableHead className="text-muted-foreground/60">Número</TableHead>
-              <TableHead className="text-muted-foreground/60">Fecha y Hora</TableHead>
-              <TableHead className="text-muted-foreground/60">Medio</TableHead>
-              <TableHead className="text-muted-foreground/60">Estado</TableHead>
+            <TableRow className="border-white/10 hover:bg-transparent">
+              <TableHead className="text-white/80 text-[10px] uppercase font-bold tracking-wider">Cliente/Interesado</TableHead>
+              <TableHead className="text-white/80 text-[10px] uppercase font-bold tracking-wider">Número</TableHead>
+              <TableHead className="text-white/80 text-[10px] uppercase font-bold tracking-wider">Fecha y Hora</TableHead>
+              <TableHead className="text-white/80 text-[10px] uppercase font-bold tracking-wider">Medio</TableHead>
+              <TableHead className="text-white/80 text-[10px] uppercase font-bold tracking-wider">Estado</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {calls.slice(0, visibleCount).map((llamada) => (
-              <TableRow key={llamada.id} onClick={() => openDetailDialog(llamada)} className="cursor-pointer border-white/5 hover:bg-white/5">
-                <TableCell className="font-medium text-white">{llamada.nombre}</TableCell>
-                <TableCell className="text-muted-foreground/80">{llamada.telefono}</TableCell>
-                <TableCell className="text-muted-foreground/80">{formatDate(llamada.fecha, "d MMM, yyyy h:mm a")}</TableCell>
-                <TableCell className="capitalize text-muted-foreground/80">{llamada.medio.replace('-', ' ')}</TableCell>
+              <TableRow key={llamada.id} onClick={() => openDetailDialog(llamada)} className="cursor-pointer border-white/5 hover:bg-white/10 group">
+                <TableCell className="font-medium text-xs text-white">{llamada.nombre}</TableCell>
+                <TableCell className="text-zinc-300 text-xs">{llamada.telefono}</TableCell>
+                <TableCell className="text-zinc-300 text-xs">{formatDate(llamada.fecha, "d MMM, yyyy h:mm a")}</TableCell>
+                <TableCell className="capitalize text-zinc-300 text-xs">{llamada.medio.replace('-', ' ')}</TableCell>
                 <TableCell><StatusBadge status={getEffectiveStatus(llamada)} /></TableCell>
               </TableRow>
             ))}
@@ -171,24 +168,11 @@ export function AgendaPageClient() {
         title="Agenda"
         description="Gestiona tus llamadas agendadas."
       >
-        <Button onClick={openNewDialog} className="text-white">
+        <Button onClick={openNewDialog} className="bg-white/10 border-white/20 hover:bg-white/20 backdrop-blur-xl">
           <PlusCircle className="mr-2 h-4 w-4" />
           Agendar Llamada
         </Button>
       </PageHeader>
-      
-       <div className="pb-4">
-        <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground/60" />
-            <Input
-                type="search"
-                placeholder="Buscar por nombre, número o estado..."
-                className="w-full pl-8 md:w-1/2 lg:w-1/3 bg-white/5 border-white/10 text-white"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-            />
-        </div>
-      </div>
       
       {loading ? (
         <div className="flex items-center justify-center h-64">
@@ -196,36 +180,49 @@ export function AgendaPageClient() {
         </div>
       ) : (
       <Tabs defaultValue="proximas">
-        <TabsList className="bg-white/5 border border-white/10">
-            <TabsTrigger value="proximas" className="data-[state=active]:bg-white/10 text-zinc-400 data-[state=active]:text-white">Próximas</TabsTrigger>
-            <TabsTrigger value="pasadas" className="data-[state=active]:bg-white/10 text-zinc-400 data-[state=active]:text-white">Pasadas</TabsTrigger>
-        </TabsList>
-        <TabsContent value="proximas">
-            <Card className="border-white/5 bg-zinc-950/40">
-                <CardHeader>
-                  <CardTitle className="text-white">Llamadas Próximas</CardTitle>
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-2">
+            <TabsList className="bg-zinc-950/20 border border-white/10 p-1 h-auto backdrop-blur-3xl">
+                <TabsTrigger value="proximas" className="data-[state=active]:bg-white/15 data-[state=active]:text-white px-5 py-2 text-xs font-bold transition-all hover:bg-white/10">Próximas ({llamadasProximas.length})</TabsTrigger>
+                <TabsTrigger value="pasadas" className="data-[state=active]:bg-white/15 data-[state=active]:text-white px-5 py-2 text-xs font-bold transition-all hover:bg-white/10">Pasadas ({llamadasPasadas.length})</TabsTrigger>
+            </TabsList>
+            <div className="relative w-full md:w-72">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground/60" />
+                <Input
+                    type="search"
+                    placeholder="Buscar en la agenda..."
+                    className="w-full pl-8 bg-zinc-950/20 border-white/10 text-white text-xs h-9 backdrop-blur-3xl"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+        </div>
+
+        <TabsContent value="proximas" className="mt-0">
+            <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg text-white">Llamadas Próximas</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <CallsTable calls={llamadasProximas} visibleCount={visibleUpcoming} type="proximas" />
                 </CardContent>
                 {visibleUpcoming < llamadasProximas.length && (
-                    <CardFooter className="justify-center border-t border-white/5 pt-4">
-                        <Button variant="ghost" size="sm" onClick={() => setVisibleUpcoming(v => v + 40)} className="text-zinc-400">Cargar más</Button>
+                    <CardFooter className="justify-center border-t border-white/10 pt-4">
+                        <Button variant="ghost" size="sm" onClick={() => setVisibleUpcoming(v => v + 40)} className="text-xs text-zinc-500 hover:text-white">Cargar más</Button>
                     </CardFooter>
                 )}
             </Card>
         </TabsContent>
-        <TabsContent value="pasadas">
-            <Card className="border-white/5 bg-zinc-950/40">
-                <CardHeader>
-                  <CardTitle className="text-white">Llamadas Pasadas</CardTitle>
+        <TabsContent value="pasadas" className="mt-0">
+            <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg text-white">Llamadas Pasadas</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <CallsTable calls={llamadasPasadas} visibleCount={visiblePast} type="pasadas" />
                 </CardContent>
                  {visiblePast < llamadasPasadas.length && (
-                    <CardFooter className="justify-center border-t border-white/5 pt-4">
-                        <Button variant="ghost" size="sm" onClick={() => setVisiblePast(v => v + 40)} className="text-zinc-400">Cargar más</Button>
+                    <CardFooter className="justify-center border-t border-white/10 pt-4">
+                        <Button variant="ghost" size="sm" onClick={() => setVisiblePast(v => v + 40)} className="text-xs text-zinc-500 hover:text-white">Cargar más</Button>
                     </CardFooter>
                 )}
             </Card>
