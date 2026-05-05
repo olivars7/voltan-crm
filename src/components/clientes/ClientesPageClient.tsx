@@ -163,23 +163,21 @@ export function ClientesPageClient() {
         </Button>
       </PageHeader>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Clientes</CardTitle>
+      <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between pb-4 space-y-0">
+          <CardTitle className="text-lg text-white">Lista de Clientes</CardTitle>
+          <div className="relative w-full max-w-[280px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60 z-10" />
+              <Input
+                  type="search"
+                  placeholder="Buscar clientes..."
+                  className="w-full h-9 pl-9 bg-white/5 border-white/10 text-white text-xs backdrop-blur-xl focus:bg-white/10 transition-all placeholder:text-muted-foreground/40"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+              />
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="pb-4">
-            <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground/60" />
-                <Input
-                    type="search"
-                    placeholder="Buscar por nombre, empresa, teléfono, estado o mes..."
-                    className="w-full pl-8 md:w-1/2 lg:w-1/3 bg-background/50 border-border"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-            </div>
-          </div>
           {isLoading ? (
             <div className="flex items-center justify-center h-64">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -187,32 +185,32 @@ export function ClientesPageClient() {
           ) : (
           <Table>
             <TableHeader>
-              <TableRow className="border-border/50 hover:bg-transparent">
-                <TableHead className="text-muted-foreground">Nombre</TableHead>
-                <TableHead className="text-muted-foreground">Empresa</TableHead>
-                <TableHead className="text-muted-foreground">Teléfono</TableHead>
-                <TableHead className="text-muted-foreground">Fecha de Inicio</TableHead>
-                <TableHead className="text-muted-foreground">Estado</TableHead>
+              <TableRow className="border-white/5 hover:bg-transparent">
+                <TableHead className="text-white/80 text-[10px] uppercase font-bold tracking-wider">Nombre</TableHead>
+                <TableHead className="text-white/80 text-[10px] uppercase font-bold tracking-wider">Empresa</TableHead>
+                <TableHead className="text-white/80 text-[10px] uppercase font-bold tracking-wider">Teléfono</TableHead>
+                <TableHead className="text-white/80 text-[10px] uppercase font-bold tracking-wider">Fecha de Inicio</TableHead>
+                <TableHead className="text-white/80 text-[10px] uppercase font-bold tracking-wider">Estado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredClientes.length === 0 && !isLoading ? (
-                <TableRow className="hover:bg-transparent border-border/50">
+                <TableRow className="hover:bg-transparent border-white/5">
                     <TableCell colSpan={5} className="h-24 text-center text-muted-foreground/40">
                         No se encontraron clientes.
                     </TableCell>
                 </TableRow>
               ) : (
                 filteredClientes.slice(0, visibleCount).map((cliente) => (
-                  <TableRow key={cliente.id} onClick={() => openDetailDialog(cliente)} className="cursor-pointer border-border/50 hover:bg-accent/50">
-                    <TableCell className="font-medium">
+                  <TableRow key={cliente.id} onClick={() => openDetailDialog(cliente)} className="cursor-pointer border-white/5 hover:bg-white/5">
+                    <TableCell className="font-medium text-xs text-white">
                       {cliente.nombre}
                     </TableCell>
-                    <TableCell className="text-muted-foreground/80">{cliente.empresa}</TableCell>
-                    <TableCell className="text-muted-foreground/80">
+                    <TableCell className="text-zinc-300 text-xs">{cliente.empresa}</TableCell>
+                    <TableCell className="text-zinc-300 text-xs">
                       {cliente.telefono}
                     </TableCell>
-                    <TableCell className="text-muted-foreground/80">{formatDate(cliente.fechaInicio)}</TableCell>
+                    <TableCell className="text-zinc-300 text-xs">{formatDate(cliente.fechaInicio)}</TableCell>
                     <TableCell>
                       <StatusBadge status={cliente.estado} />
                     </TableCell>
@@ -224,8 +222,8 @@ export function ClientesPageClient() {
           )}
         </CardContent>
         {visibleCount < filteredClientes.length && (
-          <CardFooter className="justify-center border-t border-border/50 pt-4">
-            <Button variant="ghost" size="sm" onClick={() => setVisibleCount(v => v + 40)}>Cargar más</Button>
+          <CardFooter className="justify-center border-t border-white/5 pt-4">
+            <Button variant="ghost" size="sm" onClick={() => setVisibleCount(v => v + 40)} className="text-xs text-zinc-500 hover:text-white">Cargar más</Button>
           </CardFooter>
         )}
       </Card>
