@@ -186,28 +186,28 @@ export function LeadsPageClient() {
         <Table>
           <TableHeader>
             <TableRow className="border-white/5 hover:bg-transparent">
-              <TableHead className="text-muted-foreground/60">Nombre</TableHead>
-              <TableHead className="text-muted-foreground/60">Contacto</TableHead>
-              <TableHead className="text-muted-foreground/60">Nicho</TableHead>
-              <TableHead className="text-muted-foreground/60">Servicios de Interés</TableHead>
-              <TableHead className="text-right text-muted-foreground/60">Acciones</TableHead>
+              <TableHead className="text-muted-foreground/60 text-[10px] uppercase font-bold tracking-wider">Nombre</TableHead>
+              <TableHead className="text-muted-foreground/60 text-[10px] uppercase font-bold tracking-wider">Contacto</TableHead>
+              <TableHead className="text-muted-foreground/60 text-[10px] uppercase font-bold tracking-wider">Nicho</TableHead>
+              <TableHead className="text-muted-foreground/60 text-[10px] uppercase font-bold tracking-wider">Servicios de Interés</TableHead>
+              <TableHead className="text-right text-muted-foreground/60 text-[10px] uppercase font-bold tracking-wider">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.map((lead) => (
               <TableRow key={lead.id} onClick={() => openDetailDialog(lead)} className="cursor-pointer group border-white/5 hover:bg-white/5">
-                <TableCell className="font-medium">{lead.nombre}</TableCell>
-                <TableCell className="text-muted-foreground/80">{lead.telefono}</TableCell>
-                <TableCell className="text-muted-foreground/80">{lead.nicho}</TableCell>
-                <TableCell className="text-muted-foreground/80">
+                <TableCell className="font-medium text-xs text-white">{lead.nombre}</TableCell>
+                <TableCell className="text-zinc-300 text-xs">{lead.telefono}</TableCell>
+                <TableCell className="text-zinc-300 text-xs">{lead.nicho}</TableCell>
+                <TableCell className="text-zinc-300 text-xs">
                   {lead.servicios.map(s => serviceDisplayNames[s]).join(', ')}
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2 text-white">
+                  <div className="flex justify-end gap-2">
                     {lead.estado !== 'convertido' && lead.estado !== 'no-interesado' && (
                         <Button 
                             size="sm" 
-                            className="bg-status-success hover:bg-status-success/90 h-8"
+                            className="bg-status-success hover:bg-status-success/90 h-7 text-[10px] px-2"
                             onClick={(e) => handleAvanzar(e, lead)}
                         >
                             <ArrowRight className="w-3 h-3 mr-1" />
@@ -218,7 +218,7 @@ export function LeadsPageClient() {
                         <Button 
                             size="sm" 
                             variant="secondary"
-                            className="h-8 bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-white border-white/10"
+                            className="h-7 bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-white border-white/10 text-[10px] px-2"
                             onClick={(e) => handleNoInteresado(e, lead)}
                         >
                             <XCircle className="w-3 h-3 mr-1" />
@@ -257,7 +257,7 @@ export function LeadsPageClient() {
         title="Leads"
         description="Gestiona tus clientes potenciales."
       >
-        <Button onClick={openNewDialog}>
+        <Button onClick={openNewDialog} className="bg-white/10 border-white/20 hover:bg-white/20 backdrop-blur-xl">
           <PlusCircle className="mr-2 h-4 w-4" />
           Añadir Lead
         </Button>
@@ -270,38 +270,34 @@ export function LeadsPageClient() {
         <KpiCard title="Cierres" value={kpiData.current.cierres} diff={kpiData.diff.cierres} icon={Target} />
       </div>
 
-
-       <div className="pb-4">
-        <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground/60" />
-            <Input
-                type="search"
-                placeholder="Buscar por nombre, número o nicho..."
-                className="w-full pl-8 md:w-1/2 lg:w-1/3 bg-white/5 border-white/10 text-white"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-            />
-        </div>
-      </div>
-      
       {loading ? (
         <div className="flex items-center justify-center h-64">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : (
       <Tabs defaultValue="por-contactar">
-        <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5 bg-white/5 border border-white/10 h-auto p-1">
+        <TabsList className="bg-zinc-950/20 border border-white/10 p-1 mb-4 h-auto backdrop-blur-3xl w-full grid grid-cols-2 sm:grid-cols-5">
             {(Object.keys(leadsByStatus) as LeadEstado[]).map(status => (
-                <TabsTrigger key={status} value={status} className="data-[state=active]:bg-white/10 py-2">
+                <TabsTrigger key={status} value={status} className="data-[state=active]:bg-white/15 data-[state=active]:text-white px-3 py-2 text-[10px] font-bold transition-all hover:bg-white/10">
                     {tabTitles[status]} ({leadsByStatus[status].length})
                 </TabsTrigger>
             ))}
         </TabsList>
         {(Object.keys(leadsByStatus) as LeadEstado[]).map(status => (
-            <TabsContent key={status} value={status}>
-                <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">
-                    <CardHeader>
-                      <CardTitle className="text-white">Leads: {tabTitles[status]}</CardTitle>
+            <TabsContent key={status} value={status} className="mt-0">
+                <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl overflow-hidden">
+                    <CardHeader className="flex flex-row items-center justify-between pb-4 space-y-0">
+                        <CardTitle className="text-lg text-white">Leads: {tabTitles[status]}</CardTitle>
+                        <div className="relative w-full max-w-[280px]">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60 z-10" />
+                            <Input
+                                type="search"
+                                placeholder="Buscar en esta categoría..."
+                                className="w-full h-9 pl-9 bg-white/5 border-white/10 text-white text-xs backdrop-blur-xl focus:bg-white/10 transition-all"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
                     </CardHeader>
                     <CardContent>
                         <LeadsTable data={leadsByStatus[status]} />
