@@ -4,7 +4,7 @@ import { usePagos } from '@/hooks/usePagos';
 import { useAgenda } from '@/hooks/useAgenda';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { DollarSign, ClipboardCheck, CheckCircle, CalendarDays, Loader2, Info, TrendingUp, HandCoins, Target, History } from 'lucide-react';
-import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/utils';
+import { formatCurrency, formatDate, formatRelativeTime, cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { isBefore, parseISO, addMonths, startOfToday, isToday, isPast, startOfMonth, isWithinInterval, endOfMonth, format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -340,7 +340,7 @@ export default function ConsolePageClient() {
                 concepto: 'Mensualidad',
                 fechaLimite: paymentDueDate.toISOString(),
                 estado: 'pendiente',
-                notas: 'Pago recurrente autogenerado.',
+                notes: 'Pago recurrente autogenerado.',
               };
               upcomingItems.push({
                 date: paymentDueDate,
@@ -412,17 +412,19 @@ export default function ConsolePageClient() {
 
   const isLoading = clientesLoading || pagosLoading || llamadasLoading;
 
-  const KpiCard = ({ title, value, subtitle, icon: Icon, colorClass, highlightClass }: { title: string, value: string | number, subtitle: string, icon: any, colorClass: string, highlightClass: string }) => (
-    <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl relative overflow-hidden group h-full">
-        <div className={`absolute top-0 left-0 w-1 h-full ${highlightClass}`} />
-        <CardHeader className="p-4 pb-0 flex flex-row items-center justify-between">
-            <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">{title}</CardTitle>
-            <Icon className={`h-4 w-4 ${colorClass} opacity-80 group-hover:opacity-100 transition-opacity`} />
+  const KpiCard = ({ title, value, subtitle, icon: Icon, colorClass }: { title: string, value: string | number, subtitle: string, icon: any, colorClass: string }) => (
+    <Card className="border-white/5 bg-zinc-950/40 backdrop-blur-3xl relative overflow-hidden group h-full transition-all duration-500 hover:border-white/10">
+        <Icon className={cn("absolute -right-6 -bottom-6 h-32 w-32 opacity-[0.03] transition-transform duration-700 group-hover:scale-110 group-hover:rotate-3", colorClass)} />
+        <CardHeader className="p-5 pb-0 flex flex-row items-center justify-between relative z-10">
+            <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40">{title}</CardTitle>
+            <div className={cn("p-2 rounded-xl bg-white/5 border border-white/5", colorClass)}>
+              <Icon className="h-3.5 w-3.5" />
+            </div>
         </CardHeader>
-        <CardContent className="p-4 pt-2">
-            <div className="flex flex-col">
-                <span className="text-2xl font-bold text-white tracking-tight">{value}</span>
-                <p className="text-[10px] text-muted-foreground/60 font-medium mt-1 leading-tight">{subtitle}</p>
+        <CardContent className="p-5 pt-4 relative z-10">
+            <div className="flex flex-col space-y-1">
+                <span className="text-3xl font-bold text-white tracking-tighter">{value}</span>
+                <p className="text-[10px] text-muted-foreground/60 font-medium uppercase tracking-wide">{subtitle}</p>
             </div>
         </CardContent>
     </Card>
@@ -452,7 +454,6 @@ export default function ConsolePageClient() {
                 subtitle="Entregas actualmente en curso"
                 icon={ClipboardCheck}
                 colorClass="text-primary"
-                highlightClass="bg-primary/60"
             />
             <KpiCard 
                 title="Proyección de Mes" 
@@ -460,7 +461,6 @@ export default function ConsolePageClient() {
                 subtitle="Total cobrado más adeudos"
                 icon={TrendingUp}
                 colorClass="text-status-active"
-                highlightClass="bg-status-active/60"
             />
             <KpiCard 
                 title="Cierres de Mes" 
@@ -468,7 +468,6 @@ export default function ConsolePageClient() {
                 subtitle={`Éxitos logrados en ${capitalizedMonthName}`}
                 icon={CheckCircle}
                 colorClass="text-status-success"
-                highlightClass="bg-status-success/60"
             />
             <KpiCard 
                 title="Ingresos Reales" 
@@ -476,7 +475,6 @@ export default function ConsolePageClient() {
                 subtitle="Monto efectivamente liquidado"
                 icon={HandCoins}
                 colorClass="text-emerald-400"
-                highlightClass="bg-emerald-500/60"
             />
         </div>
 
