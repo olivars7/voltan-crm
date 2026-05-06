@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { useTheme } from '@/components/ThemeProvider';
+import { LoadingScreen } from '@/components/shared/LoadingScreen';
 
 // Use a client-side only import for the Aurora component
 const Aurora = dynamic(() => import('@/components/ui/aurora'), { 
@@ -27,6 +28,9 @@ export default function AppLayout({
 
   return (
     <div className="relative h-screen w-full overflow-hidden no-scrollbar bg-black">
+      {/* Loading overlay for the first 2 seconds */}
+      <LoadingScreen />
+
       {/* Background Aurora stays fixed with requested palette and enhanced flow */}
       <div className="fixed inset-0 z-0 transition-colors duration-1000">
         <Aurora
