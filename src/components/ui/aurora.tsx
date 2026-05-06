@@ -87,22 +87,33 @@ struct ColorStop {
 void main() {
   vec2 uv = gl_FragCoord.xy / uResolution;
   
+  // Noise-based factor for color distribution (makes colors move around)
+  float colorNoise = snoise(vec2(uv.x * 0.8 + uTime * 0.05, uv.y * 0.5 - uTime * 0.08));
+  float factor = clamp(uv.x + colorNoise * 0.4, 0.0, 1.0);
+  
   ColorStop colors[3];
   colors[0] = ColorStop(uColorStops[0], 0.0);
   colors[1] = ColorStop(uColorStops[1], 0.5);
   colors[2] = ColorStop(uColorStops[2], 1.0);
   
   vec3 rampColor;
-  COLOR_RAMP(colors, uv.x, rampColor);
+  COLOR_RAMP(colors, factor, rampColor);
   
-  float noise = snoise(vec2(uv.x * 1.2 + uTime * 0.05, uTime * 0.12));
-  float height = exp(noise * 0.4 * uAmplitude);
+  // Flowing noise that moves vertically and horizontally
+  float n1 = snoise(vec2(uv.x * 1.5 + uTime * 0.12, uv.y * 1.0 - uTime * 0.25));
+  float n2 = snoise(vec2(uv.x * 2.5 - uTime * 0.08, uv.y * 1.8 + uTime * 0.18));
+  float noise = (n1 + n2 * 0.5) * uAmplitude;
   
-  float intensity = (uv.y * 1.2 - height + 1.4) * 0.5;
-  float auroraAlpha = smoothstep(-0.5, 1.5, intensity * uBlend);
+  // Intensity that covers more area and flows from borders
+  float verticalFlow = smoothstep(-0.5, 1.5, uv.y + noise * 0.3);
+  float edgeGlow = smoothstep(1.2, 0.0, distance(uv, vec2(0.5, 0.5)));
+  float flowIntensity = (verticalFlow * 0.7 + edgeGlow * 0.3) * uBlend;
   
-  vec3 auroraColor = intensity * rampColor;
-  vec3 baseColor = uColorStops[0] * 0.1;
+  float auroraAlpha = smoothstep(0.0, 1.1, flowIntensity);
+  
+  vec3 auroraColor = flowIntensity * rampColor;
+  vec3 baseColor = uColorStops[0] * 0.05; // Deep black base
+  
   fragColor = vec4(mix(baseColor, auroraColor, auroraAlpha), 1.0);
 }
 `;
@@ -132,7 +143,7 @@ export default function Aurora(props: AuroraProps) {
       antialias: true
     });
     const gl = renderer.gl;
-    gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clean Black background
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.canvas.style.backgroundColor = 'transparent';

@@ -18,12 +18,12 @@ export default function AppLayout({
 }) {
   return (
     <div className="relative h-screen w-full overflow-hidden no-scrollbar bg-black">
-      {/* Background Aurora stays fixed with requested palette */}
+      {/* Background Aurora stays fixed with requested palette and enhanced flow */}
       <div className="fixed inset-0 z-0">
         <Aurora
           colorStops={["#000000", "#001F3F", "#C0C0C0"]}
-          blend={1.2}
-          amplitude={1.1}
+          blend={1.5}
+          amplitude={1.2}
           speed={1.0}
         />
       </div>
