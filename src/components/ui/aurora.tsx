@@ -105,11 +105,12 @@ void main() {
   float noise = (n1 + n2 * 0.5) * uAmplitude;
   
   // Intensity that covers more area and flows from borders
-  float verticalFlow = smoothstep(-0.5, 1.5, uv.y + noise * 0.3);
-  float edgeGlow = smoothstep(1.2, 0.0, distance(uv, vec2(0.5, 0.5)));
-  float flowIntensity = (verticalFlow * 0.7 + edgeGlow * 0.3) * uBlend;
+  // Increased coverage by adjusting ranges
+  float verticalFlow = smoothstep(-1.0, 2.0, uv.y + noise * 0.4);
+  float edgeGlow = smoothstep(1.5, -0.2, distance(uv, vec2(0.5, 0.5)));
+  float flowIntensity = (verticalFlow * 0.6 + edgeGlow * 0.4) * uBlend;
   
-  float auroraAlpha = smoothstep(0.0, 1.1, flowIntensity);
+  float auroraAlpha = smoothstep(0.0, 1.0, flowIntensity);
   
   vec3 auroraColor = flowIntensity * rampColor;
   vec3 baseColor = uColorStops[0] * 0.05; // Deep black base
