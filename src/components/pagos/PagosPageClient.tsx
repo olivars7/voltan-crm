@@ -322,9 +322,9 @@ export function PagosPageClient() {
         ) : (
       <Tabs defaultValue="proximos">
         <TabsList className="bg-zinc-950/20 border border-white/10 p-1 mb-1.5 h-auto backdrop-blur-3xl">
-          <TabsTrigger value="proximos" className="data-[state=active]:bg-white/15 data-[state=active]:text-white px-5 py-2 text-xs font-bold transition-all hover:bg-white/10">Próximos ({pagosProximos.length})</TabsTrigger>
-          <TabsTrigger value="pendientes" className="data-[state=active]:bg-white/15 data-[state=active]:text-white px-5 py-2 text-xs font-bold transition-all hover:bg-white/10">Vencidos ({pagosVencidos.length})</TabsTrigger>
-          <TabsTrigger value="historial" className="data-[state=active]:bg-white/15 data-[state=active]:text-white px-5 py-2 text-xs font-bold transition-all hover:bg-white/10">Historial ({historialPagos.length})</TabsTrigger>
+          <TabsTrigger value="proximos" className="px-5 py-2 text-xs font-bold transition-all">Próximos ({pagosProximos.length})</TabsTrigger>
+          <TabsTrigger value="pendientes" className="px-5 py-2 text-xs font-bold transition-all">Vencidos ({pagosVencidos.length})</TabsTrigger>
+          <TabsTrigger value="historial" className="px-5 py-2 text-xs font-bold transition-all">Historial ({historialPagos.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="proximos" className="mt-0">
             <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">

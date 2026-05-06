@@ -182,8 +182,8 @@ export function AgendaPageClient() {
       <Tabs defaultValue="proximas">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-2">
             <TabsList className="bg-zinc-950/20 border border-white/10 p-1 h-10 backdrop-blur-3xl shrink-0">
-                <TabsTrigger value="proximas" className="data-[state=active]:bg-white/15 data-[state=active]:text-white px-5 py-0 h-full text-xs font-bold transition-all hover:bg-white/10">Próximas ({llamadasProximas.length})</TabsTrigger>
-                <TabsTrigger value="pasadas" className="data-[state=active]:bg-white/15 data-[state=active]:text-white px-5 py-0 h-full text-xs font-bold transition-all hover:bg-white/10">Pasadas ({llamadasPasadas.length})</TabsTrigger>
+                <TabsTrigger value="proximas" className="px-5 py-0 h-full text-xs font-bold transition-all">Próximas ({llamadasProximas.length})</TabsTrigger>
+                <TabsTrigger value="pasadas" className="px-5 py-0 h-full text-xs font-bold transition-all">Pasadas ({llamadasPasadas.length})</TabsTrigger>
             </TabsList>
             <div className="relative w-full md:w-72 h-10">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60 z-10" />

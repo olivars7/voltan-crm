@@ -287,7 +287,7 @@ export function LeadsPageClient() {
       <Tabs defaultValue="por-contactar">
         <TabsList className="bg-zinc-950/20 border border-white/10 p-1 mb-4 h-auto backdrop-blur-3xl w-full grid grid-cols-2 sm:grid-cols-5">
             {(Object.keys(leadsByStatus) as LeadEstado[]).map(status => (
-                <TabsTrigger key={status} value={status} className="data-[state=active]:bg-white/15 data-[state=active]:text-white px-3 py-2 text-[10px] font-bold transition-all hover:bg-white/10">
+                <TabsTrigger key={status} value={status} className="px-3 py-2 text-[10px] font-bold transition-all">
                     {tabTitles[status]} ({leadsByStatus[status].length})
                 </TabsTrigger>
             ))}
