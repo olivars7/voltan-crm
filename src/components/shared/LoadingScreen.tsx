@@ -22,12 +22,12 @@ export function LoadingScreen() {
     : ["#FFFFFF", "#B0E0E6", "#D1D5DB"];
 
   useEffect(() => {
-    // La pantalla de carga dura 2 segundos
+    // La pantalla de carga ahora dura 2.5 segundos (2000 + 500ms)
     const timer = setTimeout(() => {
       setVisible(false);
       // Esperamos a que termine la transición de opacidad antes de desmontar
       setTimeout(() => setMounted(false), 500);
-    }, 2000);
+    }, 2500);
 
     return () => clearTimeout(timer);
   }, []);
