@@ -2,7 +2,7 @@
 
 import * as React from "react"
 
-type Theme = "dark"
+type Theme = "dark" | "light"
 
 type ThemeProviderProps = {
   children: React.ReactNode
@@ -10,10 +10,12 @@ type ThemeProviderProps = {
 
 type ThemeProviderState = {
   theme: Theme
+  setTheme: (theme: Theme) => void
 }
 
 const initialState: ThemeProviderState = {
   theme: "dark",
+  setTheme: () => null,
 }
 
 const ThemeProviderContext = React.createContext<ThemeProviderState>(initialState)
@@ -22,14 +24,17 @@ export function ThemeProvider({
   children,
   ...props
 }: ThemeProviderProps) {
+  const [theme, setTheme] = React.useState<Theme>("dark")
+
   React.useEffect(() => {
     const root = window.document.documentElement
-    root.classList.remove("light")
-    root.classList.add("dark")
-  }, [])
+    root.classList.remove("light", "dark")
+    root.classList.add(theme)
+  }, [theme])
 
   const value = {
-    theme: "dark" as const,
+    theme,
+    setTheme,
   }
 
   return (

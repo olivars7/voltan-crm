@@ -4,6 +4,7 @@ import React from 'react';
 import dynamic from 'next/dynamic';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
+import { useTheme } from '@/components/ThemeProvider';
 
 // Use a client-side only import for the Aurora component
 const Aurora = dynamic(() => import('@/components/ui/aurora'), { 
@@ -16,13 +17,21 @@ export default function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { theme } = useTheme();
+
+  // Dark palette: Black, Deep Navy, Silver
+  // Light palette: White, Celeste (Light Blue), More Gray
+  const colorStops = theme === 'dark' 
+    ? ["#000000", "#001F3F", "#C0C0C0"] 
+    : ["#FFFFFF", "#B0E0E6", "#D1D5DB"];
+
   return (
     <div className="relative h-screen w-full overflow-hidden no-scrollbar bg-black">
       {/* Background Aurora stays fixed with requested palette and enhanced flow */}
-      <div className="fixed inset-0 z-0">
+      <div className="fixed inset-0 z-0 transition-colors duration-1000">
         <Aurora
-          colorStops={["#000000", "#001F3F", "#C0C0C0"]}
-          blend={1.0}
+          colorStops={colorStops}
+          blend={theme === 'dark' ? 1.0 : 0.8}
           amplitude={1.1}
           speed={0.8}
         />

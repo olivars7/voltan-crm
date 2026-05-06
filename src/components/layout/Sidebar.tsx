@@ -11,12 +11,16 @@ import {
   History,
   CalendarDays,
   Lightbulb,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePagos } from '@/hooks/usePagos';
 import { useClientes } from '@/hooks/useClientes';
 import { useAgenda } from '@/hooks/useAgenda';
+import { useTheme } from '@/components/ThemeProvider';
 import { isBefore, isToday, parseISO, startOfToday, startOfMonth, addMonths } from 'date-fns';
+import { Button } from '@/components/ui/button';
 
 const navItems = [
   { href: '/dashboard', icon: Home, label: 'General' },
@@ -29,6 +33,7 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
   const { pagos } = usePagos();
   const { clientes } = useClientes();
   const { llamadas } = useAgenda();
@@ -178,20 +183,31 @@ export function Sidebar() {
       {/* Desktop Sidebar */}
       <aside className="fixed inset-y-6 left-4 z-50 hidden w-64 flex-col rounded-2xl border border-white/10 bg-zinc-950/20 shadow-2xl backdrop-blur-3xl sm:flex">
         <nav className="flex flex-col gap-6 px-4 py-8">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-2 px-2 mb-1.5 transition-all duration-100 active:scale-95"
-          >
-            <div className="relative h-6 w-6 shrink-0">
-               <Image 
-                src="/favicon.ico" 
-                alt="Voltan Logo" 
-                fill 
-                className="object-contain"
-               />
-            </div>
-            <span className="text-lg font-bold tracking-tight text-white uppercase">Voltan</span>
-          </Link>
+          <div className="flex items-center justify-between px-2 mb-1.5">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 transition-all duration-100 active:scale-95"
+            >
+              <div className="relative h-6 w-6 shrink-0">
+                 <Image 
+                  src="/favicon.ico" 
+                  alt="Voltan Logo" 
+                  fill 
+                  className="object-contain"
+                 />
+              </div>
+              <span className="text-lg font-bold tracking-tight text-white uppercase">Voltan</span>
+            </Link>
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 bg-white/5 border border-white/5 hover:bg-white/10 rounded-full"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            >
+              {theme === 'dark' ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-zinc-300" />}
+            </Button>
+          </div>
           
           <div className="h-px w-full bg-white/5 mx-auto" />
 
