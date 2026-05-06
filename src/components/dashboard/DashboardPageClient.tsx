@@ -213,22 +213,20 @@ export default function DashboardPageClient() {
   return (
     <div className="space-y-6 animate-in fade-in duration-1000 pb-20">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="relative overflow-hidden group border-white/5 bg-zinc-950/40 backdrop-blur-3xl transition-all duration-500 hover:border-white/10">
-            <Users className="absolute -right-6 -bottom-6 h-32 w-32 text-primary opacity-[0.03] transition-transform duration-700 group-hover:scale-110 group-hover:rotate-3" />
-            <CardHeader className="flex flex-row items-center justify-between pb-1 pt-5 px-5 relative z-10">
-              <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40">Clientes Activos</CardTitle>
-              <div className="p-2 rounded-xl bg-white/5 border border-white/5 text-primary">
-                <Users className="h-3.5 w-3.5" />
+          <Card className="relative overflow-hidden group border-white/5">
+            <Users className="absolute -right-4 -bottom-4 h-24 w-24 text-white opacity-[0.03] transition-transform duration-500 group-hover:scale-110" />
+            <CardHeader className="flex flex-row items-center justify-between pb-1 pt-4 px-4">
+              <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">Clientes Activos</CardTitle>
+              <div className="p-1.5 rounded-full bg-white/5 border border-white/5">
+                <Users className="h-3 w-3 text-status-active" />
               </div>
             </CardHeader>
-            <CardContent className="px-5 pb-5 pt-3 relative z-10">
-              <div className="text-4xl font-bold tracking-tighter text-white">{kpiData.activeClients}</div>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-status-active animate-pulse" />
-                <p className="text-[10px] text-muted-foreground/60 font-bold uppercase tracking-wider">
-                  En operación actual
-                </p>
-              </div>
+            <CardContent className="px-4 pb-4 pt-2">
+              <div className="text-3xl font-bold tracking-tighter text-white">{kpiData.activeClients}</div>
+              <p className="text-[10px] text-muted-foreground/60 flex items-center mt-1 font-medium">
+                <StatusBadge status="activo" />
+                <span className="ml-2">en operación</span>
+              </p>
             </CardContent>
           </Card>
 
