@@ -1,4 +1,3 @@
-
 import type {Metadata, Viewport} from 'next';
 import { Toaster } from "@/components/ui/toaster"
 import './globals.css';
@@ -17,8 +16,9 @@ export const metadata: Metadata = {
     title: 'Sistema Voltan',
   },
   icons: {
+    icon: '/favicon.ico',
     apple: [
-      { url: 'https://picsum.photos/seed/voltan/180/180', sizes: '180x180', type: 'image/png' },
+      { url: '/favicon.ico', sizes: '180x180', type: 'image/x-icon' },
     ],
   },
 };
@@ -37,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -55,9 +55,9 @@ export default function RootLayout({
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
                   navigator.serviceWorker.register('/sw.js').then(function(reg) {
-                    console.log('SW registered');
+                    console.log('PWA Service Worker registrado con éxito');
                   }).catch(function(err) {
-                    console.log('SW registration failed', err);
+                    console.log('Error al registrar el Service Worker de la PWA', err);
                   });
                 });
               }
