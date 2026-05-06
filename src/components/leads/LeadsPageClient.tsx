@@ -155,10 +155,17 @@ export function LeadsPageClient() {
 
   const searchFilter = (lead: Lead) => {
       const search = searchTerm.toLowerCase();
+      
+      // Map services to display names to search within them
+      const servicesMatch = lead.servicios?.some(s => 
+          serviceDisplayNames[s]?.toLowerCase().includes(search)
+      );
+
       return (
           lead.nombre.toLowerCase().includes(search) ||
           lead.telefono.includes(search) ||
-          lead.nicho.toLowerCase().includes(search)
+          lead.nicho.toLowerCase().includes(search) ||
+          servicesMatch
       );
   };
   
@@ -189,7 +196,7 @@ export function LeadsPageClient() {
               <TableHead className="text-muted-foreground/60 text-[10px] uppercase font-bold tracking-wider">Nombre</TableHead>
               <TableHead className="text-muted-foreground/60 text-[10px] uppercase font-bold tracking-wider">Contacto</TableHead>
               <TableHead className="text-muted-foreground/60 text-[10px] uppercase font-bold tracking-wider">Nicho</TableHead>
-              <TableHead className="text-muted-foreground/60 text-[10px] uppercase font-bold tracking-wider">Servicios de Interés</TableHead>
+              <TableHead className="text-muted-foreground/60 text-[10px] uppercase font-bold tracking-wider hidden md:table-cell">Servicios de Interés</TableHead>
               <TableHead className="text-right text-muted-foreground/60 text-[10px] uppercase font-bold tracking-wider">Acciones</TableHead>
             </TableRow>
           </TableHeader>
@@ -199,7 +206,7 @@ export function LeadsPageClient() {
                 <TableCell className="font-medium text-xs text-white">{lead.nombre}</TableCell>
                 <TableCell className="text-zinc-300 text-xs">{lead.telefono}</TableCell>
                 <TableCell className="text-zinc-300 text-xs">{lead.nicho}</TableCell>
-                <TableCell className="text-zinc-300 text-xs">
+                <TableCell className="text-zinc-300 text-xs hidden md:table-cell">
                   {lead.servicios.map(s => serviceDisplayNames[s]).join(', ')}
                 </TableCell>
                 <TableCell className="text-right">
