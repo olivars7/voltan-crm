@@ -8,7 +8,7 @@ import { Header } from '@/components/layout/Header';
 // Use a client-side only import for the Aurora component
 const Aurora = dynamic(() => import('@/components/ui/aurora'), { 
   ssr: false,
-  loading: () => <div className="fixed inset-0 bg-zinc-950 z-0" />
+  loading: () => <div className="fixed inset-0 bg-black z-0" />
 });
 
 export default function AppLayout({
@@ -17,14 +17,14 @@ export default function AppLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative h-screen w-full overflow-hidden no-scrollbar bg-zinc-950">
-      {/* Background Aurora stays fixed */}
+    <div className="relative h-screen w-full overflow-hidden no-scrollbar bg-black">
+      {/* Background Aurora stays fixed with requested palette */}
       <div className="fixed inset-0 z-0">
         <Aurora
-          colorStops={["#00e5ff", "#2273C3", "#5227FF"]}
+          colorStops={["#000000", "#001F3F", "#C0C0C0"]}
           blend={1.2}
           amplitude={1.1}
-          speed={0.3}
+          speed={0.2}
         />
       </div>
       

@@ -98,16 +98,11 @@ void main() {
   float noise = snoise(vec2(uv.x * 1.2 + uTime * 0.05, uTime * 0.12));
   float height = exp(noise * 0.4 * uAmplitude);
   
-  // Ajustamos el height para que cubra toda la pantalla eliminando el negro
   float intensity = (uv.y * 1.2 - height + 1.4) * 0.5;
-  
-  // Suavizamos la transición de alfa para que no haya huecos negros
   float auroraAlpha = smoothstep(-0.5, 1.5, intensity * uBlend);
   
   vec3 auroraColor = intensity * rampColor;
-  
-  // Mezclamos con un color base muy oscuro pero no negro absoluto
-  vec3 baseColor = uColorStops[0] * 0.2;
+  vec3 baseColor = uColorStops[0] * 0.1;
   fragColor = vec4(mix(baseColor, auroraColor, auroraAlpha), 1.0);
 }
 `;
@@ -121,7 +116,7 @@ interface AuroraProps {
 }
 
 export default function Aurora(props: AuroraProps) {
-  const { colorStops = ['#5227FF', '#7cff67', '#5227FF'], amplitude = 1.0, blend = 0.5 } = props;
+  const { colorStops = ['#000000', '#001F3F', '#C0C0C0'], amplitude = 1.0, blend = 0.5 } = props;
   const propsRef = useRef<AuroraProps>(props);
   propsRef.current = props;
 
@@ -137,7 +132,7 @@ export default function Aurora(props: AuroraProps) {
       antialias: true
     });
     const gl = renderer.gl;
-    gl.clearColor(0.01, 0.02, 0.05, 1.0); 
+    gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clean Black background
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.canvas.style.backgroundColor = 'transparent';
