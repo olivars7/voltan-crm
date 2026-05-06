@@ -18,7 +18,7 @@ import { Trash2 } from 'lucide-react';
 const formSchema = z.object({
   nombre: z.string().min(2, { message: 'El nombre es requerido.' }),
   telefono: z.string().min(10, { message: 'Número de WhatsApp inválido.' }),
-  medio: z.enum(['llamada', 'google-meet', 'zoom'], { required_error: 'El medio es requerido.' }),
+  medio: z.enum(['llamada', 'google-meet', 'zoom', 'whatsapp', 'instagram'], { required_error: 'El medio es requerido.' }),
   fecha: z.string().min(1, { message: 'La fecha es requerida.' }),
   estado: z.enum(['pronto', 'pendiente', 'realizada', 'cancelada'], { required_error: 'El estado es requerido.' }),
   notas: z.string().optional(),
@@ -94,7 +94,7 @@ export function AgendaForm({ llamada, isRescheduling = false, onSubmit, onDelete
             )} />
             <FormField control={form.control} name="telefono" render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-zinc-300">Número WhatsApp</FormLabel>
+                <FormLabel className="text-zinc-300">Número WhatsApp / Contacto</FormLabel>
                 <FormControl><Input placeholder="55-1234-5678" {...field} className={cn("bg-white/5 border-white/10 text-white", inheritedFieldClass)} /></FormControl>
                 <FormMessage />
               </FormItem>
@@ -107,6 +107,8 @@ export function AgendaForm({ llamada, isRescheduling = false, onSubmit, onDelete
                           <FormControl><SelectTrigger className={cn("bg-white/5 border-white/10 text-white", inheritedFieldClass)}><SelectValue placeholder="Selecciona un medio" /></SelectTrigger></FormControl>
                           <SelectContent className="bg-zinc-900 border-white/10 text-white">
                               <SelectItem value="llamada">Llamada</SelectItem>
+                              <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                              <SelectItem value="instagram">Instagram</SelectItem>
                               <SelectItem value="google-meet">Google Meet</SelectItem>
                               <SelectItem value="zoom">Zoom</SelectItem>
                           </SelectContent>
@@ -140,7 +142,7 @@ export function AgendaForm({ llamada, isRescheduling = false, onSubmit, onDelete
             <FormField control={form.control} name="notas" render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-zinc-300">Notas (Opcional)</FormLabel>
-                <FormControl><Textarea placeholder="Detalles de la llamada..." {...field} className={cn("bg-white/5 border-white/10 min-h-[100px] text-white", inheritedFieldClass)} /></FormControl>
+                <FormControl><Textarea placeholder="Detalles de la llamada o mensaje..." {...field} className={cn("bg-white/5 border-white/10 min-h-[100px] text-white", inheritedFieldClass)} /></FormControl>
                 <FormMessage />
               </FormItem>
             )}/>

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import type { LlamadaAgendada } from '@/lib/types';
 import { formatDate } from '@/lib/utils';
-import { Calendar, Phone, Video, Info, Notebook, Pencil, CalendarPlus, CheckCircle } from 'lucide-react';
+import { Calendar, Phone, Video, Info, Notebook, Pencil, CalendarPlus, CheckCircle, MessageCircle, Instagram } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
 import React from 'react';
 
@@ -22,6 +22,8 @@ export function AgendaDetail({ llamada, onSetStatus, onEdit, onReschedule }: Age
         case 'llamada': return <Phone className="w-4 h-4 text-primary" />;
         case 'google-meet': return <Video className="w-4 h-4 text-primary" />;
         case 'zoom': return <Video className="w-4 h-4 text-primary" />;
+        case 'whatsapp': return <MessageCircle className="w-4 h-4 text-primary" />;
+        case 'instagram': return <Instagram className="w-4 h-4 text-primary" />;
         default: return null;
     }
   }
@@ -32,7 +34,7 @@ export function AgendaDetail({ llamada, onSetStatus, onEdit, onReschedule }: Age
     <DialogContent className="sm:max-w-md bg-zinc-950/80 backdrop-blur-3xl border-white/10 shadow-2xl rounded-3xl">
       <DialogHeader>
         <div className="flex items-center justify-between">
-          <DialogTitle className="text-xl font-bold tracking-tight">Detalles de la Llamada</DialogTitle>
+          <DialogTitle className="text-xl font-bold tracking-tight">Detalles de la Cita</DialogTitle>
           {onEdit && (
             <Button variant="outline" size="icon" onClick={onEdit} className="bg-white/5 border-white/10 hover:bg-white/10 h-8 w-8">
               <Pencil className="h-4 w-4" />
@@ -87,7 +89,7 @@ export function AgendaDetail({ llamada, onSetStatus, onEdit, onReschedule }: Age
         <DialogFooter className="flex-col gap-2 sm:flex-col sm:space-x-0 pt-4 border-t border-white/5">
             <Button variant="outline" onClick={onReschedule} className="w-full bg-white/5 border-white/10 hover:bg-white/10">
                 <CalendarPlus className="mr-2 h-4 w-4" />
-                Reagendar Llamada
+                Reagendar Llamada / Mensaje
             </Button>
         </DialogFooter>
        )}

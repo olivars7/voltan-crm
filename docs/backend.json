@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "Cliente": {
@@ -76,7 +75,7 @@
       "properties": {
         "nombre": { "type": "string" },
         "telefono": { "type": "string" },
-        "medio": { "type": "string", "enum": ["llamada", "google-meet", "zoom"] },
+        "medio": { "type": "string", "enum": ["llamada", "google-meet", "zoom", "whatsapp", "instagram"] },
         "fecha": { "type": "string", "format": "date-time" },
         "estado": { "type": "string", "enum": ["pronto", "pendiente", "realizada", "cancelada"] },
         "notas": { "type": "string" }

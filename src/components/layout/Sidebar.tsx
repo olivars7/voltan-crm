@@ -19,10 +19,10 @@ import { useAgenda } from '@/hooks/useAgenda';
 import { isBefore, isToday, parseISO, startOfToday, startOfMonth, addMonths } from 'date-fns';
 
 const navItems = [
-  { href: '/dashboard', icon: Home, label: 'Dashboard' },
+  { href: '/dashboard', icon: Home, label: 'General' },
+  { href: '/console', icon: History, label: 'Consola' },
   { href: '/clientes', icon: Users, label: 'Clientes' },
   { href: '/pagos', icon: DollarSign, label: 'Pagos' },
-  { href: '/console', icon: History, label: 'Consola' },
   { href: '/agenda', icon: CalendarDays, label: 'Agenda' },
   { href: '/leads', icon: Lightbulb, label: 'Leads' },
 ];

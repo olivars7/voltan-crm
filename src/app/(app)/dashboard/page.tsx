@@ -2,7 +2,7 @@ import DashboardPageClient from '@/components/dashboard/DashboardPageClient';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Dashboard',
+  title: 'General',
 };
 
 export default function DashboardPage() {

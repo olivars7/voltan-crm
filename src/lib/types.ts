@@ -35,7 +35,7 @@ export type Pago = {
 };
 
 export type LlamadaEstado = 'pronto' | 'pendiente' | 'realizada' | 'cancelada';
-export type LlamadaMedio = 'llamada' | 'google-meet' | 'zoom';
+export type LlamadaMedio = 'llamada' | 'google-meet' | 'zoom' | 'whatsapp' | 'instagram';
 
 export type LlamadaAgendada = {
   id: string;

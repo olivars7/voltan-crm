@@ -392,7 +392,7 @@ export default function ConsolePageClient() {
                 <p className="text-sm font-semibold leading-none truncate pr-2 text-white">
                     {item.type === 'pago' && `${item.data.concepto}: ${formatCurrency(item.data.monto)}`}
                     {item.type === 'entrega' && `Entrega: ${item.data.nombre}`}
-                    {item.type === 'llamada' && `Llamada: ${item.data.nombre}`}
+                    {item.type === 'llamada' && `Cita: ${item.data.nombre}`}
                 </p>
                 {item.subType === 'overdue' && <StatusBadge status="vencido" />}
               </div>
@@ -412,11 +412,27 @@ export default function ConsolePageClient() {
 
   const isLoading = clientesLoading || pagosLoading || llamadasLoading;
 
+  const KpiCard = ({ title, value, subtitle, icon: Icon, colorClass, highlightClass }: { title: string, value: string | number, subtitle: string, icon: any, colorClass: string, highlightClass: string }) => (
+    <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl relative overflow-hidden group h-full">
+        <div className={`absolute top-0 left-0 w-1 h-full ${highlightClass}`} />
+        <CardHeader className="p-4 pb-0 flex flex-row items-center justify-between">
+            <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">{title}</CardTitle>
+            <Icon className={`h-4 w-4 ${colorClass} opacity-80 group-hover:opacity-100 transition-opacity`} />
+        </CardHeader>
+        <CardContent className="p-4 pt-2">
+            <div className="flex flex-col">
+                <span className="text-2xl font-bold text-white tracking-tight">{value}</span>
+                <p className="text-[10px] text-muted-foreground/60 font-medium mt-1 leading-tight">{subtitle}</p>
+            </div>
+        </CardContent>
+    </Card>
+  );
+
   return (
     <div className="pb-20">
       <PageHeader
         title="Consola"
-        description="Un registro cronológico de todos los eventos importantes."
+        description="Registro cronológico y KPIs operativos."
       />
       
       {isLoading ? (
@@ -428,82 +444,49 @@ export default function ConsolePageClient() {
             </div>
         ) : (
       <div className="space-y-6">
-        {/* KPI Micro Modules - Brighter/Clearer Style */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-1 h-full bg-primary/60" />
-                <CardHeader className="p-4 pb-0 flex flex-row items-center justify-between">
-                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Entregas Pendientes</CardTitle>
-                    <Info className="h-3 w-3 text-muted-foreground/40" />
-                </CardHeader>
-                <CardContent className="p-4 pt-2">
-                    <div className="flex flex-col">
-                        <div className="flex items-center gap-2">
-                            <ClipboardCheck className="h-4 w-4 text-primary" />
-                            <span className="text-xl font-bold text-white">{stats.deliveriesPending}</span>
-                        </div>
-                        <p className="text-[10px] text-muted-foreground/60 font-medium mt-1">Proyectos actualmente activos</p>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-1 h-full bg-status-active/60" />
-                <CardHeader className="p-4 pb-0 flex flex-row items-center justify-between">
-                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Proyección Mensual</CardTitle>
-                    <TrendingUp className="h-3 w-3 text-muted-foreground/40" />
-                </CardHeader>
-                <CardContent className="p-4 pt-2">
-                    <div className="flex flex-col">
-                        <div className="flex items-center gap-2">
-                            <DollarSign className="h-4 w-4 text-status-active" />
-                            <span className="text-xl font-bold text-white">{formatCurrency(stats.estimatedRevenue)}</span>
-                        </div>
-                        <p className="text-[10px] text-muted-foreground/60 font-medium mt-1">Estimación cobrado + pendiente</p>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-1 h-full bg-status-success/60" />
-                <CardHeader className="p-4 pb-0 flex flex-row items-center justify-between">
-                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Entregas {capitalizedMonthName}</CardTitle>
-                    <Target className="h-3 w-3 text-muted-foreground/40" />
-                </CardHeader>
-                <CardContent className="p-4 pt-2">
-                    <div className="flex flex-col">
-                        <div className="flex items-center gap-2">
-                            <CheckCircle className="h-4 w-4 text-status-success" />
-                            <span className="text-xl font-bold text-white">{stats.deliveriesCompleted}</span>
-                        </div>
-                        <p className="text-[10px] text-muted-foreground/60 font-medium mt-1">Proyectos finalizados con éxito</p>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500/60" />
-                <CardHeader className="p-4 pb-0 flex flex-row items-center justify-between">
-                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Ingresos Reales</CardTitle>
-                    <HandCoins className="h-3 w-3 text-muted-foreground/40" />
-                </CardHeader>
-                <CardContent className="p-4 pt-2">
-                    <div className="flex flex-col">
-                        <div className="flex items-center gap-2">
-                            <DollarSign className="h-4 w-4 text-emerald-400" />
-                            <span className="text-xl font-bold text-white">{formatCurrency(stats.currentRevenue)}</span>
-                        </div>
-                        <p className="text-[10px] text-muted-foreground/60 font-medium mt-1">Dinero efectivamente en cuenta</p>
-                    </div>
-                </CardContent>
-            </Card>
+        {/* KPI Grid - Clean Redesign */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <KpiCard 
+                title="Proyectos Activos" 
+                value={stats.deliveriesPending} 
+                subtitle="Entregas actualmente en curso"
+                icon={ClipboardCheck}
+                colorClass="text-primary"
+                highlightClass="bg-primary/60"
+            />
+            <KpiCard 
+                title="Proyección de Mes" 
+                value={formatCurrency(stats.estimatedRevenue)} 
+                subtitle="Total cobrado más adeudos"
+                icon={TrendingUp}
+                colorClass="text-status-active"
+                highlightClass="bg-status-active/60"
+            />
+            <KpiCard 
+                title="Cierres de Mes" 
+                value={stats.deliveriesCompleted} 
+                subtitle={`Éxitos logrados en ${capitalizedMonthName}`}
+                icon={CheckCircle}
+                colorClass="text-status-success"
+                highlightClass="bg-status-success/60"
+            />
+            <KpiCard 
+                title="Ingresos Reales" 
+                value={formatCurrency(stats.currentRevenue)} 
+                subtitle="Monto efectivamente liquidado"
+                icon={HandCoins}
+                colorClass="text-emerald-400"
+                highlightClass="bg-emerald-500/60"
+            />
         </div>
 
-        {/* Console Lists - Brighter/Clearer Style */}
+        {/* Console Lists */}
         <div className="grid gap-6 md:grid-cols-2">
             <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">
-                <CardHeader>
-                <CardTitle className="text-white font-bold">Eventos Próximos y Vencidos</CardTitle>
+                <CardHeader className="pb-2">
+                <CardTitle className="text-white font-bold text-base flex items-center gap-2">
+                    <CalendarDays className="w-4 h-4 text-primary" /> Eventos Próximos
+                </CardTitle>
                 </CardHeader>
                 <CardContent>
                 <ScrollArea className="h-[55vh] custom-scrollbar">
@@ -518,14 +501,16 @@ export default function ConsolePageClient() {
                 </ScrollArea>
                 </CardContent>
                 {visibleUpcoming < sortedUpcoming.length && (
-                <CardFooter className="justify-center border-t border-white/10 pt-4">
-                    <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white" onClick={() => setVisibleUpcoming(v => v + 40)}>Cargar más</Button>
+                <CardFooter className="justify-center border-t border-white/10 p-2">
+                    <Button variant="ghost" size="sm" className="text-[10px] text-zinc-400 hover:text-white" onClick={() => setVisibleUpcoming(v => v + 40)}>Cargar más eventos</Button>
                 </CardFooter>
                 )}
             </Card>
             <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">
-                <CardHeader>
-                <CardTitle className="text-white font-bold">Registro de Actividad</CardTitle>
+                <CardHeader className="pb-2">
+                <CardTitle className="text-white font-bold text-base flex items-center gap-2">
+                    <History className="w-4 h-4 text-primary" /> Registro de Actividad
+                </CardTitle>
                 </CardHeader>
                 <CardContent>
                 <ScrollArea className="h-[55vh] custom-scrollbar">
@@ -533,15 +518,15 @@ export default function ConsolePageClient() {
                         {now && sortedCompleted.slice(0, visibleCompleted).map(renderTimelineItem)}
                         {(!now || (now && sortedCompleted.length === 0)) && (
                             <p className="text-sm text-zinc-500 text-center py-20">
-                                {now ? 'No hay eventos completados.' : 'Cargando eventos...'}
+                                {now ? 'No hay actividad reciente.' : 'Cargando eventos...'}
                             </p>
                         )}
                     </div>
                 </ScrollArea>
                 </CardContent>
                 {visibleCompleted < sortedCompleted.length && (
-                <CardFooter className="justify-center border-t border-white/10 pt-4">
-                    <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white" onClick={() => setVisibleCompleted(v => v + 40)}>Cargar más</Button>
+                <CardFooter className="justify-center border-t border-white/10 p-2">
+                    <Button variant="ghost" size="sm" className="text-[10px] text-zinc-400 hover:text-white" onClick={() => setVisibleCompleted(v => v + 40)}>Ver historial completo</Button>
                 </CardFooter>
                 )}
             </Card>
