@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Cliente": {
@@ -57,6 +58,7 @@
         "estado": { "type": "string", "enum": ["por-contactar", "contactado", "demo-agendada", "convertido", "no-interesado"] },
         "fechaCreacion": { "type": "string", "format": "date-time" },
         "notas": { "type": "string" },
+        "infoEnviada": { "type": "boolean" },
         "historial": { "type": "array", "items": { "$ref": "#/entities/LeadHistoryEntry" } }
       }
     },

@@ -1,7 +1,8 @@
+
 'use client';
 
 import * as React from 'react';
-import { PlusCircle, Search, Loader2, Users, Phone, Presentation, Target, ArrowRight, XCircle, ArrowUp, ArrowDown, ChevronRight } from 'lucide-react';
+import { PlusCircle, Search, Loader2, Users, Phone, Presentation, Target, ArrowRight, XCircle, ArrowUp, ArrowDown, ChevronRight, MessageSquareText } from 'lucide-react';
 import { useLeads } from '@/hooks/useLeads';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LeadForm } from './LeadForm';
 import { LeadDetail } from './LeadDetail';
 import type { Lead, LeadEstado } from '@/lib/types';
@@ -74,7 +76,7 @@ export function LeadsPageClient() {
   const kpiData = getKpiStats();
 
   const handleAddSubmit = async (values: any) => {
-    await addLead(values);
+    await addLead({ ...values, infoEnviada: false });
     toast({ title: "Lead añadido", description: "El nuevo lead ha sido guardado." });
     setFormOpen(false);
   }
@@ -90,6 +92,16 @@ export function LeadsPageClient() {
             setSelectedLead(updatedLead);
         }
     }
+  }
+
+  const handleToggleWhatsApp = async (e: React.MouseEvent, lead: Lead) => {
+    e.stopPropagation();
+    const updatedLead = { ...lead, infoEnviada: !lead.infoEnviada };
+    await updateLead(updatedLead);
+    toast({ 
+        title: updatedLead.infoEnviada ? "Información marcada como enviada" : "Marca removida",
+        description: updatedLead.infoEnviada ? `Se registró el envío para ${lead.nombre}.` : `Se removió el registro para ${lead.nombre}.`
+    });
   }
 
   const handleDeleteLead = async () => {
@@ -154,19 +166,24 @@ export function LeadsPageClient() {
   }
 
   const searchFilter = (lead: Lead) => {
-      const search = searchTerm.toLowerCase();
+      const normalize = (text: string) => 
+          text?.normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .replace(/,/g, "")
+              .toLowerCase() || "";
+
+      const search = normalize(searchTerm);
       
-      // Map services to display names to search within them
+      const nameMatch = normalize(lead.nombre).includes(search);
+      const phoneMatch = normalize(lead.telefono).includes(search);
+      const nichoMatch = normalize(lead.nicho).includes(search);
+
+      // Search within display names of services
       const servicesMatch = lead.servicios?.some(s => 
-          serviceDisplayNames[s]?.toLowerCase().includes(search)
+          normalize(serviceDisplayNames[s]).includes(search)
       );
 
-      return (
-          lead.nombre.toLowerCase().includes(search) ||
-          lead.telefono.includes(search) ||
-          lead.nicho.toLowerCase().includes(search) ||
-          servicesMatch
-      );
+      return nameMatch || phoneMatch || nichoMatch || servicesMatch;
   };
   
   const leadsByStatus: Record<LeadEstado, Lead[]> = {
@@ -186,13 +203,14 @@ export function LeadsPageClient() {
   }
 
   const LeadsTable = ({ data }: { data: Lead[] }) => (
-    <>
+    <TooltipProvider>
       {data.length === 0 && !loading ? (
         <p className="text-center text-muted-foreground/40 py-8">No hay leads en esta categoría.</p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow className="border-white/5 hover:bg-transparent">
+              <TableHead className="w-[50px]"></TableHead>
               <TableHead className="text-muted-foreground/60 text-[10px] uppercase font-bold tracking-wider">Nombre</TableHead>
               <TableHead className="text-muted-foreground/60 text-[10px] uppercase font-bold tracking-wider">Contacto</TableHead>
               <TableHead className="text-muted-foreground/60 text-[10px] uppercase font-bold tracking-wider">Nicho</TableHead>
@@ -203,6 +221,28 @@ export function LeadsPageClient() {
           <TableBody>
             {data.map((lead) => (
               <TableRow key={lead.id} onClick={() => openDetailDialog(lead)} className="cursor-pointer group border-white/5 hover:bg-white/5">
+                <TableCell onClick={(e) => e.stopPropagation()} className="w-[50px] pr-0">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                          "h-8 w-8 rounded-full transition-all duration-300",
+                          lead.infoEnviada 
+                            ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" 
+                            : "bg-white/5 text-muted-foreground/40 hover:bg-white/10 hover:text-white"
+                        )}
+                        onClick={(e) => handleToggleWhatsApp(e, lead)}
+                      >
+                        <MessageSquareText className={cn("h-4 w-4", lead.infoEnviada && "fill-emerald-400/20")} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-zinc-900 border-white/10 text-white text-[10px] font-bold py-1.5 px-3">
+                      Información enviada a WhatsApp
+                    </TooltipContent>
+                  </Tooltip>
+                </TableCell>
                 <TableCell className="font-medium text-xs text-white">{lead.nombre}</TableCell>
                 <TableCell className="text-zinc-300 text-xs">{lead.telefono}</TableCell>
                 <TableCell className="text-zinc-300 text-xs">{lead.nicho}</TableCell>
@@ -239,7 +279,7 @@ export function LeadsPageClient() {
           </TableBody>
         </Table>
       )}
-    </>
+    </TooltipProvider>
   );
 
   const KpiCard = ({ title, value, diff, icon: Icon, isLast = false }: { title: string, value: number, diff: number, icon: any, isLast?: boolean }) => (
@@ -308,7 +348,7 @@ export function LeadsPageClient() {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60 z-10" />
                             <Input
                                 type="search"
-                                placeholder="Buscar en esta categoría..."
+                                placeholder="Buscar (ignora acentos y comas)..."
                                 className="w-full h-9 pl-9 bg-white/5 border-white/10 text-white text-xs backdrop-blur-xl focus:bg-white/10 transition-all"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}

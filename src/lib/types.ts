@@ -1,3 +1,4 @@
+
 export type Cliente = {
   id: string;
   nombre: string;
@@ -79,6 +80,7 @@ export type Lead = {
   servicios: LeadServicio[];
   estado: LeadEstado;
   notas?: string;
+  infoEnviada?: boolean;
   fechaCreacion: string;
   historial: LeadHistoryEntry[];
 };
