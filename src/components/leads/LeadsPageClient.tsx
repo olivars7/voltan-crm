@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -98,10 +97,19 @@ export function LeadsPageClient() {
     const updatedLead = { ...lead, infoEnviada: !lead.infoEnviada };
     await updateLead(updatedLead);
     toast({ 
-        title: updatedLead.infoEnviada ? "Información marcada como enviada" : "Marca removida",
-        description: updatedLead.infoEnviada ? `Se registró el envío para ${lead.nombre}.` : `Se removió el registro para ${lead.nombre}.`
+        title: updatedLead.infoEnviada ? "Información enviada" : "Registro removido",
+        description: updatedLead.infoEnviada ? `Se marcó como enviado para ${lead.nombre}.` : `Se removió el envío para ${lead.nombre}.`
     });
   }
+
+  const handleCopyPhone = (e: React.MouseEvent, phone: string) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(phone);
+    toast({
+      title: "Copiado",
+      description: `El número ${phone} ha sido copiado al portapapeles.`
+    });
+  };
 
   const handleDeleteLead = async () => {
     if (editingLead) {
@@ -235,7 +243,14 @@ export function LeadsPageClient() {
                   </Button>
                 </TableCell>
                 <TableCell className="font-medium text-xs text-white">{lead.nombre}</TableCell>
-                <TableCell className="text-zinc-300 text-xs">{lead.telefono}</TableCell>
+                <TableCell className="text-zinc-300 text-xs">
+                  <span 
+                    className="hover:text-primary transition-colors cursor-copy py-1 px-2 -mx-2 rounded-md hover:bg-white/5"
+                    onClick={(e) => handleCopyPhone(e, lead.telefono)}
+                  >
+                    {lead.telefono}
+                  </span>
+                </TableCell>
                 <TableCell className="text-zinc-300 text-xs">{lead.nicho}</TableCell>
                 <TableCell className="text-zinc-300 text-xs hidden md:table-cell">
                   {lead.servicios.map(s => serviceDisplayNames[s]).join(', ')}
