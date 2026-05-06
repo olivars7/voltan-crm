@@ -3,7 +3,7 @@ import { useClientes } from '@/hooks/useClientes';
 import { usePagos } from '@/hooks/usePagos';
 import { useAgenda } from '@/hooks/useAgenda';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { DollarSign, ClipboardCheck, CheckCircle, CalendarDays, Loader2, Info, TrendingUp, HandCoins, Target } from 'lucide-react';
+import { DollarSign, ClipboardCheck, CheckCircle, CalendarDays, Loader2, Info, TrendingUp, HandCoins, Target, History } from 'lucide-react';
 import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { isBefore, parseISO, addMonths, startOfToday, isToday, isPast, startOfMonth, isWithinInterval, endOfMonth, format } from 'date-fns';
@@ -536,8 +536,7 @@ export default function ConsolePageClient() {
 
       {/* Dialogs */}
       <Dialog open={isPagoDetailOpen} onOpenChange={setPagoDetailOpen}>
-        {selectedPago && <PagoDetail 
-            pago={selectedPago} 
+        {selectedPago && <PagoDetail pago={selectedPago} 
             onOpenCliente={handleOpenClienteFromPago}
             onToggleStatus={() => handleToggleStatusFromDetail(selectedPago)}
             onEditRequest={() => handleOpenEditPago(selectedPago)}
