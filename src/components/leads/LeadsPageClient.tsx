@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LeadForm } from './LeadForm';
 import { LeadDetail } from './LeadDetail';
 import type { Lead, LeadEstado } from '@/lib/types';
@@ -178,7 +177,6 @@ export function LeadsPageClient() {
       const phoneMatch = normalize(lead.telefono).includes(search);
       const nichoMatch = normalize(lead.nicho).includes(search);
 
-      // Search within display names of services
       const servicesMatch = lead.servicios?.some(s => 
           normalize(serviceDisplayNames[s]).includes(search)
       );
@@ -203,7 +201,7 @@ export function LeadsPageClient() {
   }
 
   const LeadsTable = ({ data }: { data: Lead[] }) => (
-    <TooltipProvider>
+    <>
       {data.length === 0 && !loading ? (
         <p className="text-center text-muted-foreground/40 py-8">No hay leads en esta categoría.</p>
       ) : (
@@ -222,26 +220,19 @@ export function LeadsPageClient() {
             {data.map((lead) => (
               <TableRow key={lead.id} onClick={() => openDetailDialog(lead)} className="cursor-pointer group border-white/5 hover:bg-white/5">
                 <TableCell onClick={(e) => e.stopPropagation()} className="w-[50px] pr-0">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={cn(
-                          "h-8 w-8 rounded-full transition-all duration-300",
-                          lead.infoEnviada 
-                            ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" 
-                            : "bg-white/5 text-muted-foreground/40 hover:bg-white/10 hover:text-white"
-                        )}
-                        onClick={(e) => handleToggleWhatsApp(e, lead)}
-                      >
-                        <MessageSquareText className={cn("h-4 w-4", lead.infoEnviada && "fill-emerald-400/20")} />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-zinc-900 border-white/10 text-white text-[10px] font-bold py-1.5 px-3">
-                      Información enviada a WhatsApp
-                    </TooltipContent>
-                  </Tooltip>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                      "h-8 w-8 rounded-full transition-all duration-300",
+                      lead.infoEnviada 
+                        ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" 
+                        : "bg-white/5 text-muted-foreground/40 hover:bg-white/10 hover:text-white"
+                    )}
+                    onClick={(e) => handleToggleWhatsApp(e, lead)}
+                  >
+                    <MessageSquareText className={cn("h-4 w-4", lead.infoEnviada && "fill-emerald-400/20")} />
+                  </Button>
                 </TableCell>
                 <TableCell className="font-medium text-xs text-white">{lead.nombre}</TableCell>
                 <TableCell className="text-zinc-300 text-xs">{lead.telefono}</TableCell>
@@ -279,7 +270,7 @@ export function LeadsPageClient() {
           </TableBody>
         </Table>
       )}
-    </TooltipProvider>
+    </>
   );
 
   const KpiCard = ({ title, value, diff, icon: Icon, isLast = false }: { title: string, value: number, diff: number, icon: any, isLast?: boolean }) => (
