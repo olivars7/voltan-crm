@@ -139,19 +139,19 @@ export function Sidebar() {
             position: absolute;
             left: 0;
             right: 0;
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(24px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
           }
           .nav-link {
             position: relative;
             z-index: 10;
-            transition: all 0.3s ease;
+            transition: all 0.1s ease;
           }
           .nav-link.active {
-            color: white;
+            color: #ffffff;
             font-weight: 600;
           }
           @keyframes vibrate {
@@ -180,7 +180,7 @@ export function Sidebar() {
         <nav className="flex flex-col gap-6 px-4 py-8">
           <Link
             href="/dashboard"
-            className="flex items-center gap-2 px-2 mb-1.5 transition-all duration-200 active:scale-95"
+            className="flex items-center gap-2 px-2 mb-1.5 transition-all duration-100 active:scale-95"
           >
             <div className="relative h-6 w-6 shrink-0">
                <Image 
@@ -217,8 +217,8 @@ export function Sidebar() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    'nav-link flex h-12 w-full items-center gap-3 px-4 rounded-xl font-medium text-sm transition-all duration-300',
-                    isActive ? 'active' : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                    'nav-link flex h-12 w-full items-center gap-3 px-4 rounded-xl font-medium text-sm transition-all duration-100',
+                    isActive ? 'active' : 'text-zinc-400 hover:text-white hover:bg-white/10'
                   )}
                 >
                   <item.icon className="h-[14px] w-[14px] shrink-0" />
@@ -259,7 +259,7 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'relative flex flex-col items-center justify-center gap-1 rounded-lg p-2 transition-all duration-200 active:scale-90',
+                  'relative flex flex-col items-center justify-center gap-1 rounded-lg p-2 transition-all duration-100 active:scale-90',
                   isActive ? 'bg-white/10 backdrop-blur-md text-white border border-white/10' : 'text-zinc-500'
                 )}
               >
