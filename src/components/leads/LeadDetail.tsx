@@ -5,10 +5,11 @@ import { DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/compon
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { Lead } from '@/lib/types';
 import { formatDate } from '@/lib/utils';
-import { User, Phone, Briefcase, Notebook, Pencil, CheckSquare, History, MessageSquare } from 'lucide-react';
+import { User, Phone, Briefcase, Notebook, Pencil, CheckSquare, History, MessageSquare, Copy } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
 import { serviceDisplayNames } from './ServiciosCheckboxes';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface LeadDetailProps {
   lead: Lead;
@@ -16,9 +17,18 @@ interface LeadDetailProps {
 }
 
 export function LeadDetail({ lead, onEdit }: LeadDetailProps) {
+  const { toast } = useToast();
   
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const handleCopyContact = (contact: string) => {
+    navigator.clipboard.writeText(contact);
+    toast({
+      title: "Copiado",
+      description: `${contact} ha sido copiado al portapapeles.`
+    });
   };
 
   const getEntryStyles = (estado: string, isLast: boolean) => {
@@ -55,9 +65,13 @@ export function LeadDetail({ lead, onEdit }: LeadDetailProps) {
             </Avatar>
             <div className="space-y-1">
                 <DialogTitle className="text-2xl font-bold tracking-tighter text-white">{lead.nombre}</DialogTitle>
-                <div className="flex items-center justify-center gap-2 text-zinc-400 text-sm">
+                <div 
+                  className="flex items-center justify-center gap-2 text-zinc-400 text-sm cursor-pointer hover:text-primary transition-colors group py-1 px-3 rounded-full hover:bg-white/5"
+                  onClick={() => handleCopyContact(lead.telefono)}
+                >
                     <Phone className="w-3.5 h-3.5" />
                     <span>{lead.telefono}</span>
+                    <Copy className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all transform scale-75 group-hover:scale-100" />
                 </div>
             </div>
         </div>

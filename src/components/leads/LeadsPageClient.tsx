@@ -102,12 +102,12 @@ export function LeadsPageClient() {
     });
   }
 
-  const handleCopyPhone = (e: React.MouseEvent, phone: string) => {
+  const handleCopyContact = (e: React.MouseEvent, contact: string) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(phone);
+    navigator.clipboard.writeText(contact);
     toast({
       title: "Copiado",
-      description: `El número ${phone} ha sido copiado al portapapeles.`
+      description: `${contact} ha sido copiado al portapapeles.`
     });
   };
 
@@ -246,7 +246,7 @@ export function LeadsPageClient() {
                 <TableCell className="text-zinc-300 text-xs">
                   <span 
                     className="hover:text-primary transition-colors cursor-copy py-1 px-2 -mx-2 rounded-md hover:bg-white/5"
-                    onClick={(e) => handleCopyPhone(e, lead.telefono)}
+                    onClick={(e) => handleCopyContact(e, lead.telefono)}
                   >
                     {lead.telefono}
                   </span>
