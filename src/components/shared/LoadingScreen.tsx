@@ -27,10 +27,24 @@ export function LoadingScreen() {
         visible ? "opacity-100" : "opacity-0 pointer-events-none"
       )}
     >
-      <div className="flex items-center gap-1">
-        <span className="text-5xl text-white font-bold animate-pulse" style={{ animationDelay: '0s' }}>.</span>
-        <span className="text-5xl text-white font-bold animate-pulse" style={{ animationDelay: '0.2s' }}>.</span>
-        <span className="text-5xl text-white font-bold animate-pulse" style={{ animationDelay: '0.4s' }}>.</span>
+      <div className="flex items-center gap-8">
+        <div className="loader">
+          <svg viewBox="0 0 80 80">
+            <circle r="32" cy="40" cx="40" id="test"></circle>
+          </svg>
+        </div>
+
+        <div className="loader triangle">
+          <svg viewBox="0 0 86 80">
+            <polygon points="43 8 79 72 7 72"></polygon>
+          </svg>
+        </div>
+
+        <div className="loader">
+          <svg viewBox="0 0 80 80">
+            <rect height="64" width="64" y="8" x="8"></rect>
+          </svg>
+        </div>
       </div>
     </div>
   );
