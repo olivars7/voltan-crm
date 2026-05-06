@@ -26,10 +26,20 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   const [theme, setTheme] = React.useState<Theme>("dark")
 
+  // Load from local storage on mount
+  React.useEffect(() => {
+    const savedTheme = localStorage.getItem("voltan-theme") as Theme | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
+  }, []);
+
+  // Sync with document element and local storage
   React.useEffect(() => {
     const root = window.document.documentElement
     root.classList.remove("light", "dark")
     root.classList.add(theme)
+    localStorage.setItem("voltan-theme", theme);
   }, [theme])
 
   const value = {
