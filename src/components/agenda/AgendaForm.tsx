@@ -17,7 +17,7 @@ import { Trash2 } from 'lucide-react';
 
 const formSchema = z.object({
   nombre: z.string().min(2, { message: 'El nombre es requerido.' }),
-  telefono: z.string().min(10, { message: 'Número de WhatsApp inválido.' }),
+  telefono: z.string().min(1, { message: 'El contacto es requerido.' }),
   medio: z.enum(['llamada', 'google-meet', 'zoom', 'whatsapp', 'instagram'], { required_error: 'El medio es requerido.' }),
   fecha: z.string().min(1, { message: 'La fecha es requerida.' }),
   estado: z.enum(['pronto', 'pendiente', 'realizada', 'cancelada'], { required_error: 'El estado es requerido.' }),
@@ -80,7 +80,7 @@ export function AgendaForm({ llamada, isRescheduling = false, onSubmit, onDelete
     <DialogContent className="sm:max-w-lg bg-zinc-950/80 backdrop-blur-3xl border-white/10 shadow-2xl rounded-3xl">
       <DialogHeader>
         <DialogTitle className="text-xl font-bold tracking-tight text-white">
-          {isRescheduling ? 'Reagendar Llamada' : (llamada ? 'Editar Llamada' : 'Agendar Llamada')}
+          {isRescheduling ? 'Reagendar' : 'Agendar'}
         </DialogTitle>
       </DialogHeader>
       <Form {...form}>
@@ -94,8 +94,8 @@ export function AgendaForm({ llamada, isRescheduling = false, onSubmit, onDelete
             )} />
             <FormField control={form.control} name="telefono" render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-zinc-300">Número WhatsApp / Contacto</FormLabel>
-                <FormControl><Input placeholder="55-1234-5678" {...field} className={cn("bg-white/5 border-white/10 text-white", inheritedFieldClass)} /></FormControl>
+                <FormLabel className="text-zinc-300">Contacto (WhatsApp / Usuario / Tel)</FormLabel>
+                <FormControl><Input placeholder="Escribe el contacto..." {...field} className={cn("bg-white/5 border-white/10 text-white", inheritedFieldClass)} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
@@ -142,7 +142,7 @@ export function AgendaForm({ llamada, isRescheduling = false, onSubmit, onDelete
             <FormField control={form.control} name="notas" render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-zinc-300">Notas (Opcional)</FormLabel>
-                <FormControl><Textarea placeholder="Detalles de la llamada o mensaje..." {...field} className={cn("bg-white/5 border-white/10 min-h-[100px] text-white", inheritedFieldClass)} /></FormControl>
+                <FormControl><Textarea placeholder="Detalles adicionales..." {...field} className={cn("bg-white/5 border-white/10 min-h-[100px] text-white", inheritedFieldClass)} /></FormControl>
                 <FormMessage />
               </FormItem>
             )}/>

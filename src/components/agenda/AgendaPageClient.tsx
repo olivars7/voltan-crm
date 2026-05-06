@@ -33,7 +33,7 @@ export function AgendaPageClient() {
   
   const handleAddSubmit = async (values: any) => {
     await addLlamada(values);
-    toast({ title: "Llamada agendada", description: "La nueva llamada ha sido guardada." });
+    toast({ title: "Agendado", description: "La nueva entrada ha sido guardada." });
     setFormOpen(false);
   }
 
@@ -42,13 +42,13 @@ export function AgendaPageClient() {
         if (isRescheduling) {
             await addLlamada(values);
             toast({ 
-                title: "Llamada reagendada", 
-                description: "Se ha creado una nueva cita a partir de los datos heredados." 
+                title: "Reagendado", 
+                description: "Se ha creado una nueva entrada a partir de los datos heredados." 
             });
         } else {
             const updatedLlamada = { ...selectedLlamada, ...values };
             await updateLlamada(updatedLlamada);
-            toast({ title: "Llamada actualizada", description: "La llamada ha sido actualizada." });
+            toast({ title: "Actualizado", description: "La entrada ha sido actualizada." });
         }
         
         setFormOpen(false);
@@ -59,9 +59,9 @@ export function AgendaPageClient() {
   
   const handleDeleteLlamada = async () => {
     if (selectedLlamada) {
-      if(window.confirm(`¿Estás seguro de que quieres eliminar la llamada con ${selectedLlamada.nombre}?`)){
+      if(window.confirm(`¿Estás seguro de que quieres eliminar a ${selectedLlamada.nombre}?`)){
           await deleteLlamada(selectedLlamada.id);
-          toast({ title: "Llamada eliminada" });
+          toast({ title: "Eliminado" });
           setFormOpen(false); 
           setDetailOpen(false);
           setSelectedLlamada(undefined);
@@ -77,7 +77,7 @@ export function AgendaPageClient() {
       fecha: status === 'realizada' ? now : llamada.fecha 
     };
     await updateLlamada(updatedLlamada);
-    toast({ title: `Llamada ${status}`, description: "El estado de la llamada ha sido actualizado." });
+    toast({ title: `Estado: ${status}`, description: "El estado ha sido actualizado." });
     setDetailOpen(false);
   }
 
@@ -116,7 +116,7 @@ export function AgendaPageClient() {
       const search = searchTerm.toLowerCase();
       return (
           llamada.nombre.toLowerCase().includes(search) ||
-          llamada.telefono.includes(search) ||
+          llamada.telefono.toLowerCase().includes(search) ||
           getEffectiveStatus(llamada).toLowerCase().includes(search)
       );
   };
@@ -134,13 +134,13 @@ export function AgendaPageClient() {
   const CallsTable = ({ calls, visibleCount, type }: { calls: LlamadaAgendada[], visibleCount: number, type: 'proximas' | 'pasadas' }) => (
     <>
       {calls.length === 0 && !loading ? (
-        <p className="text-center text-muted-foreground/40 py-8 text-sm font-medium">No hay llamadas {type}.</p>
+        <p className="text-center text-muted-foreground/40 py-8 text-sm font-medium">No hay eventos {type}.</p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow className="border-white/10 hover:bg-transparent">
               <TableHead className="text-white/80 text-[10px] uppercase font-bold tracking-wider">Cliente/Interesado</TableHead>
-              <TableHead className="text-white/80 text-[10px] uppercase font-bold tracking-wider">Número</TableHead>
+              <TableHead className="text-white/80 text-[10px] uppercase font-bold tracking-wider">Contacto</TableHead>
               <TableHead className="text-white/80 text-[10px] uppercase font-bold tracking-wider">Fecha y Hora</TableHead>
               <TableHead className="text-white/80 text-[10px] uppercase font-bold tracking-wider">Medio</TableHead>
               <TableHead className="text-white/80 text-[10px] uppercase font-bold tracking-wider">Estado</TableHead>
@@ -166,11 +166,11 @@ export function AgendaPageClient() {
     <div className="pb-20">
       <PageHeader
         title="Agenda"
-        description="Gestiona tus llamadas agendadas."
+        description="Gestiona tus eventos y mensajes programados."
       >
         <Button onClick={openNewDialog} className="bg-white/80 backdrop-blur-xl border-white/10 hover:bg-white/90 text-zinc-950">
           <PlusCircle className="mr-2 h-4 w-4" />
-          Agendar Llamada
+          Agendar
         </Button>
       </PageHeader>
       
@@ -200,7 +200,7 @@ export function AgendaPageClient() {
         <TabsContent value="proximas" className="mt-0">
             <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-lg text-white">Llamadas Próximas</CardTitle>
+                  <CardTitle className="text-lg text-white">Eventos Próximos</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <CallsTable calls={llamadasProximas} visibleCount={visibleUpcoming} type="proximas" />
@@ -215,7 +215,7 @@ export function AgendaPageClient() {
         <TabsContent value="pasadas" className="mt-0">
             <Card className="border-white/10 bg-zinc-950/20 backdrop-blur-3xl shadow-2xl">
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-lg text-white">Llamadas Pasadas</CardTitle>
+                  <CardTitle className="text-lg text-white">Registro Histórico</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <CallsTable calls={llamadasPasadas} visibleCount={visiblePast} type="pasadas" />
