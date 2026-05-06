@@ -2,17 +2,13 @@
 {
   "name": "Sistema Voltan",
   "short_name": "Voltan",
-  "description": "CRM para gestión de clientes, pagos y leads de Sistema Voltan.",
+  "description": "Un CRM simple para gestionar clientes, citas y pagos.",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
+  "orientation": "portrait",
   "icons": [
-    {
-      "src": "/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
-    },
     {
       "src": "https://picsum.photos/seed/voltan/192/192",
       "sizes": "192x192",

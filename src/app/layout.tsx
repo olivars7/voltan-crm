@@ -49,6 +49,21 @@ export default function RootLayout({
           {children}
           <Toaster />
         </ThemeProvider>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').then(function(reg) {
+                    console.log('SW registered');
+                  }).catch(function(err) {
+                    console.log('SW registration failed', err);
+                  });
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );
