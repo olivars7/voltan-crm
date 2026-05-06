@@ -24,7 +24,7 @@ export default function AppLayout({
           colorStops={["#000000", "#001F3F", "#C0C0C0"]}
           blend={1.0}
           amplitude={1.1}
-          speed={1.0}
+          speed={0.8}
         />
       </div>
       

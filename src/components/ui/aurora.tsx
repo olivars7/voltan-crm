@@ -87,9 +87,9 @@ struct ColorStop {
 void main() {
   vec2 uv = gl_FragCoord.xy / uResolution;
   
-  // Noise-based factor for color distribution (makes colors move around)
-  float colorNoise = snoise(vec2(uv.x * 0.8 + uTime * 0.05, uv.y * 0.5 - uTime * 0.08));
-  float factor = clamp(uv.x + colorNoise * 0.4, 0.0, 1.0);
+  // Noise-based factor for color distribution
+  float colorNoise = snoise(vec2(uv.x * 0.6 + uTime * 0.03, uv.y * 0.4 - uTime * 0.05));
+  float factor = clamp(uv.x + colorNoise * 0.5, 0.0, 1.0);
   
   ColorStop colors[3];
   colors[0] = ColorStop(uColorStops[0], 0.0);
@@ -99,21 +99,20 @@ void main() {
   vec3 rampColor;
   COLOR_RAMP(colors, factor, rampColor);
   
-  // Flowing noise that moves vertically and horizontally
-  float n1 = snoise(vec2(uv.x * 1.5 + uTime * 0.12, uv.y * 1.0 - uTime * 0.25));
-  float n2 = snoise(vec2(uv.x * 2.5 - uTime * 0.08, uv.y * 1.8 + uTime * 0.18));
-  float noise = (n1 + n2 * 0.5) * uAmplitude;
+  // Flowing noise with wider influence
+  float n1 = snoise(vec2(uv.x * 1.2 + uTime * 0.1, uv.y * 0.8 - uTime * 0.2));
+  float n2 = snoise(vec2(uv.x * 2.0 - uTime * 0.06, uv.y * 1.5 + uTime * 0.15));
+  float noise = (n1 + n2 * 0.6) * uAmplitude;
   
-  // Intensity that covers more area and flows from borders
-  // Increased coverage by adjusting ranges
-  float verticalFlow = smoothstep(-1.0, 2.0, uv.y + noise * 0.4);
-  float edgeGlow = smoothstep(1.5, -0.2, distance(uv, vec2(0.5, 0.5)));
-  float flowIntensity = (verticalFlow * 0.6 + edgeGlow * 0.4) * uBlend;
+  // High coverage calculation
+  float verticalFlow = smoothstep(-1.5, 2.5, uv.y + noise * 0.5);
+  float edgeGlow = smoothstep(2.0, -0.5, distance(uv, vec2(0.5, 0.5)));
+  float flowIntensity = (verticalFlow * 0.5 + edgeGlow * 0.5) * uBlend;
   
-  float auroraAlpha = smoothstep(0.0, 1.0, flowIntensity);
+  float auroraAlpha = smoothstep(-0.2, 1.2, flowIntensity);
   
   vec3 auroraColor = flowIntensity * rampColor;
-  vec3 baseColor = uColorStops[0] * 0.05; // Deep black base
+  vec3 baseColor = uColorStops[0] * 0.02; // Very minimal black base for maximum aurora feel
   
   fragColor = vec4(mix(baseColor, auroraColor, auroraAlpha), 1.0);
 }
