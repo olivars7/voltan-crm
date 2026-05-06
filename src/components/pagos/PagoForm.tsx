@@ -31,7 +31,7 @@ import {
 import { DateTimePicker } from '@/components/ui/date-time-picker';
 import type { Pago, Cliente } from '@/lib/types';
 import { useEffect } from 'react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, DollarSign, Tag, User, Calendar, MessageSquare, CheckCircle2 } from 'lucide-react';
 
 const formSchema = z.object({
   clienteId: z.string().min(1, { message: 'Debes seleccionar un cliente.' }),
@@ -91,25 +91,25 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
   const isSynthetic = pago?.id?.startsWith('recurring-');
 
   return (
-    <DialogContent className="sm:max-w-md bg-zinc-950/80 backdrop-blur-3xl border-white/10 shadow-2xl rounded-3xl text-white">
-      <DialogHeader>
-        <DialogTitle className="text-xl font-bold tracking-tight text-white">{pago ? 'Editar Pago' : 'Registrar Pago'}</DialogTitle>
+    <DialogContent className="sm:max-w-lg bg-zinc-950/80 backdrop-blur-3xl border-white/10 shadow-2xl rounded-[2.5rem] text-white overflow-hidden">
+      <DialogHeader className="p-8 pb-2 text-center sm:text-left">
+        <DialogTitle className="text-2xl font-bold tracking-tight text-white">{pago ? 'Ajustar Pago' : 'Registrar Pago'}</DialogTitle>
       </DialogHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5 p-8 pt-4">
           <FormField
             control={form.control}
             name="clienteId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-zinc-300">Cliente</FormLabel>
+                <FormLabel className="text-zinc-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2"><User className="w-3 h-3"/> Cliente</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value} disabled={!!pago}>
                   <FormControl>
-                    <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                    <SelectTrigger className="bg-white/5 border-white/10 text-white h-12 rounded-2xl focus:bg-white/10 transition-all">
                       <SelectValue placeholder="Selecciona un cliente" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                  <SelectContent className="bg-zinc-900 border-white/10 text-white rounded-2xl shadow-2xl">
                     {clientes.map((cliente) => (
                       <SelectItem key={cliente.id} value={cliente.id}>
                         {cliente.nombre}
@@ -121,85 +121,92 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="concepto"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-zinc-300">Concepto</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ej. Mensualidad, Adelanto..." {...field} className="bg-white/5 border-white/10 text-white" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="monto"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-zinc-300">Monto (MXN)</FormLabel>
-                <FormControl>
-                  <Input type="number" step="0.01" placeholder="0.00" {...field} className="bg-white/5 border-white/10 text-white" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="fechaLimite"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-zinc-300">Fecha Límite</FormLabel>
-                <FormControl>
-                  <DateTimePicker date={field.value} setDate={field.onChange} showTime={false} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="fechaPago"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-zinc-300">Fecha de Pago (opcional)</FormLabel>
-                <FormControl>
-                  <DateTimePicker date={field.value} setDate={field.onChange} showTime={false} label="Marcar fecha de pago" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+                control={form.control}
+                name="concepto"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel className="text-zinc-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2"><Tag className="w-3 h-3"/> Concepto</FormLabel>
+                    <FormControl>
+                    <Input placeholder="Ej. Mensualidad" {...field} className="bg-white/5 border-white/10 text-white h-12 rounded-2xl focus:bg-white/10 transition-all" />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+            <FormField
+                control={form.control}
+                name="monto"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel className="text-zinc-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2"><DollarSign className="w-3 h-3"/> Monto (MXN)</FormLabel>
+                    <FormControl>
+                    <Input type="number" step="0.01" placeholder="0.00" {...field} className="bg-white/5 border-white/10 text-white h-12 rounded-2xl focus:bg-white/10 transition-all font-bold" />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+                control={form.control}
+                name="fechaLimite"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel className="text-zinc-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2"><Calendar className="w-3 h-3"/> Fecha Límite</FormLabel>
+                    <FormControl>
+                    <DateTimePicker date={field.value} setDate={field.onChange} showTime={false} />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+            <FormField
+                control={form.control}
+                name="fechaPago"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel className="text-zinc-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2"><CheckCircle2 className="w-3 h-3"/> Fecha de Pago</FormLabel>
+                    <FormControl>
+                    <DateTimePicker date={field.value} setDate={field.onChange} showTime={false} label="Marcar como pagado" />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+          </div>
+
            <FormField
             control={form.control}
             name="notas"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-zinc-300">Notas (opcional)</FormLabel>
+                <FormLabel className="text-zinc-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2"><MessageSquare className="w-3 h-3"/> Notas u Observaciones</FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Detalles adicionales..." {...field} className="bg-white/5 border-white/10 text-white min-h-[80px]" />
+                  <Textarea placeholder="Detalles del pago..." {...field} className="bg-white/5 border-white/10 text-white min-h-[80px] rounded-2xl focus:bg-white/10 transition-all" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <DialogFooter className="flex justify-between items-center pt-6 border-t border-white/10 mt-4 gap-2">
+          <DialogFooter className="flex justify-between items-center pt-8 border-t border-white/5 mt-4 gap-3">
             <div>
                 {pago && onDelete && !isSynthetic && (
-                    <Button type="button" variant="destructive" onClick={onDelete} className="bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 border-rose-500/20 h-9">
+                    <Button type="button" variant="destructive" onClick={onDelete} className="bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 border-rose-500/20 h-11 rounded-2xl px-6">
                         <Trash2 className="mr-2 h-4 w-4" />
                         Eliminar
                     </Button>
                 )}
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
                 <DialogClose asChild>
-                    <Button type="button" variant="secondary" className="bg-white/5 border-white/10 hover:bg-white/10 text-white h-9">Cancelar</Button>
+                    <Button type="button" variant="secondary" className="bg-white/5 border-white/10 hover:bg-white/10 text-white h-11 rounded-2xl px-8">Cancelar</Button>
                 </DialogClose>
-                <Button type="submit" className="bg-primary shadow-lg shadow-primary/20 h-9 px-6 text-white">Guardar</Button>
+                <Button type="submit" className="bg-primary hover:bg-primary/90 shadow-2xl shadow-primary/30 h-11 px-10 rounded-2xl font-bold text-white">Guardar Pago</Button>
             </div>
           </DialogFooter>
         </form>
