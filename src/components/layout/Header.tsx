@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Sun, Moon } from 'lucide-react';
 import { useTheme } from '@/components/ThemeProvider';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export function Header() {
   const { theme, setTheme } = useTheme();
@@ -27,10 +28,19 @@ export function Header() {
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9 bg-white/5 border border-white/5 hover:bg-white/10 rounded-full"
+          className="h-9 w-9 bg-white/5 border border-white/5 hover:bg-white/10 rounded-full relative overflow-hidden group/toggle"
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         >
-          {theme === 'dark' ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-zinc-300" />}
+          <div className="relative h-4 w-4">
+            <Sun className={cn(
+              "h-4 w-4 text-amber-400 absolute transition-all duration-500 transform",
+              theme === 'dark' ? "rotate-0 scale-100 opacity-100" : "rotate-90 scale-0 opacity-0"
+            )} />
+            <Moon className={cn(
+              "h-4 w-4 text-zinc-300 absolute transition-all duration-500 transform",
+              theme === 'light' ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0"
+            )} />
+          </div>
         </Button>
       </div>
     </header>
