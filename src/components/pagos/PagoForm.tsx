@@ -28,6 +28,7 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
+import { DateTimePicker } from '@/components/ui/date-time-picker';
 import type { Pago, Cliente } from '@/lib/types';
 import { useEffect } from 'react';
 import { Trash2 } from 'lucide-react';
@@ -36,8 +37,8 @@ const formSchema = z.object({
   clienteId: z.string().min(1, { message: 'Debes seleccionar un cliente.' }),
   monto: z.coerce.number().positive({ message: 'El monto debe ser positivo.' }),
   concepto: z.string().min(1, { message: 'El concepto es requerido.' }),
-  fechaLimite: z.string().min(1, { message: 'La fecha límite es requerida.' }),
-  fechaPago: z.string().optional(),
+  fechaLimite: z.date({ required_error: 'La fecha límite es requerida.' }),
+  fechaPago: z.date().optional(),
   notas: z.string().optional(),
 });
 
@@ -56,42 +57,31 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
       clienteId: '',
       monto: 0,
       concepto: '',
-      fechaLimite: '',
-      fechaPago: '',
+      fechaLimite: new Date(),
+      fechaPago: undefined,
       notas: '',
     },
   });
 
   useEffect(() => {
-    form.reset(
-      pago
-        ? { 
-            ...pago, 
-            fechaLimite: (pago.fechaLimite || '').split('T')[0],
-            fechaPago: pago.fechaPago ? pago.fechaPago.split('T')[0] : ''
-          }
-        : {
-            clienteId: '',
-            monto: 0,
-            concepto: '',
-            fechaLimite: '',
-            fechaPago: '',
-            notas: '',
-          }
-    );
+    if (pago) {
+      form.reset({ 
+        ...pago, 
+        fechaLimite: new Date(pago.fechaLimite),
+        fechaPago: pago.fechaPago ? new Date(pago.fechaPago) : undefined
+      });
+    }
   }, [pago, form]);
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    const { fechaPago, ...restValues } = values;
-    
     const submissionValues: any = {
-        ...restValues,
-        fechaLimite: new Date(values.fechaLimite.includes('T') ? values.fechaLimite : `${values.fechaLimite}T00:00:00`).toISOString(),
-        estado: fechaPago ? 'pagado' : 'pendiente',
+        ...values,
+        fechaLimite: values.fechaLimite.toISOString(),
+        estado: values.fechaPago ? 'pagado' : 'pendiente',
     };
 
-    if (fechaPago) {
-        submissionValues.fechaPago = new Date(fechaPago.includes('T') ? fechaPago : `${fechaPago}T00:00:00`).toISOString();
+    if (values.fechaPago) {
+        submissionValues.fechaPago = values.fechaPago.toISOString();
     }
     
     onSubmit(submissionValues);
@@ -115,7 +105,7 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
                 <FormLabel className="text-zinc-300">Cliente</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value} disabled={!!pago}>
                   <FormControl>
-                    <SelectTrigger className="bg-white/5 border-white/10 text-white placeholder:text-zinc-500">
+                    <SelectTrigger className="bg-white/5 border-white/10 text-white">
                       <SelectValue placeholder="Selecciona un cliente" />
                     </SelectTrigger>
                   </FormControl>
@@ -138,7 +128,7 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
               <FormItem>
                 <FormLabel className="text-zinc-300">Concepto</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ej. Mensualidad, Adelanto, etc." {...field} className="bg-white/5 border-white/10 text-white placeholder:text-zinc-500" />
+                  <Input placeholder="Ej. Mensualidad, Adelanto..." {...field} className="bg-white/5 border-white/10 text-white" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -151,7 +141,7 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
               <FormItem>
                 <FormLabel className="text-zinc-300">Monto (MXN)</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.01" placeholder="15000.00" {...field} className="bg-white/5 border-white/10 text-white placeholder:text-zinc-500" />
+                  <Input type="number" step="0.01" placeholder="0.00" {...field} className="bg-white/5 border-white/10 text-white" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -164,7 +154,7 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
               <FormItem>
                 <FormLabel className="text-zinc-300">Fecha Límite</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} className="bg-white/5 border-white/10 text-white invert-calendar-icon" />
+                  <DateTimePicker date={field.value} setDate={field.onChange} showTime={false} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -177,7 +167,7 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
               <FormItem>
                 <FormLabel className="text-zinc-300">Fecha de Pago (opcional)</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} className="bg-white/5 border-white/10 text-white invert-calendar-icon" />
+                  <DateTimePicker date={field.value} setDate={field.onChange} showTime={false} label="Marcar fecha de pago" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -190,7 +180,7 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
               <FormItem>
                 <FormLabel className="text-zinc-300">Notas (opcional)</FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Detalles adicionales sobre el pago..." {...field} className="bg-white/5 border-white/10 text-white placeholder:text-zinc-500 min-h-[80px]" />
+                  <Textarea placeholder="Detalles adicionales..." {...field} className="bg-white/5 border-white/10 text-white min-h-[80px]" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -209,7 +199,7 @@ export function PagoForm({ pago, clientes, onSubmit, onDelete, setOpen }: PagoFo
                 <DialogClose asChild>
                     <Button type="button" variant="secondary" className="bg-white/5 border-white/10 hover:bg-white/10 text-white h-9">Cancelar</Button>
                 </DialogClose>
-                <Button type="submit" className="bg-primary shadow-lg shadow-primary/20 h-9 px-6 font-semibold text-white hover:bg-primary/90">Guardar</Button>
+                <Button type="submit" className="bg-primary shadow-lg shadow-primary/20 h-9 px-6 text-white">Guardar</Button>
             </div>
           </DialogFooter>
         </form>

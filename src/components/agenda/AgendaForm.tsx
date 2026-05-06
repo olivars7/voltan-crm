@@ -9,17 +9,17 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { DateTimePicker } from '@/components/ui/date-time-picker';
 import type { LlamadaAgendada } from '@/lib/types';
 import { useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
 import { Trash2 } from 'lucide-react';
 
 const formSchema = z.object({
   nombre: z.string().min(2, { message: 'El nombre es requerido.' }),
   telefono: z.string().min(1, { message: 'El contacto es requerido.' }),
   medio: z.enum(['llamada', 'google-meet', 'zoom', 'whatsapp', 'instagram'], { required_error: 'El medio es requerido.' }),
-  fecha: z.string().min(1, { message: 'La fecha es requerida.' }),
+  fecha: z.date({ required_error: 'La fecha es requerida.' }),
   estado: z.enum(['pronto', 'pendiente', 'realizada', 'cancelada'], { required_error: 'El estado es requerido.' }),
   notas: z.string().optional(),
 });
@@ -27,7 +27,7 @@ const formSchema = z.object({
 type AgendaFormProps = {
   llamada?: LlamadaAgendada;
   isRescheduling?: boolean;
-  onSubmit: (values: z.infer<typeof formSchema>) => void;
+  onSubmit: (values: any) => void;
   onDelete?: () => void;
   setOpen: (open: boolean) => void;
 };
@@ -39,7 +39,7 @@ export function AgendaForm({ llamada, isRescheduling = false, onSubmit, onDelete
       nombre: '',
       telefono: '',
       medio: 'llamada',
-      fecha: '',
+      fecha: new Date(),
       estado: 'pronto',
       notas: '',
     },
@@ -49,26 +49,17 @@ export function AgendaForm({ llamada, isRescheduling = false, onSubmit, onDelete
     if (llamada) {
       const defaultValues = {
         ...llamada,
-        fecha: isRescheduling ? '' : format(new Date(llamada.fecha), "yyyy-MM-dd'T'HH:mm"),
-        estado: isRescheduling ? ('pronto' as const) : llamada.estado, // Force "pronto" on reschedule
+        fecha: isRescheduling ? new Date() : new Date(llamada.fecha),
+        estado: isRescheduling ? ('pronto' as const) : llamada.estado,
       };
       form.reset(defaultValues);
-    } else {
-      form.reset({
-        nombre: '',
-        telefono: '',
-        medio: 'llamada',
-        fecha: '',
-        estado: 'pronto',
-        notas: '',
-      });
     }
   }, [llamada, isRescheduling, form]);
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
     const submissionValues: any = { 
         ...values,
-        fecha: new Date(values.fecha).toISOString()
+        fecha: values.fecha.toISOString()
     };
     onSubmit(submissionValues);
     setOpen(false);
@@ -80,7 +71,7 @@ export function AgendaForm({ llamada, isRescheduling = false, onSubmit, onDelete
     <DialogContent className="sm:max-w-lg bg-zinc-950/80 backdrop-blur-3xl border-white/10 shadow-2xl rounded-3xl">
       <DialogHeader>
         <DialogTitle className="text-xl font-bold tracking-tight text-white">
-          {isRescheduling ? 'Reagendar' : 'Agendar'}
+          Agendar
         </DialogTitle>
       </DialogHeader>
       <Form {...form}>
@@ -88,7 +79,7 @@ export function AgendaForm({ llamada, isRescheduling = false, onSubmit, onDelete
             <FormField control={form.control} name="nombre" render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-zinc-300">Nombre Cliente/Interesado</FormLabel>
-                <FormControl><Input placeholder="John Doe" {...field} className={cn("bg-white/5 border-white/10 text-white", inheritedFieldClass)} /></FormControl>
+                <FormControl><Input placeholder="Nombre o usuario..." {...field} className={cn("bg-white/5 border-white/10 text-white", inheritedFieldClass)} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
@@ -135,7 +126,9 @@ export function AgendaForm({ llamada, isRescheduling = false, onSubmit, onDelete
             <FormField control={form.control} name="fecha" render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-zinc-300">Fecha y Hora</FormLabel>
-                <FormControl><Input type="datetime-local" {...field} className="bg-white/5 border-white/10 text-white" /></FormControl>
+                <FormControl>
+                  <DateTimePicker date={field.value} setDate={field.onChange} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )} />
@@ -160,7 +153,7 @@ export function AgendaForm({ llamada, isRescheduling = false, onSubmit, onDelete
                     <DialogClose asChild>
                         <Button type="button" variant="secondary" className="bg-white/5 border-white/5 hover:bg-white/10 h-9 text-white">Cancelar</Button>
                     </DialogClose>
-                    <Button type="submit" className="bg-primary shadow-lg shadow-primary/20 h-9 text-white">Guardar Cambios</Button>
+                    <Button type="submit" className="bg-primary shadow-lg shadow-primary/20 h-9 text-white">Guardar</Button>
                 </div>
             </DialogFooter>
         </form>
